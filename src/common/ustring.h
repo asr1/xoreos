@@ -124,6 +124,11 @@ public:
 
 	iterator findFirst(uint32 c) const;
 	iterator findLast(uint32 c) const;
+	
+	/**  If find is not contained within this,
+		this.end() will be returned.*/
+	iterator findSubString(const UString &find);
+	
 
 	bool beginsWith(const UString &with) const;
 	bool endsWith(const UString &with) const;

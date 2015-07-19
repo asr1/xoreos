@@ -37,7 +37,8 @@ WidgetScrollbar::WidgetScrollbar(::Engines::GUI &gui, const Common::UString &tag
 WidgetScrollbar::~WidgetScrollbar() {
 }
 
-void WidgetScrollbar::load(const Aurora::GFF3Struct &UNUSED(gff)) {
+void WidgetScrollbar::load(const Aurora::GFF3Struct &gff) {
+	KotORWidget::load(gff);
 }
 
 } // End of namespace KotOR
