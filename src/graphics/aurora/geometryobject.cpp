@@ -22,6 +22,8 @@
  *  A simple 3D object.
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 
 #include "src/graphics/aurora/geometryobject.h"
@@ -163,9 +165,9 @@ void GeometryObject::render(RenderPass pass) {
 
 	glTranslatef(_position[0], _position[1], _position[2]);
 
-	glRotatef( _rotation[0], 1.0, 0.0, 0.0);
-	glRotatef( _rotation[1], 0.0, 1.0, 0.0);
-	glRotatef(-_rotation[2], 0.0, 0.0, 1.0);
+	glRotatef(_rotation[0], 1.0f, 0.0f, 0.0f);
+	glRotatef(_rotation[1], 0.0f, 1.0f, 0.0f);
+	glRotatef(_rotation[2], 0.0f, 0.0f, 1.0f);
 
 	TextureMan.reset();
 
@@ -173,12 +175,12 @@ void GeometryObject::render(RenderPass pass) {
 
 	const VertexDecl &vertexDecl = _vertexBuffer.getVertexDecl();
 
-	for (uint32 i = 0; i < vertexDecl.size(); i++)
+	for (size_t i = 0; i < vertexDecl.size(); i++)
 		EnableVertexAttrib(vertexDecl[i]);
 
 	glDrawElements(GL_TRIANGLES, _indexBuffer.getCount(), _indexBuffer.getType(), _indexBuffer.getData());
 
-	for (uint32 i = 0; i < vertexDecl.size(); i++)
+	for (size_t i = 0; i < vertexDecl.size(); i++)
 		DisableVertexAttrib(vertexDecl[i]);
 }
 

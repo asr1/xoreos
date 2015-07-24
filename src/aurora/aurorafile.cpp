@@ -22,7 +22,7 @@
  *  Utility class for handling special data structures found in BioWare's Aurora files.
  */
 
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/ustring.h"
 
 #include "src/aurora/aurorafile.h"
@@ -70,6 +70,18 @@ void AuroraBase::readHeader(Common::SeekableReadStream &stream,
 		version = convertUTF16LE(version1, version2);
 	} else
 		utf16le = false;
+}
+
+void AuroraBase::readHeader(Common::SeekableReadStream &stream, uint32 &id, uint32 &version) {
+	bool utf16le;
+	readHeader(stream, id, version, utf16le);
+}
+
+uint32 AuroraBase::readHeaderID(Common::SeekableReadStream &stream) {
+	uint32 id, version;
+	readHeader(stream, id, version);
+
+	return id;
 }
 
 void AuroraBase::readHeader(Common::SeekableReadStream &stream) {

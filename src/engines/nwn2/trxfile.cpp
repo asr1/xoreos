@@ -23,7 +23,7 @@
  */
 
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/encoding.h"
 #include "src/common/ustring.h"
 #include "src/common/strutil.h"
@@ -112,7 +112,7 @@ void TRXFile::load(Common::SeekableReadStream &trx) {
 		throw Common::Exception("Invalid version %d.%d", versionMajor, versionMinor);
 
 	uint32 packetCount = trx.readUint32LE();
-	if ((uint)(trx.size() - trx.pos()) < (packetCount * 8))
+	if ((trx.size() - trx.pos()) < (packetCount * 8))
 		throw Common::Exception("TRX won't fit the packet packets");
 
 	std::vector<Packet> packets;
@@ -127,7 +127,7 @@ void TRXFile::loadDirectory(Common::SeekableReadStream &trx, std::vector<Packet>
 		p->type   = trx.readUint32BE();
 		p->offset = trx.readUint32LE();
 
-		if (p->offset >= (uint)trx.size())
+		if (p->offset >= trx.size())
 			throw Common::Exception("Offset of 0x%08X packet too big (%d)", p->type, p->offset);
 	}
 }
@@ -138,10 +138,10 @@ void TRXFile::loadPackets(Common::SeekableReadStream &trx, std::vector<Packet> &
 
 		uint32 type = trx.readUint32BE();
 		if (type != p->type)
-			throw Common::Exception("Packet type mismatch (0x%08X vs 0x%08)", type, p->type);
+			throw Common::Exception("Packet type mismatch (0x%08X vs 0x%08X)", type, p->type);
 
 		p->size = trx.readUint32LE();
-		if ((uint)(trx.size() - trx.pos()) < p->size)
+		if ((trx.size() - trx.pos()) < p->size)
 			throw Common::Exception("Size of 0x%8X packet too big (%d)", p->type, p->size);
 
 		loadPacket(trx, *p);
@@ -185,49 +185,19 @@ void TRXFile::loadTRRN(Common::SeekableReadStream &trx, Packet &packet) {
 		for (int j = 0; j < 3; j++)
 			textureColors[i][j] = ttrn.readIEEEFloatLE();
 
-	uint32 vCount = ttrn.readUint32LE();
-	uint32 fCount = ttrn.readUint32LE();
+	const uint32 vCount = ttrn.readUint32LE();
+	const uint32 fCount = ttrn.readUint32LE();
 
-
-	GLsizei vpsize = 3;
-	GLsizei vnsize = 3;
-	GLsizei vcsize = 4;
-
-	uint32 vSize = (vpsize + vnsize + vcsize) * sizeof(float);
-
-	Graphics::VertexBuffer vBuf;
-	vBuf.setSize(vCount, vSize);
-
-	float *vertexData = (float *) vBuf.getData();
 	Graphics::VertexDecl vertexDecl;
 
-	Graphics::VertexAttrib vp;
-	vp.index = Graphics::VPOSITION;
-	vp.size = vpsize;
-	vp.type = GL_FLOAT;
-	vp.stride = vSize;
-	vp.pointer = vertexData;
-	vertexDecl.push_back(vp);
+	vertexDecl.push_back(Graphics::VertexAttrib(Graphics::VPOSITION, 3, GL_FLOAT));
+	vertexDecl.push_back(Graphics::VertexAttrib(Graphics::VNORMAL  , 3, GL_FLOAT));
+	vertexDecl.push_back(Graphics::VertexAttrib(Graphics::VCOLOR   , 4, GL_FLOAT));
 
-	Graphics::VertexAttrib vn;
-	vn.index = Graphics::VNORMAL;
-	vn.size = vnsize;
-	vn.type = GL_FLOAT;
-	vn.stride = vSize;
-	vn.pointer = vertexData + vpsize;
-	vertexDecl.push_back(vn);
+	Graphics::VertexBuffer vBuf;
+	vBuf.setVertexDeclInterleave(vCount, vertexDecl);
 
-	Graphics::VertexAttrib vc;
-	vc.index = Graphics::VCOLOR;
-	vc.size = vcsize;
-	vc.type = GL_FLOAT;
-	vc.stride = vSize;
-	vc.pointer = vertexData + vpsize + vnsize;
-	vertexDecl.push_back(vc);
-
-	vBuf.setVertexDecl(vertexDecl);
-
-	float *v = vertexData;
+	float *v = (float *) vBuf.getData();
 	for (uint32 i = 0; i < vCount; i++) {
 		*v++ = ttrn.readIEEEFloatLE();
 		*v++ = ttrn.readIEEEFloatLE();
@@ -278,7 +248,6 @@ void TRXFile::loadTRRN(Common::SeekableReadStream &trx, Packet &packet) {
 	 */
 
 	_terrain.push_back(new Graphics::Aurora::GeometryObject(vBuf, iBuf));
-	_terrain.back()->setRotation(-90.0, 0.0, 0.0);
 }
 
 void TRXFile::loadWATR(Common::SeekableReadStream &trx, Packet &packet) {
@@ -315,48 +284,15 @@ void TRXFile::loadWATR(Common::SeekableReadStream &trx, Packet &packet) {
 	uint32 vCount = watr.readUint32LE();
 	uint32 fCount = watr.readUint32LE();
 
-
-	GLsizei vpsize = 3;
-	GLsizei vnsize = 0;
-	GLsizei vcsize = 3;
-
-	uint32 vSize = (vpsize + vnsize + vcsize) * sizeof(float);
-
-	Graphics::VertexBuffer vBuf;
-	vBuf.setSize(vCount, vSize);
-
-	float *vertexData = (float *) vBuf.getData();
 	Graphics::VertexDecl vertexDecl;
 
-	Graphics::VertexAttrib vp;
-	vp.index = Graphics::VPOSITION;
-	vp.size = vpsize;
-	vp.type = GL_FLOAT;
-	vp.stride = vSize;
-	vp.pointer = vertexData;
-	vertexDecl.push_back(vp);
+	vertexDecl.push_back(Graphics::VertexAttrib(Graphics::VPOSITION, 3, GL_FLOAT));
+	vertexDecl.push_back(Graphics::VertexAttrib(Graphics::VCOLOR   , 3, GL_FLOAT));
 
-	/*
-	Graphics::VertexAttrib vn;
-	vn.index = Graphics::VNORMAL;
-	vn.size = vnsize;
-	vn.type = GL_FLOAT;
-	vn.stride = vSize;
-	vn.pointer = vertexData + vpsize;
-	vertexDecl.push_back(vn);
-	*/
+	Graphics::VertexBuffer vBuf;
+	vBuf.setVertexDeclInterleave(vCount, vertexDecl);
 
-	Graphics::VertexAttrib vc;
-	vc.index = Graphics::VCOLOR;
-	vc.size = vcsize;
-	vc.type = GL_FLOAT;
-	vc.stride = vSize;
-	vc.pointer = vertexData + vpsize + vnsize;
-	vertexDecl.push_back(vc);
-
-	vBuf.setVertexDecl(vertexDecl);
-
-	float *v = vertexData;
+	float *v = (float *) vBuf.getData();
 	for (uint32 i = 0; i < vCount; i++) {
 		*v++ = watr.readIEEEFloatLE();
 		*v++ = watr.readIEEEFloatLE();
@@ -388,7 +324,6 @@ void TRXFile::loadWATR(Common::SeekableReadStream &trx, Packet &packet) {
 	 */
 
 	_water.push_back(new Graphics::Aurora::GeometryObject(vBuf, iBuf));
-	_water.back()->setRotation(-90.0, 0.0, 0.0);
 }
 
 void TRXFile::loadASWM(Common::SeekableReadStream &UNUSED(trx), Packet &UNUSED(packet)) {

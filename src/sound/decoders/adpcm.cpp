@@ -24,6 +24,9 @@
  *  Decoding ADPCM (Adaptive Differential Pulse Code Modulation).
  */
 
+#include <cassert>
+#include <cstring>
+
 #include "src/common/endianness.h"
 
 #include "src/sound/decoders/adpcm.h"
@@ -35,8 +38,8 @@ class ADPCMStream : public RewindableAudioStream {
 protected:
 	Common::SeekableReadStream *_stream;
 	const bool _disposeAfterUse;
-	const int32 _startpos;
-	const int32 _endpos;
+	const size_t _startpos;
+	const size_t _endpos;
 	const int _channels;
 	const uint32 _blockAlign;
 	uint32 _blockPos[2];
@@ -54,7 +57,7 @@ protected:
 	int16 stepAdjust(byte);
 
 public:
-	ADPCMStream(Common::SeekableReadStream *stream, bool disposeAfterUse, uint32 size, int rate, int channels, uint32 blockAlign);
+	ADPCMStream(Common::SeekableReadStream *stream, bool disposeAfterUse, size_t size, int rate, int channels, uint32 blockAlign);
 	~ADPCMStream();
 
 	virtual bool endOfData() const { return (_stream->eos() || _stream->pos() >= _endpos); }
@@ -71,7 +74,7 @@ public:
 // In addition, also MS IMA ADPCM is supported. See
 //   <http://wiki.multimedia.cx/index.php?title=Microsoft_IMA_ADPCM>.
 
-ADPCMStream::ADPCMStream(Common::SeekableReadStream *stream, bool disposeAfterUse, uint32 size, int rate, int channels, uint32 blockAlign)
+ADPCMStream::ADPCMStream(Common::SeekableReadStream *stream, bool disposeAfterUse, size_t size, int rate, int channels, uint32 blockAlign)
 	: _stream(stream),
 		_disposeAfterUse(disposeAfterUse),
 		_startpos(stream->pos()),
@@ -110,11 +113,11 @@ public:
 		memset(&_status, 0, sizeof(_status));
 	}
 
-	virtual int readBuffer(int16 *buffer, const int numSamples);
+	virtual size_t readBuffer(int16 *buffer, const size_t numSamples);
 };
 
-int Ima_ADPCMStream::readBuffer(int16 *buffer, const int numSamples) {
-	int samples;
+size_t Ima_ADPCMStream::readBuffer(int16 *buffer, const size_t numSamples) {
+	size_t samples;
 	byte data;
 
 	assert(numSamples % 2 == 0);
@@ -130,7 +133,7 @@ int Ima_ADPCMStream::readBuffer(int16 *buffer, const int numSamples) {
 class Apple_ADPCMStream : public Ima_ADPCMStream {
 protected:
 	// Apple QuickTime IMA ADPCM
-	int32 _streamPos[2];
+	size_t _streamPos[2];
 	int16 _buffer[2][2];
 	uint8 _chunkPos[2];
 
@@ -151,19 +154,19 @@ public:
 		_streamPos[1] = _blockAlign;
 	}
 
-	virtual int readBuffer(int16 *buffer, const int numSamples);
+	virtual size_t readBuffer(int16 *buffer, const size_t numSamples);
 
 };
 
-int Apple_ADPCMStream::readBuffer(int16 *buffer, const int numSamples) {
+size_t Apple_ADPCMStream::readBuffer(int16 *buffer, const size_t numSamples) {
 	// Need to write at least one samples per channel
 	assert((numSamples % _channels) == 0);
 
 	// Current sample positions
-	int samples[2] = { 0, 0};
+	size_t samples[2] = { 0, 0};
 
 	// Number of samples per channel
-	int chanSamples = numSamples / _channels;
+	size_t chanSamples = numSamples / _channels;
 
 	for (int i = 0; i < _channels; i++) {
 		_stream->seek(_streamPos[i]);
@@ -209,7 +212,7 @@ int Apple_ADPCMStream::readBuffer(int16 *buffer, const int numSamples) {
 				if (_blockPos[i] == _blockAlign)
 					// We're at the end of the block.
 					// Since the channels are interleaved, skip the next block
-					_stream->skip(MIN<uint32>(_blockAlign, _endpos - _stream->pos()));
+					_stream->skip(MIN<size_t>(_blockAlign, _endpos - _stream->pos()));
 
 			_streamPos[i] = _stream->pos();
 		}
@@ -233,7 +236,7 @@ public:
 		_samplesLeft[1] = 0;
 	}
 
-	int readBuffer(int16 *buffer, const int numSamples);
+	size_t readBuffer(int16 *buffer, const size_t numSamples);
 
 	void reset() {
 		Ima_ADPCMStream::reset();
@@ -246,11 +249,11 @@ private:
 	int _samplesLeft[2];
 };
 
-int MSIma_ADPCMStream::readBuffer(int16 *buffer, const int numSamples) {
+size_t MSIma_ADPCMStream::readBuffer(int16 *buffer, const size_t numSamples) {
 	// Need to write at least one sample per channel
 	assert((numSamples % _channels) == 0);
 
-	int samples = 0;
+	size_t samples = 0;
 
 	while (samples < numSamples && !_stream->eos() && _stream->pos() < _endpos) {
 		if (_blockPos[0] == _blockAlign) {
@@ -333,7 +336,7 @@ public:
 		memset(&_status, 0, sizeof(_status));
 	}
 
-	virtual int readBuffer(int16 *buffer, const int numSamples);
+	virtual size_t readBuffer(int16 *buffer, const size_t numSamples);
 
 protected:
 	int16 decodeMS(ADPCMChannelStatus *c, byte);
@@ -357,8 +360,8 @@ int16 MS_ADPCMStream::decodeMS(ADPCMChannelStatus *c, byte code) {
 	return (int16)predictor;
 }
 
-int MS_ADPCMStream::readBuffer(int16 *buffer, const int numSamples) {
-	int samples;
+size_t MS_ADPCMStream::readBuffer(int16 *buffer, const size_t numSamples) {
+	size_t samples;
 	byte data;
 	int i = 0;
 

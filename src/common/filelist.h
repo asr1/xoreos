@@ -38,6 +38,8 @@ public:
 
 	FileList();
 	FileList(const FileList &list);
+	/** Construct a list with the contents of this directory. See addDirectory(). */
+	FileList(const UString &directory, int recurseDepth = 0);
 	~FileList();
 
 	FileList &operator=(const FileList &list);
@@ -49,7 +51,16 @@ public:
 	/** Is the list empty? */
 	bool empty() const;
 	/** Return the number of files in the list. */
-	uint32 size() const;
+	size_t size() const;
+
+	/** Sort this list alphabetically. */
+	void sort(bool caseInsensitive);
+
+	/** Express all files in this archive as relative to the given base path.
+	 *  Files that do not match the base path will be removed from the list.
+	 *  See also FilePath::relativize().
+	 */
+	void relativize(const Common::UString &basePath);
 
 	/** Return a const_iterator pointing to the beginning of the list. */
 	const_iterator begin() const;

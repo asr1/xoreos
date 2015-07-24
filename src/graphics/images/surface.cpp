@@ -23,6 +23,7 @@
  */
 
 #include <cassert>
+#include <cstring>
 
 #include "src/graphics/images/surface.h"
 
@@ -81,7 +82,7 @@ void Surface::fill(byte r, byte g, byte b, byte a) {
 	}
 }
 
-const ImageDecoder::MipMap &Surface::getMipMap(uint32 mipMap) const {
+const ImageDecoder::MipMap &Surface::getMipMap(size_t mipMap) const {
 	return ImageDecoder::getMipMap(mipMap);
 }
 

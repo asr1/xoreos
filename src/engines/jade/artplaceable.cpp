@@ -45,7 +45,7 @@ ArtPlaceable::~ArtPlaceable() {
 }
 
 void ArtPlaceable::load(const Common::UString &resRef, uint32 id, float x, float y, float z) {
-	_tag  = Common::UString::sprintf("%s#%u", resRef.c_str(), id);
+	_tag  = Common::UString::format("%s#%u", resRef.c_str(), id);
 	_name = resRef;
 
 	_model = loadModelObject(resRef);
@@ -85,12 +85,12 @@ void ArtPlaceable::setPosition(float x, float y, float z) {
 		_model->setPosition(x, y, z);
 }
 
-void ArtPlaceable::setOrientation(float x, float y, float z) {
-	Object::setOrientation(x, y, z);
-	Object::getOrientation(x, y, z);
+void ArtPlaceable::setOrientation(float x, float y, float z, float angle) {
+	Object::setOrientation(x, y, z, angle);
+	Object::getOrientation(x, y, z, angle);
 
 	if (_model)
-		_model->setRotation(x, z, -y);
+		_model->setOrientation(x, y, z, angle);
 }
 
 void ArtPlaceable::enter() {

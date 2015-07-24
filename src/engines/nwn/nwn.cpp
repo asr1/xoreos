@@ -27,11 +27,12 @@
 #include "src/common/util.h"
 #include "src/common/filelist.h"
 #include "src/common/filepath.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/configman.h"
 
 #include "src/aurora/util.h"
 #include "src/aurora/resman.h"
+#include "src/aurora/language.h"
 #include "src/aurora/talkman.h"
 #include "src/aurora/talktable_tlk.h"
 
@@ -44,7 +45,6 @@
 #include "src/graphics/aurora/fontman.h"
 
 #include "src/engines/aurora/util.h"
-#include "src/engines/aurora/language.h"
 #include "src/engines/aurora/loadprogress.h"
 #include "src/engines/aurora/tokenman.h"
 #include "src/engines/aurora/resources.h"
@@ -124,7 +124,7 @@ NWNEngine::~NWNEngine() {
 	delete _module;
 }
 
-bool NWNEngine::detectLanguages(Aurora::GameID game, const Common::UString &target,
+bool NWNEngine::detectLanguages(Aurora::GameID UNUSED(game), const Common::UString &target,
                                 Aurora::Platform UNUSED(platform),
                                 std::vector<Aurora::Language> &languages) const {
 	try {
@@ -140,7 +140,7 @@ bool NWNEngine::detectLanguages(Aurora::GameID game, const Common::UString &targ
 		if (languageID == Aurora::kLanguageInvalid)
 			return true;
 
-		Aurora::Language language = Aurora::getLanguage(game, languageID);
+		Aurora::Language language = LangMan.getLanguage(languageID);
 		if (language == Aurora::kLanguageInvalid)
 			return true;
 
@@ -191,13 +191,18 @@ void NWNEngine::run() {
 void NWNEngine::init() {
 	LoadProgress progress(21);
 
+	progress.step("Declare languages");
+	declareLanguages();
+
 	progress.step("Detecting game version");
 	detectVersion();
 
 	if (evaluateLanguage(true, _language))
-		status("Setting the language to %s", Aurora::getLanguageName(_language).c_str());
+		status("Setting the language to %s", LangMan.getLanguageName(_language).c_str());
 	else
 		warning("Failed to detect this game's language");
+
+	LangMan.setCurrentLanguage(_language);
 
 	progress.step("Loading user game config");
 	initConfig();
@@ -205,9 +210,6 @@ void NWNEngine::init() {
 
 	if (EventMan.quitRequested())
 		return;
-
-	progress.step("Declare string encodings");
-	declareEncodings();
 
 	initResources(progress);
 
@@ -249,22 +251,21 @@ void NWNEngine::detectVersion() {
 	}
 }
 
-void NWNEngine::declareEncodings() {
-	static const LanguageEncoding kLanguageEncodings[] = {
-		{ Aurora::kLanguageEnglish           , Common::kEncodingCP1252 },
-		{ Aurora::kLanguageFrench            , Common::kEncodingCP1252 },
-		{ Aurora::kLanguageGerman            , Common::kEncodingCP1252 },
-		{ Aurora::kLanguageItalian           , Common::kEncodingCP1252 },
-		{ Aurora::kLanguageSpanish           , Common::kEncodingCP1252 },
-		{ Aurora::kLanguagePolish            , Common::kEncodingCP1250 },
-		{ Aurora::kLanguageKorean            , Common::kEncodingCP949  },
-		{ Aurora::kLanguageChineseTraditional, Common::kEncodingCP950  },
-		{ Aurora::kLanguageChineseSimplified , Common::kEncodingCP936  },
-		{ Aurora::kLanguageJapanese          , Common::kEncodingCP932  }
+void NWNEngine::declareLanguages() {
+	static const Aurora::LanguageManager::Declaration kLanguageDeclarations[] = {
+		{ Aurora::kLanguageEnglish           ,   0, Common::kEncodingCP1252, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageFrench            ,   1, Common::kEncodingCP1252, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageGerman            ,   2, Common::kEncodingCP1252, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageItalian           ,   3, Common::kEncodingCP1252, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageSpanish           ,   4, Common::kEncodingCP1252, Common::kEncodingCP1252 },
+		{ Aurora::kLanguagePolish            ,   5, Common::kEncodingCP1250, Common::kEncodingCP1250 },
+		{ Aurora::kLanguageKorean            , 128, Common::kEncodingCP949 , Common::kEncodingCP949  },
+		{ Aurora::kLanguageChineseTraditional, 129, Common::kEncodingCP950 , Common::kEncodingCP950  },
+		{ Aurora::kLanguageChineseSimplified , 130, Common::kEncodingCP936 , Common::kEncodingCP936  },
+		{ Aurora::kLanguageJapanese          , 131, Common::kEncodingCP932 , Common::kEncodingCP932  }
 	};
 
-	Engines::declareEncodings(_game, kLanguageEncodings, ARRAYSIZE(kLanguageEncodings));
-	Engines::declareTalkLanguage(_game, _language);
+	LangMan.addLanguages(kLanguageDeclarations, ARRAYSIZE(kLanguageDeclarations));
 }
 
 void NWNEngine::initResources(LoadProgress &progress) {
@@ -292,7 +293,7 @@ void NWNEngine::initResources(LoadProgress &progress) {
 	indexOptionalArchive("xp1patch.key", 13);
 
 	// Expansion 2: Hordes of the Underdark (HotU)
-	_hasXP3 = ResMan.hasArchive("xp2.key");
+	_hasXP2 = ResMan.hasArchive("xp2.key");
 	indexOptionalArchive("xp2.key"     , 14);
 	indexOptionalArchive("xp2patch.key", 15);
 
@@ -372,7 +373,7 @@ void NWNEngine::declareBogusTextures() {
 		"torso_g"
 	};
 
-	for (uint i = 0; i < ARRAYSIZE(kBogusTextures); i++)
+	for (size_t i = 0; i < ARRAYSIZE(kBogusTextures); i++)
 		TextureMan.addBogusTexture(kBogusTextures[i]);
 }
 

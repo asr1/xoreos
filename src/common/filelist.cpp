@@ -36,6 +36,10 @@ namespace Common {
 FileList::FileList() {
 }
 
+FileList::FileList(const UString &directory, int recurseDepth) {
+	addDirectory(directory, recurseDepth);
+}
+
 FileList::FileList(const FileList &list) {
 	*this = list;
 }
@@ -63,8 +67,28 @@ bool FileList::empty() const {
 	return _files.empty();
 }
 
-uint32 FileList::size() const {
+size_t FileList::size() const {
 	return _files.size();
+}
+
+void FileList::sort(bool caseInsensitive) {
+	if (caseInsensitive)
+		_files.sort(Common::UString::iless());
+	else
+		_files.sort(Common::UString::sless());
+}
+
+void FileList::relativize(const Common::UString &basePath) {
+	std::list<UString>::iterator file = _files.begin();
+
+	while (file != _files.end()) {
+		*file = FilePath::relativize(basePath, *file);
+
+		if (file->empty())
+			file = _files.erase(file);
+		else
+			++file;
+	}
 }
 
 FileList::const_iterator FileList::begin() const {

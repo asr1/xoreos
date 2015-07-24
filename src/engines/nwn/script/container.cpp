@@ -22,6 +22,8 @@
  *  An object containing scripts.
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/error.h"
 
@@ -112,14 +114,14 @@ bool ScriptContainer::hasScript(Script script) const {
 }
 
 void ScriptContainer::clearScripts() {
-	for (int i = 0; i < kScriptMAX; i++)
+	for (size_t i = 0; i < kScriptMAX; i++)
 		_scripts[i].clear();
 }
 
 void ScriptContainer::readScripts(const Aurora::GFF3Struct &gff) {
 	clearScripts();
 
-	for (int i = 0; i < ARRAYSIZE(kScriptNames); i++) {
+	for (size_t i = 0; i < ARRAYSIZE(kScriptNames); i++) {
 		const Script script = kScriptNames[i].script;
 		const char  *name   = kScriptNames[i].name;
 
@@ -128,7 +130,7 @@ void ScriptContainer::readScripts(const Aurora::GFF3Struct &gff) {
 }
 
 void ScriptContainer::readScripts(const ScriptContainer &container) {
-	for (int i = 0; i < kScriptMAX; i++)
+	for (size_t i = 0; i < kScriptMAX; i++)
 		_scripts[i] = container._scripts[i];
 }
 
@@ -158,7 +160,7 @@ bool ScriptContainer::runScript(const Common::UString &script,
 		if (retVal.getType() == Aurora::NWScript::kTypeInt)
 			return retVal.getInt() != 0;
 		if (retVal.getType() == Aurora::NWScript::kTypeFloat)
-			return retVal.getFloat() != 0.0;
+			return retVal.getFloat() != 0.0f;
 
 		return true;
 

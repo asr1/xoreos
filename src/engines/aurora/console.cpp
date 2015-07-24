@@ -22,6 +22,7 @@
  *  Generic Aurora engines (debug) console.
  */
 
+#include <cassert>
 #include <cstdarg>
 #include <cstdio>
 
@@ -59,13 +60,13 @@ static const uint32 kDoubleClickTime = 500;
 
 static const char *kPrompt = "> ";
 
-static const uint32 kCommandHistorySize = 100;
-static const uint32 kConsoleHistory     = 500;
-static const uint32 kConsoleLines       =  25;
+static const size_t kCommandHistorySize = 100;
+static const size_t kConsoleHistory     = 500;
+static const size_t kConsoleLines       =  25;
 
 namespace Engines {
 
-ConsoleWindow::ConsoleWindow(const Common::UString &font, uint32 lines, uint32 history,
+ConsoleWindow::ConsoleWindow(const Common::UString &font, size_t lines, size_t history,
                              int fontHeight) : _font(FontMan.get(font, fontHeight)),
 	_historySizeMax(history), _historySizeCurrent(0), _historyStart(0),
 	_cursorPosition(0), _overwrite(false),
@@ -87,15 +88,15 @@ ConsoleWindow::ConsoleWindow(const Common::UString &font, uint32 lines, uint32 h
 	_input->disableColorTokens(true);
 
 	const float cursorHeight = _font.getFont().getHeight();
-	_cursor = new Graphics::Aurora::GUIQuad("", 0.0, 1.0, 0.0, cursorHeight);
+	_cursor = new Graphics::Aurora::GUIQuad("", 0.0f, 1.0f, 0.0f, cursorHeight);
 	_cursor->setXOR(true);
 
-	_highlight = new Graphics::Aurora::GUIQuad("", 0.0, 0.0, 0.0, cursorHeight);
-	_highlight->setColor(1.0, 1.0, 1.0, 0.0);
+	_highlight = new Graphics::Aurora::GUIQuad("", 0.0f, 0.0f, 0.0f, cursorHeight);
+	_highlight->setColor(1.0f, 1.0f, 1.0f, 0.0f);
 	_highlight->setXOR(true);
 
 	_lines.reserve(lines - 1);
-	for (uint32 i = 0; i < (lines - 1); i++) {
+	for (size_t i = 0; i < (lines - 1); i++) {
 		_lines.push_back(new Graphics::Aurora::Text(_font, ""));
 		_lines.back()->disableColorTokens(true);
 	}
@@ -208,18 +209,18 @@ float ConsoleWindow::getHeight() const {
 }
 
 float ConsoleWindow::getContentWidth() const {
-	return _width - 15.0;
+	return _width - 15.0f;
 }
 
 float ConsoleWindow::getContentHeight() const {
 	return _height - _lineHeight;
 }
 
-uint32 ConsoleWindow::getLines() const {
+size_t ConsoleWindow::getLines() const {
 	return _lines.size();
 }
 
-uint32 ConsoleWindow::getColumns() const {
+size_t ConsoleWindow::getColumns() const {
 	return floorf(getContentWidth() / _font.getFont().getWidth('m'));
 }
 
@@ -228,13 +229,13 @@ void ConsoleWindow::setPrompt(const Common::UString &prompt) {
 
 	_prompt->set(prompt);
 
-	_input->setPosition(_x + _prompt->getWidth(), _y, -1001.0);
+	_input->setPosition(_x + _prompt->getWidth(), _y, -1001.0f);
 	recalcCursor();
 
 	GfxMan.unlockFrame();
 }
 
-void ConsoleWindow::setInput(const Common::UString &input, uint32 cursorPos,
+void ConsoleWindow::setInput(const Common::UString &input, size_t cursorPos,
 		bool overwrite) {
 
 	GfxMan.lockFrame();
@@ -272,7 +273,7 @@ void ConsoleWindow::clear() {
 void ConsoleWindow::print(const Common::UString &line) {
 	std::vector<Common::UString> lines;
 
-	_font.getFont().split(line, lines, _width - 15.0, 0.0, false);
+	_font.getFont().split(line, lines, _width - 15.0f, 0.0f, false);
 	for (std::vector<Common::UString>::iterator l = lines.begin(); l != lines.end(); ++l)
 		printLine(*l);
 }
@@ -310,7 +311,7 @@ bool ConsoleWindow::setRedirect(Common::UString redirect) {
 	redirect = Common::FilePath::getUserDataFile(redirect);
 	if (!_redirect.open(redirect)) {
 		Common::UString error =
-			Common::UString::sprintf("Failed opening file \"%s\" for writing.", redirect.c_str());
+			Common::UString::format("Failed opening file \"%s\" for writing.", redirect.c_str());
 
 		print(error);
 		return false;
@@ -342,7 +343,12 @@ bool ConsoleWindow::openLogFile(const Common::UString &file) {
 
 	// Create the directories in the path, if necessary
 	Common::UString path = Common::FilePath::canonicalize(file);
-	Common::FilePath::createDirectories(Common::FilePath::getDirectory(path));
+
+	try {
+		Common::FilePath::createDirectories(Common::FilePath::getDirectory(path));
+	} catch (...) {
+		return false;
+	}
 
 	return _logFile.open(path);
 }
@@ -353,21 +359,21 @@ void ConsoleWindow::closeLogFile() {
 
 void ConsoleWindow::updateHighlight() {
 	if ((_highlightLength == 0) || (_highlightY >= kConsoleLines)) {
-		_highlight->setColor(1.0, 1.0, 1.0, 0.0);
+		_highlight->setColor(1.0f, 1.0f, 1.0f, 0.0f);
 		return;
 	}
 
 	const float charWidth = _font.getFont().getWidth(' ');
 
-	const int32 start = _highlightX;
-	const int32 end   = _highlightX + _highlightLength;
+	const ptrdiff_t start = _highlightX;
+	const ptrdiff_t end   = _highlightX + _highlightLength;
 
-	const  int32 x      = MIN(start, end);
-	const uint32 length = ABS(start - end);
+	const ptrdiff_t x      = MIN(start, end);
+	const size_t    length = ABS(start - end);
 
 	_highlight->setWidth(length * charWidth);
-	_highlight->setPosition(_x + x * charWidth, _y + _highlightY * _lineHeight, -1002.0);
-	_highlight->setColor(1.0, 1.0, 1.0, 1.0);
+	_highlight->setPosition(_x + x * charWidth, _y + _highlightY * _lineHeight, -1002.0f);
+	_highlight->setColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 bool ConsoleWindow::getPosition(int cursorX, int cursorY, float &x, float &y) {
@@ -377,18 +383,18 @@ bool ConsoleWindow::getPosition(int cursorX, int cursorY, float &x, float &y) {
 	x = (realX - _x) / _font.getFont().getWidth(' ');
 	y = (realY - _y) / _lineHeight;
 
-	if ((x < _x) || (x > (_x + _width)))
+	if ((x < 0.0f) || (x > _width))
 		return false;
-	if ((y < _y) || (y > (_y + _height)))
+	if ((y < 0.0f) || (y > _height))
 		return false;
 
 	return true;
 }
 
-void ConsoleWindow::highlightClip(uint32 &x, uint32 &y) const {
-	y = CLIP<uint32>(y, 0, _lines.size());
+void ConsoleWindow::highlightClip(size_t &x, size_t &y) const {
+	y = CLIP<size_t>(y, 0, _lines.size());
 
-	uint32 minX, maxX;
+	size_t minX, maxX;
 	if        (y == 0) {
 		minX = _prompt->get().size();
 		maxX = _prompt->get().size() + _input->get().size();
@@ -420,11 +426,11 @@ void ConsoleWindow::stopHighlight(int x, int y) {
 	if (!getPosition(x, y, lineX, lineY))
 		return;
 
-	uint32 endX = floor(lineX);
+	size_t endX = floor(lineX);
 
 	highlightClip(endX, _highlightY);
 
-	_highlightLength = ((int32) endX) - ((int32) _highlightX);
+	_highlightLength = ((ptrdiff_t) endX) - ((ptrdiff_t) _highlightX);
 
 	updateHighlight();
 }
@@ -436,17 +442,17 @@ void ConsoleWindow::highlightWord(int x, int y) {
 	if (!getPosition(x, y, lineX, lineY))
 		return;
 
-	uint32 wX = floor(lineX);
-	uint32 wY = floor(lineY);
+	size_t wX = floor(lineX);
+	size_t wY = floor(lineY);
 
 	highlightClip(wX, wY);
 
 	const Common::UString &line = (wY == 0) ? _input->get() :
 	                                          _lines[_lines.size() - wY]->get();
-	const uint32 pos = (wY == 0) ? (wX - _prompt->get().size()) : wX;
+	const size_t pos = (wY == 0) ? (wX - _prompt->get().size()) : wX;
 
-	uint32 wordStart = findWordStart(line, pos);
-	uint32 wordEnd   = findWordEnd  (line, pos);
+	size_t wordStart = findWordStart(line, pos);
+	size_t wordEnd   = findWordEnd  (line, pos);
 
 	_highlightX      = (wY == 0) ? (wordStart + _prompt->get().size()) : wordStart;
 	_highlightY      =  wY;
@@ -486,8 +492,8 @@ Common::UString ConsoleWindow::getHighlight() const {
 	if ((_highlightLength == 0) || (_highlightY >= kConsoleLines))
 		return "";
 
-	int32 start = _highlightX;
-	int32 end   = _highlightX + _highlightLength;
+	ptrdiff_t start = _highlightX;
+	ptrdiff_t end   = _highlightX + _highlightLength;
 
 	if (start > end)
 		SWAP(start, end);
@@ -500,23 +506,23 @@ Common::UString ConsoleWindow::getHighlight() const {
 	} else
 		line = _lines[_lines.size() - _highlightY]->get();
 
-	start = MAX(0, start);
-	end   = MAX(0, end  );
+	start = MAX<ptrdiff_t>(0, start);
+	end   = MAX<ptrdiff_t>(0, end  );
 
 	return line.substr(line.getPosition(start), line.getPosition(end));
 }
 
-void ConsoleWindow::scrollUp(uint32 n) {
+void ConsoleWindow::scrollUp(size_t n) {
 	if ((_historyStart + _lines.size()) >= _historySizeCurrent)
 		return;
 
-	_historyStart += MIN<uint32>(n, _historySizeCurrent - _lines.size() - _historyStart);
+	_historyStart += MIN<size_t>(n, _historySizeCurrent - _lines.size() - _historyStart);
 
 	updateScrollbarPosition();
 	redrawLines();
 }
 
-void ConsoleWindow::scrollDown(uint32 n) {
+void ConsoleWindow::scrollDown(size_t n) {
 	if (_historyStart == 0)
 		return;
 
@@ -530,7 +536,7 @@ void ConsoleWindow::scrollTop() {
 	if (_historySizeCurrent <= _lines.size())
 		return;
 
-	const uint32 bottom = _historySizeCurrent - _lines.size();
+	const size_t bottom = _historySizeCurrent - _lines.size();
 	if (bottom == _historyStart)
 		return;
 
@@ -551,7 +557,7 @@ void ConsoleWindow::scrollBottom() {
 }
 
 void ConsoleWindow::calculateDistance() {
-	_distance = -1000.0;
+	_distance = -1000.0f;
 }
 
 void ConsoleWindow::render(Graphics::RenderPass pass) {
@@ -563,11 +569,11 @@ void ConsoleWindow::render(Graphics::RenderPass pass) {
 		_cursorBlinkState = !_cursorBlinkState;
 		_lastCursorBlink = now;
 
-		_cursor->setColor(1.0, 1.0, 1.0, _cursorBlinkState ? 1.0 : 0.0);
+		_cursor->setColor(1.0f, 1.0f, 1.0f, _cursorBlinkState ? 1.0f : 0.0f);
 	}
 
 	TextureMan.reset();
-	glColor4f(0.0, 0.0, 0.0, 0.75);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.75f);
 
 
 	// Backdrop
@@ -579,33 +585,33 @@ void ConsoleWindow::render(Graphics::RenderPass pass) {
 	glEnd();
 
 	// Bottom edge
-	glColor4f(0.0, 0.0, 0.0, 1.0);
+	glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 	glBegin(GL_QUADS);
-		glVertex2f(_x         , _y - 3.0);
-		glVertex2f(_x + _width, _y - 3.0);
-		glVertex2f(_x + _width, _y      );
-		glVertex2f(_x         , _y      );
+		glVertex2f(_x         , _y - 3.0f);
+		glVertex2f(_x + _width, _y - 3.0f);
+		glVertex2f(_x + _width, _y       );
+		glVertex2f(_x         , _y       );
 	glEnd();
 
 	// Scrollbar background
-	glColor4f(0.0, 0.0, 0.0, 1.0);
+	glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 	glBegin(GL_QUADS);
-		glVertex2f(_x + _width - 12.0, _y          );
-		glVertex2f(_x + _width       , _y          );
-		glVertex2f(_x + _width       , _y + _height);
-		glVertex2f(_x + _width - 12.0, _y + _height);
+		glVertex2f(_x + _width - 12.0f, _y          );
+		glVertex2f(_x + _width        , _y          );
+		glVertex2f(_x + _width        , _y + _height);
+		glVertex2f(_x + _width - 12.0f, _y + _height);
 	glEnd();
 
 	// Scrollbar
-	glColor4f(0.5, 0.5, 0.5, 0.5);
+	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 	glBegin(GL_QUADS);
-		glVertex2f(_x + _width - 10.0, _y + 2.0 + _scrollbarPosition);
-		glVertex2f(_x + _width -  2.0, _y + 2.0 + _scrollbarPosition);
-		glVertex2f(_x + _width -  2.0, _y + 2.0 + _scrollbarPosition + _scrollbarLength);
-		glVertex2f(_x + _width - 10.0, _y + 2.0 + _scrollbarPosition + _scrollbarLength);
+		glVertex2f(_x + _width - 10.0f, _y + 2.0f + _scrollbarPosition);
+		glVertex2f(_x + _width -  2.0f, _y + 2.0f + _scrollbarPosition);
+		glVertex2f(_x + _width -  2.0f, _y + 2.0f + _scrollbarPosition + _scrollbarLength);
+		glVertex2f(_x + _width - 10.0f, _y + 2.0f + _scrollbarPosition + _scrollbarLength);
 	glEnd();
 
-	glColor4f(1.0, 1.0, 1.0, 1.0);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void ConsoleWindow::notifyResized(int UNUSED(oldWidth), int UNUSED(oldHeight),
@@ -613,20 +619,20 @@ void ConsoleWindow::notifyResized(int UNUSED(oldWidth), int UNUSED(oldHeight),
 
 	_width = newWidth;
 
-	_x = -(newWidth  / 2.0);
-	_y =  (newHeight / 2.0) - _height;
+	_x = -(newWidth  / 2.0f);
+	_y =  (newHeight / 2.0f) - _height;
 
-	float textY = (newHeight / 2.0) - _lineHeight;
-	for (uint32 i = 0; i < _lines.size(); i++, textY -= _lineHeight)
-		_lines[i]->setPosition(_x, textY, -1001.0);
+	float textY = (newHeight / 2.0f) - _lineHeight;
+	for (size_t i = 0; i < _lines.size(); i++, textY -= _lineHeight)
+		_lines[i]->setPosition(_x, textY, -1001.0f);
 
-	_prompt->setPosition(_x                      , _y, -1001.0);
-	_input ->setPosition(_x + _prompt->getWidth(), _y, -1001.0);
+	_prompt->setPosition(_x                      , _y, -1001.0f);
+	_input ->setPosition(_x + _prompt->getWidth(), _y, -1001.0f);
 
 	recalcCursor();
 }
 
-uint32 ConsoleWindow::findWordStart(const Common::UString &line, uint32 pos) {
+size_t ConsoleWindow::findWordStart(const Common::UString &line, size_t pos) {
 	Common::UString::iterator it = line.getPosition(pos);
 	if ((it == line.end()) || (*it == ' '))
 		return 0;
@@ -640,7 +646,7 @@ uint32 ConsoleWindow::findWordStart(const Common::UString &line, uint32 pos) {
 	return line.getPosition(it);
 }
 
-uint32 ConsoleWindow::findWordEnd(const Common::UString &line, uint32 pos) {
+size_t ConsoleWindow::findWordEnd(const Common::UString &line, size_t pos) {
 	Common::UString::iterator it = line.getPosition(pos);
 	if ((it == line.end()) || (*it == ' '))
 		return 0;
@@ -655,10 +661,10 @@ void ConsoleWindow::recalcCursor() {
 	Common::UString input = _inputText;
 	input.truncate(_cursorPosition);
 
-	const float cursorX = _x + _prompt->getWidth() + _font.getFont().getWidth(input) - 1.0;
-	_cursor->setPosition(cursorX, _y, -1002.0);
+	const float cursorX = _x + _prompt->getWidth() + _font.getFont().getWidth(input) - 1.0f;
+	_cursor->setPosition(cursorX, _y, -1002.0f);
 
-	const float cursorWidth = 1.0 + (_overwrite ? _font.getFont().getWidth(' ') : 0.0);
+	const float cursorWidth = 1.0f + (_overwrite ? _font.getFont().getWidth(' ') : 0.0f);
 	_cursor->setWidth(cursorWidth);
 }
 
@@ -666,7 +672,7 @@ void ConsoleWindow::redrawLines() {
 	GfxMan.lockFrame();
 
 	std::list<Common::UString>::reverse_iterator h = _history.rbegin();
-	for (uint32 i = 0; (i < _historyStart) && (h != _history.rend()); i++, ++h);
+	for (size_t i = 0; (i < _historyStart) && (h != _history.rend()); i++, ++h);
 
 	for (int i = _lines.size() - 1; (i >= 0) && (h != _history.rend()); i--, ++h)
 		_lines[i]->set(*h);
@@ -675,23 +681,23 @@ void ConsoleWindow::redrawLines() {
 }
 
 void ConsoleWindow::updateScrollbarLength() {
-	float length = 1.0;
+	float length = 1.0f;
 
 	if (_historySizeCurrent > 0)
 		length = ((float) _lines.size()) / _historySizeCurrent;
 
-	const float height = _height - 4.0;
+	const float height = _height - 4.0f;
 	_scrollbarLength = floorf(CLIP(length * height, 8.0f, height));
 }
 
 void ConsoleWindow::updateScrollbarPosition() {
-	float position = 0.0;
+	float position = 0.0f;
 
 	int max = _historySizeCurrent - _lines.size();
 	if (max > 0)
 		position = ((float) _historyStart) / max;
 
-	const float span = (_height - 4.0) - _scrollbarLength;
+	const float span = (_height - 4.0f) - _scrollbarLength;
 	_scrollbarPosition = floorf(CLIP(position * span, 0.0f, span));
 }
 
@@ -802,11 +808,11 @@ float Console::getHeight() const {
 	return _console->getContentHeight();
 }
 
-uint32 Console::getLines() const {
+size_t Console::getLines() const {
 	return _console->getLines();
 }
 
-uint32 Console::getColumns() const {
+size_t Console::getColumns() const {
 	return _console->getColumns();
 }
 
@@ -1049,19 +1055,19 @@ bool Console::printHints(const Common::UString &command) {
 	if (_tabCount < 2)
 		return false;
 
-	uint32 maxSize;
-	uint32 count;
+	size_t maxSize;
+	size_t count;
 	const std::list<Common::UString> &hints = _readLine->getCompleteHint(maxSize, count);
 	if (count == 0)
 		return false;
 
-	maxSize = MAX<uint32>(maxSize, 3) + 2;
-	uint32 lineSize = getColumns() / maxSize;
-	uint32 lines = count / lineSize;
+	maxSize = MAX<size_t>(maxSize, 3) + 2;
+	size_t lineSize = getColumns() / maxSize;
+	size_t lines = count / lineSize;
 
 	if (lines >= (kConsoleLines - 3)) {
 		if (!_printedCompleteWarning)
-			printf("%d completion candidates", count);
+			printf("%u completion candidates", (uint)count);
 
 		_printedCompleteWarning = true;
 
@@ -1325,7 +1331,7 @@ void Console::cmdListLangs(const CommandLine &UNUSED(cl)) {
 		if (!langs.empty()) {
 			printf("Available languages:");
 			for (std::vector<Aurora::Language>::iterator l = langs.begin(); l != langs.end(); ++l)
-				printf("- %s", Aurora::getLanguageName(*l).c_str());
+				printf("- %s", LangMan.getLanguageName(*l).c_str());
 		}
 	}
 
@@ -1334,13 +1340,13 @@ void Console::cmdListLangs(const CommandLine &UNUSED(cl)) {
 		if (!langsT.empty()) {
 			printf("Available text languages:");
 			for (std::vector<Aurora::Language>::iterator l = langsT.begin(); l != langsT.end(); ++l)
-				printf("- %s", Aurora::getLanguageName(*l).c_str());
+				printf("- %s", LangMan.getLanguageName(*l).c_str());
 		}
 
 		if (!langsV.empty()) {
 			printf("Available voice languages:");
 			for (std::vector<Aurora::Language>::iterator l = langsV.begin(); l != langsV.end(); ++l)
-				printf("- %s", Aurora::getLanguageName(*l).c_str());
+				printf("- %s", LangMan.getLanguageName(*l).c_str());
 		}
 	}
 }
@@ -1348,12 +1354,12 @@ void Console::cmdListLangs(const CommandLine &UNUSED(cl)) {
 void Console::cmdGetLang(const CommandLine &UNUSED(cl)) {
 	Aurora::Language lang;
 	if (_engine->getLanguage(lang))
-		printf("%s", Aurora::getLanguageName(lang).c_str());
+		printf("%s", LangMan.getLanguageName(lang).c_str());
 
 	Aurora::Language langT, langV;
 	if (_engine->getLanguage(langT, langV))
-		printf("%s text + %s voices", Aurora::getLanguageName(langT).c_str(),
-				Aurora::getLanguageName(langV).c_str());
+		printf("%s text + %s voices", LangMan.getLanguageName(langT).c_str(),
+				LangMan.getLanguageName(langV).c_str());
 }
 
 void Console::cmdSetLang(const CommandLine &cl) {
@@ -1375,12 +1381,12 @@ void Console::cmdSetLang(const CommandLine &cl) {
 	if (_engine->changeLanguage()) {
 		Aurora::Language lang;
 		if (_engine->getLanguage(lang))
-			printf("Changed language to %s", Aurora::getLanguageName(lang).c_str());
+			printf("Changed language to %s", LangMan.getLanguageName(lang).c_str());
 
 		Aurora::Language langT, langV;
 		if (_engine->getLanguage(langT, langV))
-			printf("Change language to %s text + %s voices", Aurora::getLanguageName(langT).c_str(),
-					Aurora::getLanguageName(langV).c_str());
+			printf("Change language to %s text + %s voices", LangMan.getLanguageName(langT).c_str(),
+					LangMan.getLanguageName(langV).c_str());
 	} else
 		printf("Failed to change the language");
 }
@@ -1415,7 +1421,7 @@ void Console::cmdGetString(const CommandLine &cl) {
 void Console::printFullHelp() {
 	print("Available commands (help <command> for further help on each command):");
 
-	uint32 maxSize = 0;
+	size_t maxSize = 0;
 	std::list<Common::UString> commands;
 	for (CommandMap::const_iterator c = _commands.begin(); c != _commands.end(); ++c) {
 		commands.push_back(c->second.cmd);
@@ -1426,37 +1432,38 @@ void Console::printFullHelp() {
 	printList(commands, maxSize);
 }
 
-void Console::printList(const std::list<Common::UString> &list, uint32 maxSize) {
-	const uint32 columns = getColumns();
+void Console::printList(const std::list<Common::UString> &list, size_t maxSize) {
+	const size_t columns = getColumns();
 
 	// If no max size is given, go through the whole list to find it ourselves
 	if (maxSize == 0)
 		for (std::list<Common::UString>::const_iterator l = list.begin(); l != list.end(); ++l)
-			maxSize = MAX<uint32>(maxSize, l->size());
+			maxSize = MAX<size_t>(maxSize, l->size());
 
-	maxSize = MAX<uint32>(maxSize, 3);
+	maxSize = MAX<size_t>(maxSize, 3);
 
 	// Calculate the number of items per line
-	uint32 lineSize = 1;
+	size_t lineSize = 1;
 	if      (maxSize >= (columns - 2))
 		maxSize  = columns;
 	else if (maxSize > 0)
 		lineSize = columns / (maxSize + 2);
 
 	// Calculate the number of number of lines that won't fit into the history
-	uint32 toPrint  = MIN<uint32>((kConsoleHistory - 1) * lineSize, list.size());
-	uint32 linesCut = list.size() - toPrint;
+	size_t toPrint  = MIN<size_t>((kConsoleHistory - 1) * lineSize, list.size());
+	size_t linesCut = list.size() - toPrint;
 
 	// Print a message when we cut items
 	if (linesCut > 0) {
-		Common::UString cutMsg = Common::UString::sprintf("(%d items cut due to history overflow)", linesCut);
+		Common::UString cutMsg =
+			Common::UString::format("(%u items cut due to history overflow)", (uint)linesCut);
 
 		print(cutMsg);
 	}
 
 	// Move past the items we're cutting
 	std::list<Common::UString>::const_iterator l = list.begin();
-	for (uint32 i = 0; i < linesCut; i++)
+	for (size_t i = 0; i < linesCut; i++)
 		++l;
 
 	// Print the lines
@@ -1464,10 +1471,10 @@ void Console::printList(const std::list<Common::UString> &list, uint32 maxSize) 
 		Common::UString line;
 
 		// Attach the items together that go onto one line
-		for (uint32 i = 0; (i < lineSize) && (l != list.end()); i++, ++l) {
+		for (size_t i = 0; (i < lineSize) && (l != list.end()); i++, ++l) {
 			Common::UString item = *l;
 
-			uint32 itemSize = item.size();
+			size_t itemSize = item.size();
 
 			if (itemSize > maxSize) {
 				item.truncate(maxSize - 3);
@@ -1475,7 +1482,7 @@ void Console::printList(const std::list<Common::UString> &list, uint32 maxSize) 
 				itemSize = maxSize;
 			}
 
-			uint32 pad = (maxSize + 2) - itemSize;
+			size_t pad = (maxSize + 2) - itemSize;
 			while (pad-- > 0)
 				item += ' ';
 

@@ -26,6 +26,7 @@
 #define GRAPHICS_CAMERA_H
 
 #include "src/common/types.h"
+#include "src/common/maths.h"
 #include "src/common/singleton.h"
 
 namespace Graphics {
@@ -39,18 +40,18 @@ public:
 
 	void reset(); ///< Reset the current position and orientation.
 
+	/** Set limits on the camera position. */
+	void limit(float minX = -FLT_MAX, float minY = -FLT_MAX, float minZ = -FLT_MAX,
+	           float maxX =  FLT_MAX, float maxY =  FLT_MAX, float maxZ =  FLT_MAX);
+
 	void setPosition   (float x, float y, float z); ///< Set the camera position.
 	void setOrientation(float x, float y, float z); ///< Set the camera orientation.
-
-	/** Set orientation from unit vector describing the bearing in the xy plane. */
-	void setOrientation(float vX, float vY);
 
 	void turn(float x, float y, float z); ///< Turn along axes.
 	void move(float x, float y, float z); ///< Move along axes.
 
-	void move  (float n); ///< Move along current view axis.
-	void strafe(float n); ///< Move orthogonal (left/right) to current view axis.
-	void fly   (float n); ///< Move orthogonal (up/down) to current view axis.
+	/** Move relative to the current view axis. */
+	void moveRelative(float x, float y, float z);
 
 	uint32 lastChanged() const; ///< The timestamp the camera was changed last.
 
@@ -63,6 +64,9 @@ public:
 
 private:
 	uint32 _lastChanged;
+
+	float _minPosition[3];
+	float _maxPosition[3];
 
 	float _position[3];    ///< Current position.
 	float _orientation[3]; ///< Current orientation.

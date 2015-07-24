@@ -8,7 +8,7 @@ VERSION_FLAGS = $(shell if test x$(VER_REVDESC) != "x"; then echo "-DXOREOS_REVD
 VER_REV = $(shell cat $(top_srcdir)/gitstamp/gitstamp | cut -d '+' -f 2-)
 VERSION_FLAGS += $(shell if test x$(VER_REV) != "x"; then echo "-DXOREOS_REV=\\\"$(VER_REV)\\\""; fi)
 
-VER_DATE = $(shell date -u '+%Y-%m-%dT%H:%M:%S')
+VER_DATE = $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 VERSION_FLAGS += $(shell if test x$(VER_DATE) != "x"; then echo "-DXOREOS_BUILDDATE=\\\"$(VER_DATE)\\\""; fi)
 
 AM_CXXFLAGS += $(VERSION_FLAGS)
@@ -39,23 +39,31 @@ noinst_HEADERS = \
                  mutex.h \
                  ustring.h \
                  hash.h \
+                 md5.h \
+                 blowfish.h \
                  error.h \
                  util.h \
                  strutil.h \
                  encoding.h \
+                 platform.h \
                  debugman.h \
                  debug.h \
                  atomic.h \
                  uuid.h \
-                 stream.h \
+                 readstream.h \
+                 memreadstream.h \
+                 writestream.h \
+                 memwritestream.h \
                  streamtokenizer.h \
                  stringmap.h \
                  readline.h \
-                 file.h \
+                 readfile.h \
+                 writefile.h \
                  filepath.h \
                  filelist.h \
                  bitstream.h \
                  huffman.h \
+                 vector3.h \
                  matrix.h \
                  transmatrix.h \
                  boundingbox.h \
@@ -66,6 +74,7 @@ noinst_HEADERS = \
                  pe_exe.h \
                  systemfonts.h \
                  changeid.h \
+                 xml.h \
                  $(EMPTY)
 
 libcommon_la_SOURCES = \
@@ -82,18 +91,25 @@ libcommon_la_SOURCES = \
                        thread.cpp \
                        mutex.cpp \
                        ustring.cpp \
+                       md5.cpp \
+                       blowfish.cpp \
                        error.cpp \
                        util.cpp \
                        strutil.cpp \
                        encoding.cpp \
+                       platform.cpp \
                        debugman.cpp \
                        debug.cpp \
                        uuid.cpp \
-                       stream.cpp \
+                       readstream.cpp \
+                       memreadstream.cpp \
+                       writestream.cpp \
+                       memwritestream.cpp \
                        streamtokenizer.cpp \
                        stringmap.cpp \
                        readline.cpp \
-                       file.cpp \
+                       readfile.cpp \
+                       writefile.cpp \
                        filepath.cpp \
                        filelist.cpp \
                        huffman.cpp \
@@ -107,4 +123,5 @@ libcommon_la_SOURCES = \
                        pe_exe.cpp \
                        systemfonts.cpp \
                        changeid.cpp \
+                       xml.cpp \
                        $(EMPTY)

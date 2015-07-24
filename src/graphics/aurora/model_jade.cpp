@@ -26,9 +26,11 @@
  * (<https://home.comcast.net/~cchargin/kotor/mdl_info.html>).
  */
 
+#include <cstring>
+
 #include "src/common/error.h"
 #include "src/common/maths.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/encoding.h"
 
 #include "src/aurora/types.h"
@@ -199,7 +201,7 @@ void Model_Jade::load(ParserContext &ctx) {
 
 	ctx.mdl->skip(4); // Unknown
 
-	float scale = ctx.mdl->readIEEEFloatLE();
+	float modelScale = ctx.mdl->readIEEEFloatLE();
 
 	Common::UString superModelName = Common::readStringFixed(*ctx.mdl, Common::kEncodingASCII, 32);
 
@@ -230,16 +232,16 @@ void Model_Jade::readStrings(Common::SeekableReadStream &mdl,
 		const std::vector<uint32> &offsets, uint32 offset,
 		std::vector<Common::UString> &strings) {
 
-	uint32 pos = mdl.pos();
+	size_t pos = mdl.pos();
 
 	strings.reserve(offsets.size());
 	for (std::vector<uint32>::const_iterator o = offsets.begin(); o != offsets.end(); ++o) {
-		mdl.seekTo(offset + *o);
+		mdl.seek(offset + *o);
 
 		strings.push_back(Common::readString(mdl, Common::kEncodingASCII));
 	}
 
-	mdl.seekTo(pos);
+	mdl.seek(pos);
 }
 
 void Model_Jade::newState(ParserContext &ctx) {
@@ -300,7 +302,7 @@ void ModelNode_Jade::load(Model_Jade::ParserContext &ctx) {
 	_position   [0] = ctx.mdl->readIEEEFloatLE();
 	_position   [1] = ctx.mdl->readIEEEFloatLE();
 	_position   [2] = ctx.mdl->readIEEEFloatLE();
-	_orientation[3] = Common::rad2deg(acos(ctx.mdl->readIEEEFloatLE()) * 2.0);
+	_orientation[3] = Common::rad2deg(acos(ctx.mdl->readIEEEFloatLE()) * 2.0f);
 	_orientation[0] = ctx.mdl->readIEEEFloatLE();
 	_orientation[1] = ctx.mdl->readIEEEFloatLE();
 	_orientation[2] = ctx.mdl->readIEEEFloatLE();
@@ -308,7 +310,7 @@ void ModelNode_Jade::load(Model_Jade::ParserContext &ctx) {
 	uint32 childrenOffset = ctx.mdl->readUint32LE();
 	uint32 childrenCount  = ctx.mdl->readUint32LE();
 
-	float scale           = ctx.mdl->readIEEEFloatLE();
+	float nodeScale       = ctx.mdl->readIEEEFloatLE();
 	float maxAnimDistance = ctx.mdl->readIEEEFloatLE();
 
 	std::vector<uint32> children;
@@ -464,8 +466,8 @@ void ModelNode_Jade::readMesh(Model_Jade::ParserContext &ctx) {
 				ctx.texCoords[t][i * 2 + 0] = ctx.mdx->readIEEEFloatLE();
 				ctx.texCoords[t][i * 2 + 1] = ctx.mdx->readIEEEFloatLE();
 			} else {
-				ctx.texCoords[t][i * 2 + 0] = 0.0;
-				ctx.texCoords[t][i * 2 + 1] = 0.0;
+				ctx.texCoords[t][i * 2 + 0] = 0.0f;
+				ctx.texCoords[t][i * 2 + 1] = 0.0f;
 			}
 		}
 	}
@@ -484,7 +486,7 @@ void ModelNode_Jade::readMesh(Model_Jade::ParserContext &ctx) {
 void ModelNode_Jade::readPlainIndices(Common::SeekableReadStream &stream, std::vector<uint16> &indices,
                                       uint32 offset, uint32 count) {
 
-	uint32 pos = stream.pos();
+	size_t pos = stream.pos();
 
 	stream.seek(offset);
 
@@ -498,7 +500,7 @@ void ModelNode_Jade::readPlainIndices(Common::SeekableReadStream &stream, std::v
 void ModelNode_Jade::readChunkedIndices(Common::SeekableReadStream &stream, std::vector<uint16> &indices,
                                         uint32 offset, uint32 count) {
 
-	uint32 pos = stream.pos();
+	size_t pos = stream.pos();
 
 	stream.seek(offset);
 
@@ -559,7 +561,7 @@ void ModelNode_Jade::unfoldTriangleStrip(std::vector<uint16> &indices) {
 	std::vector<uint16> unfolded;
 	unfolded.reserve((indices.size() - 2) * 3);
 
-	for (uint i = 0; i < indices.size() - 2; i++) {
+	for (size_t i = 0; i < indices.size() - 2; i++) {
 		if (i & 1) {
 			unfolded.push_back(indices[i]);
 			unfolded.push_back(indices[i + 2]);
@@ -583,7 +585,7 @@ void ModelNode_Jade::unfoldTriangleFan(std::vector<uint16> &indices) {
 	std::vector<uint16> unfolded;
 	unfolded.reserve((indices.size() - 2) * 3);
 
-	for (uint i = 1; i < indices.size() - 1; i++) {
+	for (size_t i = 1; i < indices.size() - 1; i++) {
 		unfolded.push_back(indices[0]);
 		unfolded.push_back(indices[i]);
 		unfolded.push_back(indices[i + 1]);
@@ -601,36 +603,15 @@ void ModelNode_Jade::createMesh(Model_Jade::ParserContext &ctx) {
 
 	// Create the VertexBuffer / IndexBuffer
 
-	GLsizei vpsize = 3;
-	GLsizei vnsize = 0;
-	GLsizei vtsize = 2;
-	uint32 vertexSize = (vpsize + vnsize + vtsize * textureCount) * sizeof(float);
-	_vertexBuffer.setSize(vertexCount, vertexSize);
-
-	float *vertexData = (float *) _vertexBuffer.getData();
 	VertexDecl vertexDecl;
 
-	VertexAttrib vp;
-	vp.index = VPOSITION;
-	vp.size = vpsize;
-	vp.type = GL_FLOAT;
-	vp.stride = vertexSize;
-	vp.pointer = vertexData;
-	vertexDecl.push_back(vp);
+	vertexDecl.push_back(VertexAttrib(VPOSITION, 3, GL_FLOAT));
+	for (uint t = 0; t < textureCount; t++)
+		vertexDecl.push_back(VertexAttrib(VTCOORD + t , 2, GL_FLOAT));
 
-	for (uint t = 0; t < textureCount; t++) {
-		VertexAttrib vt;
-		vt.index = VTCOORD + t;
-		vt.size = vtsize;
-		vt.type = GL_FLOAT;
-		vt.stride = vertexSize;
-		vt.pointer = vertexData + vpsize + vnsize + vtsize * t;
-		vertexDecl.push_back(vt);
-	}
+	_vertexBuffer.setVertexDeclInterleave(vertexCount, vertexDecl);
 
-	_vertexBuffer.setVertexDecl(vertexDecl);
-
-	float *v = vertexData;
+	float *v = (float *) _vertexBuffer.getData();
 	for (uint32 i = 0; i < vertexCount; i++) {
 		// Position
 		*v++ = ctx.vertices[i * 3 + 0];
@@ -662,7 +643,7 @@ void ModelNode_Jade::readMaterialTextures(uint32 materialID, std::vector<Common:
 		return;
 	}
 
-	Common::UString mabFile = Common::UString::sprintf("%d", materialID);
+	Common::UString mabFile = Common::UString::format("%d", materialID);
 	Common::SeekableReadStream *mab = ResMan.getResource(mabFile, ::Aurora::kFileTypeMAB);
 	if (!mab) {
 		textures.clear();

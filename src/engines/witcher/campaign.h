@@ -18,7 +18,7 @@
  * along with xoreos. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file engines/witcher/campaign.h
+/** @file
  *  The context holding a Witcher campaign.
  */
 
@@ -68,10 +68,11 @@ public:
 
 	/** Is a campaign currently running? */
 	bool isRunning() const;
+
 	/** Return the name of the current campaign. */
-	const Common::UString &getName() const;
+	const Aurora::LocString &getName() const;
 	/** Return the description of the current campaign. */
-	const Common::UString &getDescription() const;
+	const Aurora::LocString &getDescription() const;
 
 	/** Refresh all localized strings. */
 	void refreshLocalized();

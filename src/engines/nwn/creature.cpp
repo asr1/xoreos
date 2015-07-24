@@ -22,9 +22,11 @@
  *  NWN creature.
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/maths.h"
-#include "src/common/file.h"
+#include "src/common/readfile.h"
 #include "src/common/configman.h"
 
 #include "src/aurora/types.h"
@@ -137,7 +139,7 @@ void Creature::init() {
 	_model   = 0;
 	_tooltip = 0;
 
-	for (int i = 0; i < kAbilityMAX; i++)
+	for (size_t i = 0; i < kAbilityMAX; i++)
 		_abilities[i] = 0;
 
 	_bodyParts.resize(kBodyPartMAX);
@@ -168,12 +170,12 @@ void Creature::setPosition(float x, float y, float z) {
 		_model->setPosition(x, y, z);
 }
 
-void Creature::setOrientation(float x, float y, float z) {
-	Object::setOrientation(x, y, z);
-	Object::getOrientation(x, y, z);
+void Creature::setOrientation(float x, float y, float z, float angle) {
+	Object::setOrientation(x, y, z, angle);
+	Object::getOrientation(x, y, z, angle);
 
 	if (_model)
-		_model->setRotation(x, z, -y);
+		_model->setOrientation(x, y, z, angle);
 }
 
 uint32 Creature::lastChangedGUIDisplay() const {
@@ -267,7 +269,7 @@ void Creature::removeAssociate(Creature &henchman) {
 	}
 }
 
-Creature *Creature::getAssociate(AssociateType type, int nth) const {
+Creature *Creature::getAssociate(AssociateType type, size_t nth) const {
 	if (_associates.empty())
 		return 0;
 
@@ -307,7 +309,7 @@ void Creature::constructPartName(const Common::UString &type, uint32 id,
 		const Common::UString &gender, const Common::UString &race,
 		const Common::UString &phenoType, Common::UString &part) {
 
-	part = Common::UString::sprintf("p%s%s%s_%s%03d",
+	part = Common::UString::format("p%s%s%s_%s%03d",
 	       gender.c_str(), race.c_str(), phenoType.c_str(), type.c_str(), id);
 }
 
@@ -386,19 +388,19 @@ void Creature::getPartModels() {
 
 	Common::UString genderChar   = gender.getString("GENDER");
 	Common::UString raceChar     = raceAp.getString("RACE");
-	Common::UString phenoChar    = Common::UString::sprintf("%d", _phenotype);
+	Common::UString phenoChar    = Common::UString::format("%d", _phenotype);
 	Common::UString phenoAltChar = pheno.getString("DefaultPhenoType");
 
 	// Important to capture the supermodel
-	_partsSuperModelName = Common::UString::sprintf("p%s%s%s",
+	_partsSuperModelName = Common::UString::format("p%s%s%s",
 	                       genderChar.c_str(), raceChar.c_str(), phenoChar.c_str());
 
 	// Fall back to the default phenotype if required
 	if (!ResMan.hasResource(_partsSuperModelName, Aurora::kFileTypeMDL))
-		_partsSuperModelName = Common::UString::sprintf("p%s%s%s",
+		_partsSuperModelName = Common::UString::format("p%s%s%s",
 		                       genderChar.c_str(), raceChar.c_str(), phenoAltChar.c_str());
 
-	for (uint i = 0; i < kBodyPartMAX; i++)
+	for (size_t i = 0; i < kBodyPartMAX; i++)
 		constructModelName(kBodyPartModels[i],
 		                   _bodyParts[i].idArmor > 0 ? _bodyParts[i].idArmor : _bodyParts[i].id,
 		                   genderChar, raceChar, phenoChar, phenoAltChar,
@@ -414,7 +416,7 @@ void Creature::getArmorModels() {
 		status("Equipping armour \"%s\" on model \"%s\"", item.getName().c_str(), _tag.c_str());
 
 		// Set the body part models
-		for (uint i = 0; i < kBodyPartMAX; i++) {
+		for (size_t i = 0; i < kBodyPartMAX; i++) {
 			int id = item.getArmorPart(i);
 			if (id > 0)
 				_bodyParts[i].idArmor = id;
@@ -470,7 +472,7 @@ void Creature::loadModel() {
 		getPartModels();
 		_model = loadModelObject(_partsSuperModelName);
 
-		for (uint i = 0; i < kBodyPartMAX; i++) {
+		for (size_t i = 0; i < kBodyPartMAX; i++) {
 			if (_bodyParts[i].modelName.empty())
 				continue;
 
@@ -505,13 +507,13 @@ void Creature::loadModel() {
 
 	// Positioning
 
-	float x, y, z;
+	float x, y, z, angle;
 
 	getPosition(x, y, z);
 	setPosition(x, y, z);
 
-	getOrientation(x, y, z);
-	setOrientation(x, y, z);
+	getOrientation(x, y, z, angle);
+	setOrientation(x, y, z, angle);
 
 	// Clickable
 
@@ -546,7 +548,7 @@ void Creature::loadCharacter(const Common::UString &bic, bool local) {
 	// Set the PC tag to something recognizable for now.
 	// Let's hope no script depends on it being "".
 
-	_tag = Common::UString::sprintf("[PC: %s]", _name.c_str());
+	_tag = Common::UString::format("[PC: %s]", _name.c_str());
 
 	_lastChangedGUIDisplay = EventMan.getTimestamp();
 }
@@ -587,10 +589,7 @@ void Creature::load(const Aurora::GFF3Struct &instance, const Aurora::GFF3Struct
 	float bearingX = instance.getDouble("XOrientation");
 	float bearingY = instance.getDouble("YOrientation");
 
-	float o[3];
-	Common::vector2orientation(bearingX, bearingY, o[0], o[1], o[2]);
-
-	setOrientation(o[0], o[1], o[2]);
+	setOrientation(0.0f, 0.0f, 1.0f, -Common::rad2deg(atan2(bearingX, bearingY)));
 }
 
 static const char *kBodyPartFields[] = {
@@ -728,7 +727,7 @@ void Creature::loadProperties(const Aurora::GFF3Struct &gff) {
 	_phenotype    = gff.getUint("Phenotype"      , _phenotype);
 
 	// Body parts
-	for (uint i = 0; i < kBodyPartMAX; i++) {
+	for (size_t i = 0; i < kBodyPartMAX; i++) {
 		_bodyParts[i].id      = gff.getUint(kBodyPartFields[i], _bodyParts[i].id);
 		_bodyParts[i].idArmor = 0;
 	}
@@ -954,8 +953,8 @@ void Creature::createTooltip() {
 
 	_tooltip = new Tooltip(Tooltip::kTypeFeedback, *_model);
 
-	_tooltip->setAlign(0.5);
-	_tooltip->addLine(_name, 0.5, 0.5, 1.0, 1.0);
+	_tooltip->setAlign(0.5f);
+	_tooltip->addLine(_name, 0.5f, 0.5f, 1.0f, 1.0f);
 	_tooltip->setPortrait(_portrait);
 }
 
@@ -1032,9 +1031,9 @@ Aurora::GFF3File *Creature::openPC(const Common::UString &bic, bool local) {
 	Common::UString pcDir  = ConfigMan.getString(local ? "NWN_localPCDir" : "NWN_serverPCDir");
 	Common::UString pcFile = pcDir + "/" + bic + ".bic";
 
-	Common::File *pc = 0;
+	Common::ReadFile *pc = 0;
 	try {
-		pc = new Common::File(pcFile);
+		pc = new Common::ReadFile(pcFile);
 	} catch (...) {
 		throw;
 	}

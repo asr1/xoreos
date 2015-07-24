@@ -56,7 +56,7 @@ void Situated::loadModel() {
 		return;
 
 	if (_modelName.empty()) {
-		warning("Situated object \"%s\" (\"%s\") has no model", _name.c_str(), _tag.c_str());
+		warning("Situated object \"%s\" (\"%s\") has no model", _name.getString().c_str(), _tag.c_str());
 		return;
 	}
 
@@ -67,13 +67,13 @@ void Situated::loadModel() {
 
 	// Positioning
 
-	float x, y, z;
+	float x, y, z, angle;
 
 	getPosition(x, y, z);
 	setPosition(x, y, z);
 
-	getOrientation(x, y, z);
-	setOrientation(x, y, z);
+	getOrientation(x, y, z, angle);
+	setOrientation(x, y, z, angle);
 
 	// Clickable
 
@@ -108,12 +108,12 @@ void Situated::setPosition(float x, float y, float z) {
 		_model->setPosition(x, y, z);
 }
 
-void Situated::setOrientation(float x, float y, float z) {
-	Object::setOrientation(x, y, z);
-	Object::getOrientation(x, y, z);
+void Situated::setOrientation(float x, float y, float z, float angle) {
+	Object::setOrientation(x, y, z, angle);
+	Object::getOrientation(x, y, z, angle);
 
 	if (_model)
-		_model->setRotation(x, z, -y);
+		_model->setOrientation(x, y, z, angle);
 }
 
 bool Situated::isLocked() const {
@@ -153,23 +153,19 @@ void Situated::load(const Aurora::GFF3Struct &instance, const Aurora::GFF3Struct
 
 	float bearing = instance.getDouble("Bearing");
 
-	float rotX = 0.0;
-	float rotY = Common::rad2deg(bearing);
-	float rotZ = 0.0;
+	float rotX = 0.0f;
+	float rotY = 0.0f;
+	float rotZ = 1.0f;
+	float rotW = Common::rad2deg(bearing);
 
 	if (instance.hasField("OrientationW")) {
-		float oX = instance.getDouble("OrientationX");
-		float oY = instance.getDouble("OrientationY");
-		float oZ = instance.getDouble("OrientationZ");
-		float oW = instance.getDouble("OrientationW");
-
-		// Convert quaternions to roll/pitch/yaw
-		rotY = 180.0f - Common::rad2deg(atan2(2 * (oX*oY + oZ*oW), 1 - 2 * (oY*oY + oZ*oZ)));
-		rotX = 180.0f - Common::rad2deg(asin(2 * (oX*oZ - oW*oY)));
-		rotZ = Common::rad2deg(atan2(2 * (oX*oW + oY*oZ), 1 - 2 * (oZ*oZ + oW*oW)));
+		rotX = instance.getDouble("OrientationX");
+		rotY = instance.getDouble("OrientationY");
+		rotZ = instance.getDouble("OrientationZ");
+		rotW = Common::rad2deg(acos(instance.getDouble("OrientationW")) * 2.0);
 	}
 
-	setOrientation(rotX, rotY, rotZ);
+	setOrientation(rotX, rotY, rotZ, rotW);
 }
 
 void Situated::loadProperties(const Aurora::GFF3Struct &gff) {
@@ -180,7 +176,7 @@ void Situated::loadProperties(const Aurora::GFF3Struct &gff) {
 	// Name
 	if (gff.hasField("LocName")) {
 		try {
-			gff.getLocString("LocName", _names);
+			gff.getLocString("LocName", _name);
 		} catch (...) {
 		}
 	}
@@ -188,7 +184,7 @@ void Situated::loadProperties(const Aurora::GFF3Struct &gff) {
 	// Description
 	if (gff.hasField("Description")) {
 		try {
-			gff.getLocString("Description", _descriptions);
+			gff.getLocString("Description", _description);
 		} catch (...) {
 		}
 	}

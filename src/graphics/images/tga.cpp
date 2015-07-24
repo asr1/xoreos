@@ -24,8 +24,10 @@
  *  Decoding TGA (TarGa) images.
  */
 
+#include <cstring>
+
 #include "src/common/util.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/error.h"
 
 #include "src/graphics/util.h"
@@ -49,9 +51,6 @@ void TGA::load(Common::SeekableReadStream &tga) {
 		byte pixelDepth, imageDesc;
 		readHeader(tga, imageType, pixelDepth, imageDesc);
 		readData  (tga, imageType, pixelDepth, imageDesc);
-
-		if (tga.err())
-			throw Common::Exception(Common::kReadError);
 
 	} catch (Common::Exception &e) {
 		clear();

@@ -38,6 +38,41 @@ dnl Standard C, C++
 AC_C_CONST
 AC_HEADER_STDC
 
+dnl Compiler warning flags
+AC_ARG_WITH([warnings], [AS_HELP_STRING([--without-warnings], [Compile without extra warnings @<:@default=no@:>@])], [], [with_warnings=yes])
+
+if test "x$with_warnings" = "xno"; then
+	WARN_C_CXX=""
+	WARN_CXX=""
+else
+	WARN_C_CXX="-Wall"
+	AX_CHECK_COMPILER_FLAGS_VAR([C], [WARN_C_CXX], [-Wignored-qualifiers])
+	AX_CHECK_COMPILER_FLAGS_VAR([C], [WARN_C_CXX], [-Wpointer-arith])
+	AX_CHECK_COMPILER_FLAGS_VAR([C], [WARN_C_CXX], [-Wshadow])
+	AX_CHECK_COMPILER_FLAGS_VAR([C], [WARN_C_CXX], [-Wsign-compare])
+	AX_CHECK_COMPILER_FLAGS_VAR([C], [WARN_C_CXX], [-Wtype-limits])
+	AX_CHECK_COMPILER_FLAGS_VAR([C], [WARN_C_CXX], [-Wuninitialized])
+	AX_CHECK_COMPILER_FLAGS_VAR([C], [WARN_C_CXX], [-Wunused-parameter])
+	AX_CHECK_COMPILER_FLAGS_VAR([C], [WARN_C_CXX], [-Wunused-but-set-parameter])
+
+	WARN_CXX=""
+	AX_CHECK_COMPILER_FLAGS_VAR([C++], [WARN_CXX], [-Wnon-virtual-dtor])
+	AX_CHECK_COMPILER_FLAGS_VAR([C++], [WARN_CXX], [-Wno-overloaded-virtual])
+fi
+
+AC_SUBST(WARN_C_CXX)
+AC_SUBST(WARN_CXX)
+
+dnl Link-time optimization
+AC_ARG_WITH([lto], [AS_HELP_STRING([--with-lto], [Compile with link-time optimization @<:@default=no@:>@])], [], [with_lto=no])
+
+LTO=""
+if test "x$with_lto" = "xyes"; then
+	AX_CHECK_COMPILER_FLAGS_VAR([C], [LTO], [-flto])
+fi
+
+AC_SUBST(LTO)
+
 dnl Endianness
 AC_C_BIGENDIAN()
 
@@ -63,6 +98,7 @@ dnl General purpose libraries
 AX_CHECK_ICONV( , AC_MSG_ERROR([No useable iconv() function found!]))
 AX_CHECK_ZLIB(1, 2, 3, 4, , AC_MSG_ERROR([zlib(>= 1.2.3.4) is required and could not be found!]))
 AX_CHECK_LZMA(5, 0, 5, 2, , AC_MSG_ERROR([liblzma(>= 5.0.5) is required and could not be found!]))
+AX_CHECK_XML2(2, 8, 0, , AC_MSG_ERROR([libxml2(>= 2.8.0) is required and could not be found!]))
 
 dnl Graphic libraries
 AX_CHECK_SDL2(2000, , AC_MSG_ERROR([SDL2 (>= 2.0.0) is required and could not be found!]))
@@ -78,7 +114,7 @@ AX_CHECK_OGG(, AC_MSG_ERROR([libOgg (>= 1.2.0) is required and could not be foun
 AX_CHECK_VORBIS(, AC_MSG_ERROR([libVorbisFile (>= 1.3.1) is required and could not be found!]))
 
 dnl Boost
-BOOST_REQUIRE(1.48.0)
+BOOST_REQUIRE(1.53.0)
 BOOST_STRING_ALGO
 BOOST_SYSTEM
 BOOST_FILESYSTEM
@@ -91,6 +127,7 @@ BOOST_BIND
 BOOST_UUID
 BOOST_SMART_PTR
 BOOST_ATOMIC
+BOOST_LOCALE
 
 dnl Extra flags
 case "$target" in

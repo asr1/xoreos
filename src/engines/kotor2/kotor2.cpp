@@ -25,11 +25,12 @@
 #include "src/common/util.h"
 #include "src/common/filelist.h"
 #include "src/common/filepath.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/configman.h"
 
 #include "src/aurora/util.h"
 #include "src/aurora/resman.h"
+#include "src/aurora/language.h"
 #include "src/aurora/talkman.h"
 #include "src/aurora/talktable_tlk.h"
 
@@ -41,7 +42,6 @@
 #include "src/graphics/aurora/fontman.h"
 
 #include "src/engines/aurora/util.h"
-#include "src/engines/aurora/language.h"
 #include "src/engines/aurora/loadprogress.h"
 #include "src/engines/aurora/resources.h"
 #include "src/engines/aurora/model.h"
@@ -58,8 +58,10 @@ namespace Engines {
 
 namespace KotOR2 {
 
-const KotOR2EngineProbeWin  kKotOR2EngineProbeWin;
-const KotOR2EngineProbeXbox kKotOR2EngineProbeXbox;
+const KotOR2EngineProbeWin   kKotOR2EngineProbeWin;
+const KotOR2EngineProbeLinux kKotOR2EngineProbeLinux;
+const KotOR2EngineProbeMac   kKotOR2EngineProbeMac;
+const KotOR2EngineProbeXbox  kKotOR2EngineProbeXbox;
 
 const Common::UString KotOR2EngineProbe::kGameName = "Star Wars: Knights of the Old Republic II - The Sith Lords";
 
@@ -100,6 +102,58 @@ bool KotOR2EngineProbeWin::probe(const Common::UString &UNUSED(directory),
 }
 
 
+KotOR2EngineProbeLinux::KotOR2EngineProbeLinux() {
+}
+
+KotOR2EngineProbeLinux::~KotOR2EngineProbeLinux() {
+}
+
+bool KotOR2EngineProbeLinux::probe(const Common::UString &directory,
+                                   const Common::FileList &rootFiles) const {
+
+	// The game binary found in the Aspyr Linux port
+	if (!rootFiles.contains("/KOTOR2", false))
+		return false;
+
+	// The directory containing what was originally within the PE resources
+	if (Common::FilePath::findSubDirectory(directory, "resources").empty())
+		return false;
+	// The directory containing the original game data files
+	if (Common::FilePath::findSubDirectory(directory, "steamassets").empty())
+		return false;
+
+	return true;
+}
+
+
+KotOR2EngineProbeMac::KotOR2EngineProbeMac() {
+}
+
+KotOR2EngineProbeMac::~KotOR2EngineProbeMac() {
+}
+
+bool KotOR2EngineProbeMac::probe(const Common::UString &directory,
+                                 const Common::FileList &UNUSED(rootFiles)) const {
+
+	// The directory containing the Mac binary
+	if (Common::FilePath::findSubDirectory(directory, "MacOS").empty())
+		return false;
+	// The directory containing what was originally within the PE resources
+	if (Common::FilePath::findSubDirectory(directory, "Resources").empty())
+		return false;
+	// The directory containing the original game data files
+	if (Common::FilePath::findSubDirectory(directory, "GameData").empty())
+		return false;
+
+	// The game binary found in the Aspyr Mac port
+	Common::FileList binaryFiles(Common::FilePath::findSubDirectory(directory, "MacOS"));
+	if (!binaryFiles.contains("KOTOR2", false))
+		return false;
+
+	return true;
+}
+
+
 KotOR2EngineProbeXbox::KotOR2EngineProbeXbox() {
 }
 
@@ -123,12 +177,18 @@ KotOR2Engine::~KotOR2Engine() {
 	delete _module;
 }
 
-bool KotOR2Engine::detectLanguages(Aurora::GameID game, const Common::UString &target,
-                                   Aurora::Platform UNUSED(platform),
+bool KotOR2Engine::detectLanguages(Aurora::GameID UNUSED(game), const Common::UString &target,
+                                   Aurora::Platform platform,
                                    std::vector<Aurora::Language> &languages) const {
 	try {
+		Common::UString baseDir = target;
+		if      (platform == Aurora::kPlatformLinux)
+			baseDir += "/steamassets";
+		else if (platform == Aurora::kPlatformMacOSX)
+			baseDir += "/GameData";
+
 		Common::FileList files;
-		if (!files.addDirectory(target))
+		if (!files.addDirectory(baseDir))
 			return true;
 
 		Common::UString tlk = files.findFirst("dialog.tlk", true);
@@ -139,7 +199,7 @@ bool KotOR2Engine::detectLanguages(Aurora::GameID game, const Common::UString &t
 		if (languageID == Aurora::kLanguageInvalid)
 			return true;
 
-		Aurora::Language language = Aurora::getLanguage(game, languageID);
+		Aurora::Language language = LangMan.getLanguage(languageID);
 		if (language == Aurora::kLanguageInvalid)
 			return true;
 
@@ -190,10 +250,15 @@ void KotOR2Engine::run() {
 void KotOR2Engine::init() {
 	LoadProgress progress(17);
 
+	progress.step("Declare languages");
+	declareLanguages();
+
 	if (evaluateLanguage(true, _language))
-		status("Setting the language to %s", Aurora::getLanguageName(_language).c_str());
+		status("Setting the language to %s", LangMan.getLanguageName(_language).c_str());
 	else
 		warning("Failed to detect this game's language");
+
+	LangMan.setCurrentLanguage(_language);
 
 	progress.step("Loading user game config");
 	initConfig();
@@ -201,9 +266,6 @@ void KotOR2Engine::init() {
 
 	if (EventMan.quitRequested())
 		return;
-
-	progress.step("Declare string encodings");
-	declareEncodings();
 
 	initResources(progress);
 
@@ -222,22 +284,21 @@ void KotOR2Engine::init() {
 	progress.step("Successfully initialized the engine");
 }
 
-void KotOR2Engine::declareEncodings() {
-	static const LanguageEncoding kLanguageEncodings[] = {
-		{ Aurora::kLanguageEnglish           , Common::kEncodingCP1252 },
-		{ Aurora::kLanguageFrench            , Common::kEncodingCP1252 },
-		{ Aurora::kLanguageGerman            , Common::kEncodingCP1252 },
-		{ Aurora::kLanguageItalian           , Common::kEncodingCP1252 },
-		{ Aurora::kLanguageSpanish           , Common::kEncodingCP1252 },
-		{ Aurora::kLanguagePolish            , Common::kEncodingCP1250 },
-		{ Aurora::kLanguageKorean            , Common::kEncodingCP949  },
-		{ Aurora::kLanguageChineseTraditional, Common::kEncodingCP950  },
-		{ Aurora::kLanguageChineseSimplified , Common::kEncodingCP936  },
-		{ Aurora::kLanguageJapanese          , Common::kEncodingCP932  }
+void KotOR2Engine::declareLanguages() {
+	static const Aurora::LanguageManager::Declaration kLanguageDeclarations[] = {
+		{ Aurora::kLanguageEnglish           ,   0, Common::kEncodingCP1252, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageFrench            ,   1, Common::kEncodingCP1252, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageGerman            ,   2, Common::kEncodingCP1252, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageItalian           ,   3, Common::kEncodingCP1252, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageSpanish           ,   4, Common::kEncodingCP1252, Common::kEncodingCP1252 },
+		{ Aurora::kLanguagePolish            ,   5, Common::kEncodingCP1250, Common::kEncodingCP1250 },
+		{ Aurora::kLanguageKorean            , 128, Common::kEncodingCP949 , Common::kEncodingCP949  },
+		{ Aurora::kLanguageChineseTraditional, 129, Common::kEncodingCP950 , Common::kEncodingCP950  },
+		{ Aurora::kLanguageChineseSimplified , 130, Common::kEncodingCP936 , Common::kEncodingCP936  },
+		{ Aurora::kLanguageJapanese          , 131, Common::kEncodingCP932 , Common::kEncodingCP932  }
 	};
 
-	Engines::declareEncodings(_game, kLanguageEncodings, ARRAYSIZE(kLanguageEncodings));
-	Engines::declareTalkLanguage(_game, _language);
+	LangMan.addLanguages(kLanguageDeclarations, ARRAYSIZE(kLanguageDeclarations));
 }
 
 void KotOR2Engine::initResources(LoadProgress &progress) {
@@ -246,7 +307,14 @@ void KotOR2Engine::initResources(LoadProgress &progress) {
 		ResMan.addTypeAlias(Aurora::kFileTypeTXB, Aurora::kFileTypeTPC);
 
 	progress.step("Setting base directory");
-	ResMan.registerDataBase(_target);
+
+	Common::UString baseDir = _target;
+	if      (_platform == Aurora::kPlatformLinux)
+		baseDir += "/steamassets";
+	else if (_platform == Aurora::kPlatformMacOSX)
+		baseDir += "/GameData";
+
+	ResMan.registerDataBase(baseDir);
 
 	progress.step("Adding extra archive directories");
 	const Common::UString dataDir = (_platform == Aurora::kPlatformXbox) ? "dataxbox" : "data";
@@ -255,7 +323,8 @@ void KotOR2Engine::initResources(LoadProgress &progress) {
 	indexMandatoryDirectory( dataDir , 0, 0, 2);
 	indexMandatoryDirectory("lips"   , 0, 0, 3);
 	indexMandatoryDirectory("modules", 0, 0, 4);
-	indexMandatoryDirectory( rimsDir , 0, 0, 5);
+
+	indexOptionalDirectory(rimsDir, 0, 0, 5);
 
 	if (_platform != Aurora::kPlatformXbox)
 		indexMandatoryDirectory("texturepacks", 0, 0, 6);
@@ -283,6 +352,10 @@ void KotOR2Engine::initResources(LoadProgress &progress) {
 	if (_platform == Aurora::kPlatformWindows) {
 		initCursorsRemap();
 		indexMandatoryArchive("swkotor2.exe", 104);
+	} else if (_platform == Aurora::kPlatformLinux) {
+		indexMandatoryDirectory("../resources/cursors/", 0, 0, 104);
+	} else if (_platform == Aurora::kPlatformMacOSX) {
+		indexMandatoryDirectory("../Resources/Cursors/", 0, 0, 104);
 	}
 
 	// Texture packs at 400, in module.cpp
@@ -445,7 +518,7 @@ void KotOR2Engine::initConfig() {
 
 void KotOR2Engine::initGameConfig() {
 	ConfigMan.setString(Common::kConfigRealmGameTemp, "KOTOR2_moduleDir",
-		Common::FilePath::findSubDirectory(_target, "modules", true));
+		Common::FilePath::findSubDirectory(ResMan.getDataBase(), "modules", true));
 }
 
 void KotOR2Engine::checkConfig() {
@@ -458,6 +531,7 @@ void KotOR2Engine::deinit() {
 void KotOR2Engine::playIntroVideos() {
 	playVideo("leclogo");
 	playVideo("obsidianent");
+	playVideo("aspyr");
 	playVideo("legal");
 }
 

@@ -44,7 +44,7 @@ namespace Aurora {
 /** Class to hold resource data of an ERF file. */
 class ERFFile : public Archive, public AuroraBase {
 public:
-	ERFFile(Common::SeekableReadStream *erf);
+	ERFFile(Common::SeekableReadStream *erf, const std::vector<byte> &password = std::vector<byte>());
 	~ERFFile();
 
 	/** Return the list of resources. */
@@ -71,28 +71,43 @@ public:
 	static LocString getDescription(const Common::UString &fileName);
 
 private:
+	enum Encryption {
+		kEncryptionNone        = 0,
+		kEncryptionXOR         = 1,
+		kEncryptionBlowfishDAO = 2,
+		kEncryptionBlowfishDA2 = 3
+	};
+
+	enum Compression {
+		kCompressionNone           = 0,
+		kCompressionBioWareZlib    = 1,
+		kCompressionHeaderlessZlib = 7
+	};
+
 	/** The header of an ERF file. */
 	struct ERFHeader {
-		uint32 resCount;        ///< Number of resources in this ERF.
+		uint32 resCount;         ///< Number of resources in this ERF.
 
-		uint32 langCount;       ///< Number of language strings in the description.
-		uint32 descriptionID;   ///< ID of the description.
+		uint32 langCount;        ///< Number of language strings in the description.
+		uint32 descriptionID;    ///< ID of the description.
 
-		uint32 offDescription;  ///< Offset to the description.
-		uint32 offKeyList;      ///< Offset to the key list.
-		uint32 offResList;      ///< Offset to the resource list.
+		uint32 offDescription;   ///< Offset to the description.
+		uint32 offKeyList;       ///< Offset to the key list.
+		uint32 offResList;       ///< Offset to the resource list.
 
-		uint32 buildYear;       ///< The year the ERF was built.
-		uint32 buildDay;        ///< The day of year the ERF was built.
+		uint32 buildYear;        ///< The year the ERF was built.
+		uint32 buildDay;         ///< The day of year the ERF was built.
 
-		char  *stringTable;     ///< String table used for hashed ERFs.
-		uint32 stringTableSize; ///< Size of the string table.
+		char  *stringTable;      ///< String table used for hashed ERFs.
+		uint32 stringTableSize;  ///< Size of the string table.
 
-		uint32 flags;           ///< Only used for the compression type ATM.
-		uint32 moduleID;        ///< ID of the module this ERF belongs to.
+		uint32 moduleID;         ///< ID of the module this ERF belongs to.
+
+		Encryption  encryption;  ///< The encryption algorithm in use.
+		Compression compression; ///< The compression algorithm in use.
 
 		/** Digest of the encryption password, if any. */
-		Common::UString passwordDigest;
+		std::vector<byte> passwordDigest;
 	};
 
 	/** Internal resource information. */
@@ -116,6 +131,9 @@ private:
 
 	/** Internal list of resource offsets and sizes. */
 	IResourceList _iResources;
+
+	/** The password we were given, if any. */
+	std::vector<byte> _password;
 
 	void load(Common::SeekableReadStream &erf);
 
@@ -143,8 +161,11 @@ private:
 	// V3.0
 	void readV3ResList(Common::SeekableReadStream &erf, const ERFHeader &header);
 
+	// Encryption
+	void verifyPasswordDigest();
+	Common::MemoryReadStream *decrypt(Common::MemoryReadStream *cryptStream) const;
+
 	// Compression
-	uint32 getCompressionType() const;
 	Common::SeekableReadStream *decompress(Common::MemoryReadStream *packedStream, uint32 unpackedSize) const;
 	Common::SeekableReadStream *decompressBiowareZlib(Common::MemoryReadStream *packedStream, uint32 unpackedSize) const;
 	Common::SeekableReadStream *decompressHeaderlessZlib(Common::MemoryReadStream *packedStream, uint32 unpackedSize) const;

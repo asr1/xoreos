@@ -24,8 +24,9 @@
 
 #include "src/common/error.h"
 #include "src/common/ustring.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/uuid.h"
+#include "src/common/encoding.h"
 
 #include "src/aurora/talkman.h"
 #include "src/aurora/resman.h"
@@ -35,9 +36,7 @@ DECLARE_SINGLETON(Aurora::TalkManager)
 
 namespace Aurora {
 
-TalkManager::TalkManager() : _language(kLanguageInvalid), _languageID(kLanguageInvalid),
-	_gender(kLanguageGenderMale) {
-
+TalkManager::TalkManager() {
 }
 
 TalkManager::~TalkManager() {
@@ -52,45 +51,6 @@ void TalkManager::clear() {
 
 	_tablesMain.clear();
 	_tablesAlt.clear();
-
-	_encodings.clear();
-
-	_language   = kLanguageInvalid;
-	_languageID = kLanguageInvalid;
-	_gender     = kLanguageGenderMale;
-}
-
-void TalkManager::registerEncoding(uint32 languageID, Common::Encoding encoding) {
-	_encodings[languageID] = encoding;
-}
-
-Common::Encoding TalkManager::getEncoding(uint32 languageID) const {
-	EncodingMap::const_iterator e = _encodings.find(languageID);
-	if (e == _encodings.end())
-		return Common::kEncodingInvalid;
-
-	return e->second;
-}
-
-Language TalkManager::getLanguage() const {
-	return _language;
-}
-
-uint32 TalkManager::getLanguageID() const {
-	return _languageID;
-}
-
-LanguageGender TalkManager::getGender() const {
-	return _gender;
-}
-
-void TalkManager::setLanguage(Language language, uint32 languageID) {
-	_language   = language;
-	_languageID = languageID;
-}
-
-void TalkManager::setGender(LanguageGender gender) {
-	_gender = gender;
 }
 
 static TalkTable *loadTable(const Common::UString &name, Common::Encoding encoding) {
@@ -122,7 +82,7 @@ void TalkManager::addTable(const Common::UString &nameMale, const Common::UStrin
                            bool isAlt, uint32 priority, Common::ChangeID *changeID) {
 
 	TalkTable *tableMale = 0, *tableFemale = 0;
-	loadTables(nameMale, nameFemale, tableMale, tableFemale, getEncoding(_languageID));
+	loadTables(nameMale, nameFemale, tableMale, tableFemale, LangMan.getCurrentEncoding());
 
 	if (!tableMale && !tableFemale)
 		throw Common::Exception("No such talk table \"%s\"/\"%s\"", nameMale.c_str(), nameFemale.c_str());
@@ -171,8 +131,8 @@ void TalkManager::removeTable(Common::ChangeID &changeID) {
 
 static const Common::UString kEmptyString = "";
 const Common::UString &TalkManager::getString(uint32 strRef, LanguageGender gender) {
-	if (gender == ((LanguageGender) -1))
-		gender = _gender;
+	if (gender == kLanguageGenderCurrent)
+		gender = LangMan.getCurrentGender();
 
 	if (strRef == kStrRefInvalid)
 		return kEmptyString;
@@ -185,8 +145,8 @@ const Common::UString &TalkManager::getString(uint32 strRef, LanguageGender gend
 }
 
 const Common::UString &TalkManager::getSoundResRef(uint32 strRef, LanguageGender gender) {
-	if (gender == ((LanguageGender) -1))
-		gender = _gender;
+	if (gender == kLanguageGenderCurrent)
+		gender = LangMan.getCurrentGender();
 
 	if (strRef == kStrRefInvalid)
 		return kEmptyString;

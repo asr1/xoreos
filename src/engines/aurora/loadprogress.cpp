@@ -22,24 +22,28 @@
  *  Displaying the progress in loading a game.
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 
-#include "src/graphics/graphics.cpp"
+#include "src/graphics/graphics.h"
 #include "src/graphics/font.h"
 
 #include "src/graphics/aurora/text.h"
 #include "src/graphics/aurora/fontman.h"
 
+#include "src/events/events.h"
+
 #include "src/engines/aurora/loadprogress.h"
 
 namespace Engines {
 
-LoadProgress::LoadProgress(uint steps) : _steps(steps), _currentStep(0), _currentAmount(0.0),
-	_description(0), _barUpper(0), _barLower(0), _progressbar(0), _percent(0) {
+LoadProgress::LoadProgress(size_t steps) : _steps(steps), _currentStep(0), _currentAmount(0.0f),
+	_startTime(0), _description(0), _barUpper(0), _barLower(0), _progressbar(0), _percent(0) {
 
 	assert(_steps >= 2);
 
-	_stepAmount = 1.0 / (_steps - 1);
+	_stepAmount = 1.0f / (_steps - 1);
 
 	Graphics::Aurora::FontHandle font = FontMan.get(Graphics::Aurora::kSystemFontMono, 13);
 
@@ -53,12 +57,12 @@ LoadProgress::LoadProgress(uint steps) : _steps(steps), _currentStep(0), _curren
 	_progressbar = new Graphics::Aurora::Text(font, barStr);
 	_percent     = new Graphics::Aurora::Text(font, "");
 
-	_description->setPosition(0.0,  font.getFont().getHeight());
-	_percent    ->setPosition(0.0, -font.getFont().getHeight());
+	_description->setPosition(0.0f,  font.getFont().getHeight());
+	_percent    ->setPosition(0.0f, -font.getFont().getHeight());
 
-	_barUpper   ->setPosition(-(_barUpper   ->getWidth() / 2.0), 0.0);
-	_barLower   ->setPosition(-(_barLower   ->getWidth() / 2.0), 0.0);
-	_progressbar->setPosition(-(_progressbar->getWidth() / 2.0), 0.0);
+	_barUpper   ->setPosition(-(_barUpper   ->getWidth() / 2.0f), 0.0f);
+	_barLower   ->setPosition(-(_barLower   ->getWidth() / 2.0f), 0.0f);
+	_progressbar->setPosition(-(_progressbar->getWidth() / 2.0f), 0.0f);
 }
 
 LoadProgress::~LoadProgress() {
@@ -70,6 +74,11 @@ LoadProgress::~LoadProgress() {
 }
 
 void LoadProgress::step(const Common::UString &description) {
+	const uint32 timeNow = EventMan.getTimestamp();
+
+	if (_currentStep == 0)
+		_startTime = timeNow;
+
 	// The first step is the 0% mark, so don't add to the amount yet
 	if (_currentStep > 0)
 		_currentAmount += _stepAmount;
@@ -77,15 +86,18 @@ void LoadProgress::step(const Common::UString &description) {
 	// Take the next step and make sure we get nice, round 100% at the end
 	if (++_currentStep > (_steps - 1)) {
 		_currentStep   = _steps - 1;
-		_currentAmount = 1.0;
+		_currentAmount = 1.0f;
 	}
 
-	const int percentage = (int) (_currentAmount * 100.0);
+	const int    percentage  = (int) (_currentAmount * 100.0f);
+	const uint32 timeElapsed = timeNow - _startTime;
+
+	const Common::UString timeStr = Common::UString::format("(%.2fs)", timeElapsed / 1000.0);
 
 	// Update the text
 	{
 		// Create string representing the percentage of done-ness and progress bar
-		const Common::UString percentStr = Common::UString::sprintf("%d%%", percentage);
+		const Common::UString percentStr = Common::UString::format("%d%%", percentage);
 		const Common::UString barStr     = createProgressbar(kBarLength, _currentAmount);
 
 		float x, y, z;
@@ -94,13 +106,13 @@ void LoadProgress::step(const Common::UString &description) {
 
 		// Update the description text and center it
 		_description->getPosition(x, y, z);
-		_description->set(description);
-		_description->setPosition(-(_description->getWidth() / 2.0), y);
+		_description->set(description + " " + timeStr);
+		_description->setPosition(-(_description->getWidth() / 2.0f), y);
 
 		// Update the percentage text and center it
 		_percent->getPosition(x, y, z);
 		_percent->set(percentStr);
-		_percent->setPosition(-(_percent->getWidth() / 2.0), y);
+		_percent->setPosition(-(_percent->getWidth() / 2.0f), y);
 
 		_progressbar->set(barStr);
 
@@ -114,11 +126,11 @@ void LoadProgress::step(const Common::UString &description) {
 	}
 
 	// And also print the status
-	status("[%3d%%] %s", percentage, description.c_str());
+	status("[%3d%%] %s %s", percentage, description.c_str(), timeStr.c_str());
 }
 
-Common::UString LoadProgress::createProgressbar(uint length, double filled) {
-	const uint amount = (uint) length * filled;
+Common::UString LoadProgress::createProgressbar(size_t length, double filled) {
+	const size_t amount = (size_t) length * filled;
 
 	Common::UString str;
 
@@ -134,12 +146,12 @@ Common::UString LoadProgress::createProgressbar(uint length, double filled) {
 	return str;
 }
 
-Common::UString LoadProgress::createProgressbarUpper(uint length) {
+Common::UString LoadProgress::createProgressbarUpper(size_t length) {
 	// UPPER ONE EIGHTH BLOCK
 	return Common::UString((uint32) 0x2594, length);
 }
 
-Common::UString LoadProgress::createProgressbarLower(uint length) {
+Common::UString LoadProgress::createProgressbarLower(size_t length) {
 	// LOWER ONE EIGHTH BLOCK
 	return Common::UString((uint32) 0x2581, length);
 }

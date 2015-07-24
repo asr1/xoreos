@@ -24,7 +24,7 @@
 
 #include "src/common/error.h"
 #include "src/common/configfile.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 
 #include "src/aurora/types.h"
 #include "src/aurora/resman.h"
@@ -66,9 +66,9 @@ float Tileset::getTilesHeight() const {
 	return _tilesHeight;
 }
 
-const Tileset::Tile &Tileset::getTile(uint n) const {
+const Tileset::Tile &Tileset::getTile(size_t n) const {
 	if (n >= _tiles.size())
-		throw Common::Exception("Tileset has no tile %u", n);
+		throw Common::Exception("Tileset has no tile %u", (uint)n);
 
 	return _tiles[n];
 }
@@ -86,7 +86,7 @@ void Tileset::load(const Common::ConfigFile &set) {
 
 	_tiles.resize(tiles->getUint("Count"));
 
-	for (uint i = 0; i < _tiles.size(); i++)
+	for (size_t i = 0; i < _tiles.size(); i++)
 		loadTile(set, i, _tiles[i]);
 }
 
@@ -97,7 +97,7 @@ void Tileset::loadGeneral(const Common::ConfigDomain &general) {
 }
 
 void Tileset::loadTile(const Common::ConfigFile &set, uint i, Tile &tile) {
-	Common::UString domainName = Common::UString::sprintf("TILE%u", i);
+	Common::UString domainName = Common::UString::format("TILE%u", i);
 	const Common::ConfigDomain *domain = set.getDomain(domainName);
 	if (!domain)
 		throw Common::Exception("Tileset has no \"%s\" domain", domainName.c_str());

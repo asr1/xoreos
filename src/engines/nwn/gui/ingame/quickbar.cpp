@@ -40,7 +40,7 @@ namespace Engines {
 
 namespace NWN {
 
-QuickbarButton::QuickbarButton(::Engines::GUI &gui, uint n) : NWNWidget(gui, ""),
+QuickbarButton::QuickbarButton(::Engines::GUI &gui, size_t n) : NWNWidget(gui, ""),
 	_buttonNumber(n) {
 
 	Graphics::Aurora::ModelNode *invisible = 0;
@@ -64,7 +64,7 @@ QuickbarButton::QuickbarButton(::Engines::GUI &gui, uint n) : NWNWidget(gui, "")
 	if (invisible)
 		invisible->setInvisible(true);
 
-	NWNWidget::setTag(Common::UString::sprintf("Quickbar%d", _buttonNumber));
+	NWNWidget::setTag(Common::UString::format("Quickbar%u", (uint)_buttonNumber));
 	_model->setTag(NWNWidget::getTag());
 
 }
@@ -111,12 +111,12 @@ Quickbar::Quickbar() {
 	for (int i = 0; i < 12; i++) {
 		QuickbarButton *button = new QuickbarButton(*this, i);
 
-		button->setPosition(i * _slotWidth, bottomEdge->getHeight(), 0.0);
+		button->setPosition(i * _slotWidth, bottomEdge->getHeight(), 0.0f);
 		addWidget(button);
 	}
 
 	WidgetPanel *topEdge = new WidgetPanel(*this, "QBTopEdge", "pnl_quick_bar");
-	topEdge->setPosition(0.0, _slotHeight, 0.0);
+	topEdge->setPosition(0.0f, _slotHeight, 0.0f);
 	addWidget(topEdge);
 
 	notifyResized(0, 0, GfxMan.getScreenWidth(), GfxMan.getScreenHeight());
@@ -148,7 +148,7 @@ void Quickbar::getSlotSize() {
 void Quickbar::notifyResized(int UNUSED(oldWidth), int UNUSED(oldHeight),
                              int UNUSED(newWidth), int newHeight) {
 
-	setPosition(- ((12 * _slotWidth) / 2.0), - (newHeight / 2.0), -10.0);
+	setPosition(- ((12 * _slotWidth) / 2.0f), - (newHeight / 2.0f), -10.0f);
 }
 
 } // End of namespace NWN

@@ -22,6 +22,8 @@
  *  NWN2 creature.
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/maths.h"
 
@@ -94,7 +96,7 @@ void Creature::init() {
 	_bootsVisualType = 0;
 	_bootsVariation  = 0;
 
-	for (int i = 0; i < kAbilityMAX; i++)
+	for (size_t i = 0; i < kAbilityMAX; i++)
 		_abilities[i] = 0;
 }
 
@@ -116,12 +118,12 @@ void Creature::setPosition(float x, float y, float z) {
 		(*m)->setPosition(x, y, z);
 }
 
-void Creature::setOrientation(float x, float y, float z) {
-	Object::setOrientation(x, y, z);
-	Object::getOrientation(x, y, z);
+void Creature::setOrientation(float x, float y, float z, float angle) {
+	Object::setOrientation(x, y, z, angle);
+	Object::getOrientation(x, y, z, angle);
 
 	for (std::list<Graphics::Aurora::Model *>::iterator m = _modelParts.begin(); m != _modelParts.end(); ++m)
-		(*m)->setRotation(x, z, -y);
+		(*m)->setOrientation(x, y, z, angle);
 }
 
 void Creature::enter() {
@@ -218,7 +220,7 @@ bool Creature::loadArmorModel(const Common::UString &body,
 	Common::UString armorPrefix = armorVisual.getString("Prefix");
 
 	Common::UString modelFile;
-	modelFile = Common::UString::sprintf("%s_%s_%s%02d",
+	modelFile = Common::UString::format("%s_%s_%s%02d",
 	                                     body.c_str(), armorPrefix.c_str(), armor.c_str(), variation + 1);
 
 	Graphics::Aurora::Model *model = loadModelObject(modelFile);
@@ -237,7 +239,7 @@ bool Creature::loadHeadModel(uint8 appearance) {
 		return false;
 
 	Common::UString modelFile;
-	modelFile = Common::UString::sprintf("%s%02d", head.c_str(), appearance);
+	modelFile = Common::UString::format("%s%02d", head.c_str(), appearance);
 
 	Graphics::Aurora::Model *model = loadModelObject(modelFile);
 	if (model)
@@ -255,7 +257,7 @@ bool Creature::loadHairModel(uint8 appearance) {
 		return false;
 
 	Common::UString modelFile;
-	modelFile = Common::UString::sprintf("%s%02d", hair.c_str(), appearance);
+	modelFile = Common::UString::format("%s%02d", hair.c_str(), appearance);
 
 	Graphics::Aurora::Model *model = loadModelObject(modelFile);
 	if (model)
@@ -297,13 +299,13 @@ void Creature::loadModel() {
 
 	// Positioning
 
-	float x, y, z;
+	float x, y, z, angle;
 
 	getPosition(x, y, z);
 	setPosition(x, y, z);
 
-	getOrientation(x, y, z);
-	setOrientation(x, y, z);
+	getOrientation(x, y, z, angle);
+	setOrientation(x, y, z, angle);
 
 	for (std::list<Graphics::Aurora::Model *>::iterator m = _modelParts.begin(); m != _modelParts.end(); ++m) {
 		(*m)->setTag(_tag);
@@ -356,10 +358,7 @@ void Creature::load(const Aurora::GFF3Struct &instance, const Aurora::GFF3Struct
 	float bearingX = instance.getDouble("XOrientation");
 	float bearingY = instance.getDouble("YOrientation");
 
-	float o[3];
-	Common::vector2orientation(bearingX, bearingY, o[0], o[1], o[2]);
-
-	setOrientation(o[0], o[1], o[2]);
+	setOrientation(0.0f, 0.0f, 1.0f, -Common::rad2deg(atan2(bearingX, bearingY)));
 }
 
 void Creature::loadProperties(const Aurora::GFF3Struct &gff) {

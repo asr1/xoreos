@@ -30,7 +30,7 @@ elseif(CMAKE_HOST_UNIX)
   string(REPLACE "<LINK_LIBRARIES>" "-Wl,--start-group <LINK_LIBRARIES> -Wl,--end-group" CMAKE_C_CREATE_SHARED_MODULE "${CMAKE_C_CREATE_SHARED_MODULE}")
   string(REPLACE "<LINK_LIBRARIES>" "-Wl,--start-group <LINK_LIBRARIES> -Wl,--end-group" CMAKE_CXX_CREATE_SHARED_MODULE "${CMAKE_CXX_CREATE_SHARED_MODULE}")
 elseif(CMAKE_HOST_WIN32)
-
+  add_definitions(-DICONV_CONST=)
 else()
   message(STATUS "Unknown platform, maybe not supported")
 endif()
@@ -101,7 +101,7 @@ find_package(ZLIB REQUIRED)
 include_directories(${ZLIB_INCLUDE_DIRS})
 list(APPEND XOREOS_LIBRARIES ${ZLIB_LIBRARIES})
 
-find_package(Boost COMPONENTS system filesystem regex date_time atomic REQUIRED)
+find_package(Boost COMPONENTS system filesystem regex date_time atomic locale REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND XOREOS_LIBRARIES ${Boost_LIBRARIES})
 
@@ -142,6 +142,10 @@ find_package(LibLZMA REQUIRED)
 include_directories(${LIBLZMA_INCLUDE_DIRS})
 list(APPEND XOREOS_LIBRARIES ${LIBLZMA_LIBRARIES})
 
+find_package(LibXml2 REQUIRED)
+include_directories(${LIBXML2_INCLUDE_DIR})
+list(APPEND XOREOS_LIBRARIES ${LIBXML2_LIBRARIES})
+
 
 find_package(GLEW)
 if(NOT GLEW_FOUND)
@@ -173,7 +177,7 @@ target_link_libraries(xoreos ${XOREOS_LIBRARIES})
 # try to add version information from git to src/common/version.cpp
 # this is not 100% clean, and doesn't reconfigure when there's only a local change since last
 #  build (so it does not always add the .dirty suffix)
-string(TIMESTAMP XOREOS_BUILDDATE)
+string(TIMESTAMP XOREOS_BUILDDATE "%Y-%m-%dT%H:%M:%SZ" UTC)
 set_property(SOURCE src/common/version.cpp APPEND PROPERTY COMPILE_DEFINITIONS XOREOS_BUILDDATE="${XOREOS_BUILDDATE}")
 
 find_package(Git)

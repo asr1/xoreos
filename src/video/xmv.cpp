@@ -22,8 +22,10 @@
  *  Decoding Microsoft Xbox XMV videos.
  */
 
+#include <cassert>
+
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/memreadstream.h"
 #include "src/common/strutil.h"
 
 #include "src/sound/audiostream.h"
@@ -348,7 +350,7 @@ void XboxMediaVideo::processPacketHeader(Packet &packet) {
 	// Packet audio header
 
 	packet.audio.resize(_audioTracks.size());
-	for (uint i = 0; i < packet.audio.size(); i++) {
+	for (size_t i = 0; i < packet.audio.size(); i++) {
 		PacketAudio &audioHeader = packet.audio[i];
 
 		byte audioHeaderData[4];
@@ -367,12 +369,12 @@ void XboxMediaVideo::processPacketHeader(Packet &packet) {
 
 	// Packet data offsets
 
-	uint32 dataOffset = _xmv->pos();
+	size_t dataOffset = _xmv->pos();
 
 	packet.video.dataOffset = dataOffset;
 	dataOffset += packet.video.dataSize;
 
-	for (uint i = 0; i < packet.audio.size(); i++) {
+	for (size_t i = 0; i < packet.audio.size(); i++) {
 		packet.audio[i].dataOffset = dataOffset;
 		dataOffset += packet.audio[i].dataSize;
 	}
@@ -415,10 +417,6 @@ void XboxMediaVideo::processData() {
 		fetchNextPacket(_curPacket);
 		queueNewAudio(_curPacket);
 	}
-
-	// Check for read errors
-	if (_xmv->err() || _xmv->eos())
-		throw Common::Exception(Common::kReadError);
 }
 
 void XboxMediaVideo::queueAudioStream(Common::SeekableReadStream *stream,

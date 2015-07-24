@@ -24,9 +24,12 @@
  *  WMV2 video codec, XMV variant.
  */
 
+#include <cassert>
+#include <cstring>
+
 #include "src/common/util.h"
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/bitstream.h"
 #include "src/common/huffman.h"
 
@@ -672,7 +675,7 @@ void XMVWMV2Codec::decodeIBlock(DecodeContext &ctx, BlockContext &block) {
 			// Skip the run of 0s
 			coeffCount += run;
 			if (coeffCount >= (kBlockSize * kBlockSize))
-				throw Common::Exception("XMVWMV2Codec::parseExtraData(): ",
+				throw Common::Exception("XMVWMV2Codec::parseExtraData(): "
 				                        "Overrun while deRLEing AC coefficients");
 
 			// deZigZag the current coefficient position

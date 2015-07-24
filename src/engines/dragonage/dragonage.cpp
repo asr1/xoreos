@@ -22,29 +22,33 @@
  *  Engine class handling Dragon Age: Origins
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
+#include "src/common/error.h"
 #include "src/common/filelist.h"
 #include "src/common/filepath.h"
 #include "src/common/configman.h"
 
 #include "src/aurora/resman.h"
+#include "src/aurora/language.h"
 #include "src/aurora/talkman.h"
 
 #include "src/graphics/aurora/cursorman.h"
-#include "src/graphics/aurora/cube.h"
 #include "src/graphics/aurora/fontman.h"
-
-#include "src/sound/sound.h"
 
 #include "src/events/events.h"
 
 #include "src/engines/aurora/util.h"
-#include "src/engines/aurora/language.h"
 #include "src/engines/aurora/loadprogress.h"
 #include "src/engines/aurora/resources.h"
+#include "src/engines/aurora/model.h"
 
 #include "src/engines/dragonage/dragonage.h"
+#include "src/engines/dragonage/modelloader.h"
 #include "src/engines/dragonage/console.h"
+#include "src/engines/dragonage/campaigns.h"
+#include "src/engines/dragonage/campaign.h"
 
 namespace Engines {
 
@@ -87,11 +91,14 @@ Engines::Engine *DragonAgeEngineProbe::createEngine() const {
 }
 
 
-DragonAgeEngine::DragonAgeEngine() : _language(Aurora::kLanguageInvalid) {
+DragonAgeEngine::DragonAgeEngine() : _language(Aurora::kLanguageInvalid),
+	_campaigns(0) {
+
 	_console = new Console(*this);
 }
 
 DragonAgeEngine::~DragonAgeEngine() {
+	delete _campaigns;
 }
 
 Common::UString DragonAgeEngine::getLanguageString(Aurora::Language language) {
@@ -139,7 +146,7 @@ bool DragonAgeEngine::detectLanguages(Aurora::GameID UNUSED(game), const Common:
 		if (!tlks.addDirectory(tlkDir))
 			return true;
 
-		for (uint i = 0; i < Aurora::kLanguageMAX; i++) {
+		for (size_t i = 0; i < Aurora::kLanguageMAX; i++) {
 			Common::UString langStr = getLanguageString((Aurora::Language) i);
 			if (langStr.empty())
 				continue;
@@ -154,6 +161,12 @@ bool DragonAgeEngine::detectLanguages(Aurora::GameID UNUSED(game), const Common:
 	}
 
 	return true;
+}
+
+Campaigns &DragonAgeEngine::getCampaigns() {
+	assert(_campaigns);
+
+	return *_campaigns;
 }
 
 bool DragonAgeEngine::getLanguage(Aurora::Language &language) const {
@@ -189,18 +202,20 @@ void DragonAgeEngine::run() {
 }
 
 void DragonAgeEngine::init() {
-	LoadProgress progress(19);
+	LoadProgress progress(11);
+
+	progress.step("Declare languages");
+	declareLanguages();
 
 	if (evaluateLanguage(true, _language))
-		status("Setting the language to %s", Aurora::getLanguageName(_language).c_str());
+		status("Setting the language to %s", LangMan.getLanguageName(_language).c_str());
 	else
 		warning("Failed to detect this game's language");
 
+	LangMan.setCurrentLanguage(_language);
+
 	progress.step("Loading user game config");
 	initConfig();
-
-	progress.step("Declare string encodings");
-	declareEncodings();
 
 	initResources(progress);
 	if (EventMan.quitRequested())
@@ -217,139 +232,145 @@ void DragonAgeEngine::init() {
 	progress.step("Successfully initialized the engine");
 }
 
-void DragonAgeEngine::declareEncodings() {
-	static const LanguageEncoding kLanguageEncodings[] = {
-		{ Aurora::kLanguageEnglish           , Common::kEncodingUTF16LE },
-		{ Aurora::kLanguageFrench            , Common::kEncodingUTF16LE },
-		{ Aurora::kLanguageGerman            , Common::kEncodingUTF16LE },
-		{ Aurora::kLanguageItalian           , Common::kEncodingUTF16LE },
-		{ Aurora::kLanguageSpanish           , Common::kEncodingUTF16LE },
-		{ Aurora::kLanguagePolish            , Common::kEncodingUTF16LE },
-		{ Aurora::kLanguageCzech             , Common::kEncodingUTF16LE },
-		{ Aurora::kLanguageHungarian         , Common::kEncodingUTF16LE },
-		{ Aurora::kLanguageRussian           , Common::kEncodingUTF16LE },
-		{ Aurora::kLanguageKorean            , Common::kEncodingUTF16LE },
-		{ Aurora::kLanguageJapanese          , Common::kEncodingUTF16LE }
+void DragonAgeEngine::declareLanguages() {
+	static const Aurora::LanguageManager::Declaration kLanguageDeclarations[] = {
+		{ Aurora::kLanguageEnglish  ,  0, Common::kEncodingUTF16LE, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageFrench   ,  1, Common::kEncodingUTF16LE, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageRussian  ,  2, Common::kEncodingUTF16LE, Common::kEncodingCP1251 },
+		{ Aurora::kLanguageItalian  ,  3, Common::kEncodingUTF16LE, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageGerman   ,  4, Common::kEncodingUTF16LE, Common::kEncodingCP1252 },
+		{ Aurora::kLanguagePolish   ,  5, Common::kEncodingUTF16LE, Common::kEncodingCP1250 },
+		{ Aurora::kLanguageSpanish  ,  6, Common::kEncodingUTF16LE, Common::kEncodingCP1252 },
+		{ Aurora::kLanguageCzech    ,  7, Common::kEncodingUTF16LE, Common::kEncodingCP1250 },
+		{ Aurora::kLanguageHungarian,  8, Common::kEncodingUTF16LE, Common::kEncodingCP1250 },
+		{ Aurora::kLanguageKorean   ,  9, Common::kEncodingUTF16LE, Common::kEncodingCP949  },
+		{ Aurora::kLanguageJapanese , 10, Common::kEncodingUTF16LE, Common::kEncodingCP932  }
 	};
 
-	Engines::declareEncodings(_game, kLanguageEncodings, ARRAYSIZE(kLanguageEncodings));
+	LangMan.addLanguages(kLanguageDeclarations, ARRAYSIZE(kLanguageDeclarations));
 }
 
 void DragonAgeEngine::initResources(LoadProgress &progress) {
 	ResMan.setRIMsAreERFs(true);
+	ResMan.setHashAlgo(Common::kHashFNV64);
 
 	progress.step("Setting base directory");
 	ResMan.registerDataBase(_target);
 
-	progress.step("Adding extra archive directories");
-	indexMandatoryDirectory("packages/core/data"          , 0,  0, 2);
-	indexMandatoryDirectory("packages/core/data/abilities", 0,  0, 3);
-	indexMandatoryDirectory("packages/core/textures"      , 0, -1, 4);
-	indexMandatoryDirectory("modules/single player/data"  , 0,  0, 5);
+	progress.step("Adding core archive directories");
 
-	progress.step("Loading core resource files");
-	indexMandatoryArchive("2da.erf"               , 10);
-	indexMandatoryArchive("anims.erf"             , 11);
-	indexMandatoryArchive("chargen.gpu.rim"       , 12);
-	indexMandatoryArchive("chargen.rim"           , 13);
-	indexMandatoryArchive("consolescripts.erf"    , 14);
-	indexMandatoryArchive("designerareas.erf"     , 15);
-	indexMandatoryArchive("designercreatures.erf" , 16);
-	indexMandatoryArchive("designercutscenes.erf" , 17);
-	indexMandatoryArchive("designerdialogs.erf"   , 18);
-	indexMandatoryArchive("designeritems.erf"     , 19);
-	indexMandatoryArchive("designerplaceables.erf", 20);
-	indexMandatoryArchive("designerplots.erf"     , 21);
-	indexMandatoryArchive("designerscripts.rim"   , 22);
-	indexMandatoryArchive("designertriggers.erf"  , 23);
-	indexMandatoryArchive("face.erf"              , 24);
-	indexMandatoryArchive("global.rim"            , 25);
-	indexMandatoryArchive("globalvfx.rim"         , 26);
-	indexMandatoryArchive("gui.erf"               , 27);
-	indexMandatoryArchive("guiexport.erf"         , 28);
-	indexMandatoryArchive("iterationtests.erf"    , 29);
-	indexMandatoryArchive("lightprobedata.erf"    , 30);
-	indexMandatoryArchive("materialobjects.erf"   , 31);
-	indexMandatoryArchive("materials.erf"         , 32);
-	indexMandatoryArchive("misc.erf"              , 33);
-	indexMandatoryArchive("modelhierarchies.erf"  , 34);
-	indexMandatoryArchive("modelmeshdata.erf"     , 35);
-	indexMandatoryArchive("pathfindingpatches.erf", 36);
-	indexMandatoryArchive("postprocesseffects.erf", 37);
-	indexMandatoryArchive("resmetrics.erf"        , 38);
-	indexMandatoryArchive("scripts.erf"           , 39);
-	indexMandatoryArchive("shaders.erf"           , 40);
-	indexMandatoryArchive("states.erf"            , 41);
-	indexMandatoryArchive("subqueuefiles.erf"     , 42);
-	indexMandatoryArchive("textures.erf"          , 43);
-	indexMandatoryArchive("tints.erf"             , 44);
+	progress.step("Indexing core resources files");
+	loadResources("/packages/core", 0, _resources, _languageTLK);
 
-	progress.step("Loading core ability resource files");
-	indexMandatoryArchive("bearform.rim"    , 100);
-	indexMandatoryArchive("burningform.rim" , 101);
-	indexMandatoryArchive("golemform.rim"   , 102);
-	indexMandatoryArchive("mouseform.rim"   , 103);
-	indexMandatoryArchive("spiderform.rim"  , 104);
-	indexMandatoryArchive("spiritform.rim"  , 105);
-	indexMandatoryArchive("summonbear.rim"  , 106);
-	indexMandatoryArchive("summonspider.rim", 107);
-	indexMandatoryArchive("summonwolf.rim"  , 108);
+	progress.step("Indexing extra core resources files");
+	indexMandatoryArchive("/packages/core/data/designerscripts.rim",        450, _resources);
+	indexMandatoryArchive("/packages/core/data/globalvfx.rim",              451, _resources);
+	indexMandatoryArchive("/packages/core/data/chargen.rim",                452, _resources);
+	indexMandatoryArchive("/packages/core/data/chargen.gpu.rim",            453, _resources);
+	indexMandatoryArchive("/packages/core/data/global.rim",                 454, _resources);
+	indexMandatoryArchive("/packages/core/data/abilities/spiritform.rim",   455, _resources);
+	indexMandatoryArchive("/packages/core/data/abilities/summonwolf.rim",   456, _resources);
+	indexMandatoryArchive("/packages/core/data/abilities/mouseform.rim",    457, _resources);
+	indexMandatoryArchive("/packages/core/data/abilities/summonspider.rim", 458, _resources);
+	indexMandatoryArchive("/packages/core/data/abilities/summonbear.rim",   459, _resources);
+	indexMandatoryArchive("/packages/core/data/abilities/spiderform.rim",   460, _resources);
+	indexMandatoryArchive("/packages/core/data/abilities/golemform.rim",    461, _resources);
+	indexMandatoryArchive("/packages/core/data/abilities/bearform.rim",     462, _resources);
+	indexMandatoryArchive("/packages/core/data/abilities/burningform.rim",  463, _resources);
 
-	progress.step("Indexing extra core sound resources");
-	indexMandatoryDirectory("packages/core/audio"          , 0, -1, 150);
-	progress.step("Indexing extra core movie resources");
-	indexMandatoryDirectory("packages/core/data/movies"    , 0,  0, 151);
-	progress.step("Indexing extra core talktables");
-	indexMandatoryDirectory("packages/core/data/talktables", 0,  0, 152);
-	progress.step("Indexing extra core cursors");
-	indexMandatoryDirectory("packages/core/data/cursors"   , 0,  0, 153);
+	progress.step("Indexing single-player campaign resources files");
+	loadResources("/modules/single player", 500, _resources, _languageTLK);
 
-	progress.step("Indexing extra environments");
-	indexMandatoryDirectory("packages/core/env", 0, -1, 200);
-
-	progress.step("Loading single-player campaign global resource files");
-	indexMandatoryArchive("moduleglobal.rim", 250);
-
-	progress.step("Indexing extra single-player campaign movie resources");
-	indexMandatoryDirectory("modules/single player/data"           , 0,  0, 300);
-	progress.step("Indexing extra single-player campaign sound resources");
-	indexMandatoryDirectory("modules/single player/data/movies"    , 0,  0, 301);
-	progress.step("Indexing extra single-player campaign talktables");
-	indexMandatoryDirectory("modules/single player/data/talktables", 0,  0, 302);
-
-	// TODO: DLC
-
-	loadLanguageFiles(progress, _language);
+	progress.step("Registering file formats");
+	registerModelLoader(new DragonAgeModelLoader);
 }
 
-void DragonAgeEngine::unloadLanguageFiles() {
-	for (std::list<Common::ChangeID>::iterator t = _languageTLK.begin(); t != _languageTLK.end(); ++t)
+void DragonAgeEngine::loadResources(const Common::UString &dir, uint32 priority,
+                                    ChangeList &res, ChangeList &tlk) {
+
+	indexOptionalDirectory(dir + "/data"           , 0,  0, priority + 10, res);
+	indexOptionalDirectory(dir + "/data/abilities" , 0,  0, priority + 11, res);
+	indexOptionalDirectory(dir + "/data/movies"    , 0,  0, priority + 12, res);
+	indexOptionalDirectory(dir + "/data/talktables", 0,  0, priority + 13, res);
+	indexOptionalDirectory(dir + "/data/cursors"   , 0,  0, priority + 14, res);
+	indexOptionalDirectory(dir + "/textures"       , 0, -1, priority + 15, res);
+	indexOptionalDirectory(dir + "/audio"          , 0, -1, priority + 16, res);
+	indexOptionalDirectory(dir + "/env"            , 0, -1, priority + 17, res);
+	indexOptionalDirectory(dir + "/patch"          , 0,  0, priority + 18, res);
+
+	loadResourceDir(dir + "/data"          , priority + 100, res);
+	loadResourceDir(dir + "/data/abilities", priority + 200, res);
+
+	loadResourceDir(dir + "/patch", 0x40000000 | priority, res);
+
+	indexOptionalDirectory(dir + "/override", 0, -1, 0x40000000 | (priority + 499), res);
+
+	loadTalkTables(dir + "/data/talktables", priority, tlk);
+}
+
+void DragonAgeEngine::loadTexturePack(const Common::UString &dir, uint32 priority,
+                                      ChangeList &res, TextureQuality quality) {
+
+	static const char *kTextureQualityName[kTextureQualityMAX] = { "high", "medium" };
+
+	if (((uint)quality) >= kTextureQualityMAX)
+		throw Common::Exception("Invalid texture quality level");
+
+	loadResourceDir(dir + "/textures/" + kTextureQualityName[quality], priority + 300, res);
+}
+
+void DragonAgeEngine::loadTalkTables(const Common::UString &dir, uint32 priority, ChangeList &changes) {
+	if (EventMan.quitRequested())
+		return;
+
+	const Common::UString tlkDir = Common::FilePath::findSubDirectory(ResMan.getDataBase(), dir, true);
+
+	Common::FileList files(Common::FilePath::findSubDirectory(ResMan.getDataBase(), dir, true), 0);
+
+	files.sort(true);
+	files.relativize(tlkDir);
+
+	const Common::UString languageTLK = getLanguageString(_language) + ".tlk";
+	for (Common::FileList::const_iterator f = files.begin(); f != files.end(); ++f) {
+		if (!f->toLower().endsWith(languageTLK))
+			continue;
+
+		Common::UString tlk = *f;
+		tlk.truncate(tlk.size() - languageTLK.size());
+
+		loadTalkTable(tlk, _language, priority++, changes);
+	}
+}
+
+void DragonAgeEngine::loadResourceDir(const Common::UString &dir, uint32 priority, ChangeList &changes) {
+	if (EventMan.quitRequested())
+		return;
+
+	Common::FileList files(Common::FilePath::findSubDirectory(ResMan.getDataBase(), dir, true), 0);
+
+	files.sort(true);
+	files.relativize(ResMan.getDataBase());
+
+	for (Common::FileList::const_iterator f = files.begin(); f != files.end(); ++f)
+		if (Common::FilePath::getExtension(*f).equalsIgnoreCase(".erf"))
+			indexMandatoryArchive("/" + *f, priority++, changes);
+}
+
+void DragonAgeEngine::unloadTalkTables(ChangeList &changes) {
+	for (std::list<Common::ChangeID>::iterator t = changes.begin(); t != changes.end(); ++t)
 		TalkMan.removeTable(*t);
 
-	_languageTLK.clear();
+	changes.clear();
 }
 
-void DragonAgeEngine::loadLanguageFiles(LoadProgress &progress, Aurora::Language language) {
-	progress.step(Common::UString::sprintf("Indexing language files (%s)",
-				Aurora::getLanguageName(language).c_str()));
+void DragonAgeEngine::loadTalkTable(const Common::UString &tlk, Aurora::Language language,
+                                    uint32 priority, ChangeList &changes) {
 
-	loadLanguageFiles(language);
-}
-
-void DragonAgeEngine::loadTalkTable(const Common::UString &tlk, Aurora::Language language, uint32 priority) {
 	Common::UString tlkM = tlk + getLanguageString(language);
 	Common::UString tlkF = tlk + getLanguageString(language) + "_f";
 
-	_languageTLK.push_back(Common::ChangeID());
-	TalkMan.addTable(tlkM, tlkF, false, priority, &_languageTLK.back());
-}
-
-void DragonAgeEngine::loadLanguageFiles(Aurora::Language language) {
-	unloadLanguageFiles();
-	declareTalkLanguage(_game, language);
-
-	loadTalkTable("core_"        , language, 0);
-	loadTalkTable("singleplayer_", language, 1);
+	changes.push_back(Common::ChangeID());
+	TalkMan.addTable(tlkM, tlkF, false, priority, &changes.back());
 }
 
 void DragonAgeEngine::initCursors() {
@@ -434,6 +455,8 @@ void DragonAgeEngine::initGameConfig() {
 }
 
 void DragonAgeEngine::deinit() {
+	unloadTalkTables(_languageTLK);
+	deindexResources(_resources);
 }
 
 void DragonAgeEngine::playIntroVideos() {
@@ -442,31 +465,17 @@ void DragonAgeEngine::playIntroVideos() {
 }
 
 void DragonAgeEngine::main() {
-	Graphics::Aurora::Cube *cube = 0;
-	try {
+	_campaigns = new Campaigns(*_console, *this);
 
-		cube = new Graphics::Aurora::Cube("ach_abi_accomplish_rog");
+	const Campaign *singlePlayer = _campaigns->findCampaign("Single Player");
+	if (!singlePlayer)
+		throw Common::Exception("Can't find the default single player campaign");
 
-	} catch (Common::Exception &e) {
-		Common::printException(e);
-	}
+	_campaigns->load(*singlePlayer);
+	_campaigns->run();
 
-	while (!EventMan.quitRequested()) {
-		Events::Event event;
-		while (EventMan.pollEvent(event)) {
-			if (_console->processEvent(event))
-				continue;
-
-			if ((event.key.keysym.sym == SDLK_d) && (event.key.keysym.mod & KMOD_CTRL)) {
-				_console->show();
-				continue;
-			}
-		}
-
-		EventMan.delay(10);
-	}
-
-	delete cube;
+	delete _campaigns;
+	_campaigns = 0;
 }
 
 } // End of namespace DragonAge

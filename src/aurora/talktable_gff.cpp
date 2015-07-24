@@ -26,9 +26,11 @@
  * (<http://social.bioware.com/wiki/datoolset/index.php/TLK>).
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 
 #include "src/aurora/talktable_gff.h"
 #include "src/aurora/gff4file.h"
@@ -46,6 +48,13 @@ TalkTable_GFF::TalkTable_GFF(Common::SeekableReadStream *tlk, Common::Encoding e
 }
 
 TalkTable_GFF::~TalkTable_GFF() {
+	clean();
+}
+
+void TalkTable_GFF::clean() {
+	for (Entries::iterator e = _entries.begin(); e != _entries.end(); ++e)
+		delete e->second;
+
 	delete _gff;
 }
 
@@ -84,7 +93,7 @@ void TalkTable_GFF::load(Common::SeekableReadStream *tlk) {
 			throw Common::Exception("Unsupported GFF TLK file version %08X", _gff->getTypeVersion());
 
 	} catch (Common::Exception &e) {
-		delete _gff;
+		clean();
 
 		e.add("Unable to load GFF TLK");
 		throw;
@@ -105,7 +114,11 @@ void TalkTable_GFF::load02(const GFF4Struct &top) {
 		if (strRef == 0xFFFFFFFF)
 			continue;
 
-		_entries[strRef] = new Entry(*s);
+		Entry *entry = new Entry(*s);
+
+		std::pair<Entries::iterator, bool> result = _entries.insert(std::make_pair(strRef, entry));
+		if (!result.second)
+			delete entry;
 	}
 }
 
@@ -125,7 +138,11 @@ void TalkTable_GFF::load05(const GFF4Struct &top) {
 		if (strRef == 0xFFFFFFFF)
 			continue;
 
-		_entries[strRef] = new Entry(*s);
+		Entry *entry = new Entry(*s);
+
+		std::pair<Entries::iterator, bool> result = _entries.insert(std::make_pair(strRef, entry));
+		if (!result.second)
+			delete entry;
 	}
 }
 
@@ -181,11 +198,11 @@ void TalkTable_GFF::readString05(Common::SeekableReadStream *huffTree,
 	uint32 shift = startOffset & 0x1F;
 
 	do {
-		int32 e = (huffTree->size() / 8) - 1;
+		ptrdiff_t e = (huffTree->size() / 8) - 1;
 
 		while (e >= 0) {
 			bitStream->seek(index * 4);
-			const uint32 offset = (bitStream->readUint32LE() >> shift) & 1;
+			const ptrdiff_t offset = (bitStream->readUint32LE() >> shift) & 1;
 
 			huffTree->seek(((e * 2) + offset) * 4);
 			e = huffTree->readSint32LE();
@@ -201,7 +218,7 @@ void TalkTable_GFF::readString05(Common::SeekableReadStream *huffTree,
 	} while (utf16Str.back() != 0);
 
 	const byte  *data = (const byte *) &utf16Str[0];
-	const uint32 size = utf16Str.size() * 2;
+	const size_t size = utf16Str.size() * 2;
 
 	entry.text = Common::readString(data, size, Common::kEncodingUTF16LE);
 }

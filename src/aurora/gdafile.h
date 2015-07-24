@@ -25,6 +25,7 @@
 #ifndef AURORA_GDAFILE_H
 #define AURORA_GDAFILE_H
 
+#include <vector>
 #include <map>
 
 #include "src/common/ustring.h"
@@ -41,32 +42,70 @@ namespace Aurora {
 /** Class to hold the GFF'd two-dimensional array of a GDA file. */
 class GDAFile {
 public:
+	static const size_t kInvalidColumn = SIZE_MAX;
+	static const size_t kInvalidRow    = SIZE_MAX;
+
 	GDAFile(Common::SeekableReadStream *gda);
 	~GDAFile();
 
+	/** Add another GDA with the same column structure to the bottom of this GDA.
+	 *
+	 *  This effectively pastes the GDAs together, creating one combined table.
+	 *  Note that the row numbers will be continous and therefore will be
+	 *  different depending on the order of the pasting, making them useless
+	 *  for row identification. An ID column should be used for this case.
+	 */
+	void add(Common::SeekableReadStream *gda);
+
 	/** Return the number of columns in the array. */
-	uint32 getColumnCount() const;
+	size_t getColumnCount() const;
 	/** Return the number of rows in the array. */
-	uint32 getRowCount() const;
+	size_t getRowCount() const;
+
+	/** Does this row exist in the GDA? */
+	bool hasRow(size_t row) const;
 
 	/** Get a row as a GFF4 struct. */
-	const GFF4Struct *getRow(uint32 row) const;
+	const GFF4Struct *getRow(size_t row) const;
+
+	/** Find a row by its ID value. */
+	size_t findRow(uint32 id) const;
 
 	/** Find a column by its name. */
-	uint32 findColumn(const Common::UString &name) const;
+	size_t findColumn(const Common::UString &name) const;
 	/** Find a column by its hash. */
-	uint32 findColumn(uint32 hash) const;
+	size_t findColumn(uint32 hash) const;
+
+	Common::UString getString(size_t row, uint32 columnHash, const Common::UString &def = "") const;
+	Common::UString getString(size_t row, const Common::UString &columnName,
+	                          const Common::UString &def = "") const;
+
+	int32 getInt(size_t row, uint32 columnHash, int32 def = 0) const;
+	int32 getInt(size_t row, const Common::UString &columnName, int32 def = 0) const;
+
+	float getFloat(size_t row, uint32 columnHash, float def = 0.0f) const;
+	float getFloat(size_t row, const Common::UString &columnName, float def = 0.0f) const;
 
 
 private:
-	typedef std::map<uint32, uint32> ColumnHashMap;
-	typedef std::map<Common::UString, uint32> ColumnNameMap;
+	typedef std::vector<GFF4File *> GFF4s;
+	typedef const GFF4List * Columns;
+	typedef const GFF4List * Row;
+	typedef std::vector<Row> Rows;
+	typedef std::vector<size_t> RowStarts;
+
+	typedef std::map<uint32, size_t> ColumnHashMap;
+	typedef std::map<Common::UString, size_t> ColumnNameMap;
 
 
-	GFF4File *_gff4;
+	GFF4s _gff4s;
 
-	const GFF4List *_columns;
-	const GFF4List *_rows;
+	Columns _columns;
+	Rows    _rows;
+
+	size_t _rowCount;
+
+	RowStarts _rowStarts;
 
 	mutable ColumnHashMap _columnHashMap;
 	mutable ColumnNameMap _columnNameMap;
@@ -74,6 +113,11 @@ private:
 
 	void load(Common::SeekableReadStream *gda);
 	void clear();
+
+	uint32 identifyType(const Columns &columns, const Row &rows, size_t column) const;
+
+	const GFF4Struct *getRowColumn(size_t row, uint32 hash, size_t &column) const;
+	const GFF4Struct *getRowColumn(size_t row, const Common::UString &name, size_t &column) const;
 };
 
 } // End of namespace Aurora

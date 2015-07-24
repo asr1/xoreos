@@ -31,13 +31,16 @@
 #include "src/common/ustring.h"
 #include "src/common/util.h"
 #include "src/common/error.h"
+#include "src/common/platform.h"
 #include "src/common/filepath.h"
 #include "src/common/threads.h"
 #include "src/common/debugman.h"
 #include "src/common/configman.h"
+#include "src/common/xml.h"
 
 #include "src/aurora/resman.h"
 #include "src/aurora/2dareg.h"
+#include "src/aurora/language.h"
 #include "src/aurora/talkman.h"
 #include "src/aurora/util.h"
 
@@ -57,6 +60,7 @@
 #include "src/graphics/aurora/cursorman.h"
 #include "src/graphics/aurora/fontman.h"
 
+void initPlatform();
 void initConfig();
 
 void init();
@@ -68,11 +72,15 @@ void listDebug();
 static bool configFileIsBroken = false;
 
 int main(int argc, char **argv) {
+	initPlatform();
 	initConfig();
+
+	std::vector<Common::UString> args;
+	Common::Platform::getParameters(argc, argv, args);
 
 	Common::UString target;
 	int code;
-	if (!parseCommandline(argc, argv, target, code))
+	if (!parseCommandline(args, target, code))
 		return code;
 
 	// Check the requested target
@@ -119,9 +127,10 @@ int main(int argc, char **argv) {
 		logFile.clear();
 
 	if (!logFile.empty())
-		DebugMan.openLogFile(logFile);
+		if (!DebugMan.openLogFile(logFile))
+			warning("Failed to open log file \"%s\" for writing", logFile.c_str());
 
-	DebugMan.logCommandLine(argc, argv);
+	DebugMan.logCommandLine(args);
 
 	status("Target \"%s\"", target.c_str());
 
@@ -190,6 +199,17 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
+void initPlatform() {
+	try {
+		Common::Platform::init();
+	} catch (Common::Exception &e) {
+		e.add("Failed to initialize the low-level platform-specific subsytem");
+
+		Common::printException(e);
+		std::exit(1);
+	}
+}
+
 void initConfig() {
 	bool newConfig = false;
 	if (!ConfigMan.load()) {
@@ -253,6 +273,9 @@ void init() {
 	// Init threading system
 	Common::initThreads();
 
+	// Init libxml2
+	Common::initXML();
+
 	// Init subsystems
 	GfxMan.init();
 	status("Graphics subsystem initialized");
@@ -273,11 +296,15 @@ void deinit() {
 	} catch (...) {
 	}
 
+	// Deinit libxml2
+	Common::deinitXML();
+
 	// Destroy global singletons
 	Graphics::Aurora::FontManager::destroy();
 	Graphics::Aurora::CursorManager::destroy();
 	Graphics::Aurora::TextureManager::destroy();
 
+	Aurora::LanguageManager::destroy();
 	Aurora::TalkManager::destroy();
 	Aurora::TwoDARegistry::destroy();
 	Aurora::ResourceManager::destroy();

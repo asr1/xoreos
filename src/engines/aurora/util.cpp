@@ -23,8 +23,8 @@
  */
 
 #include "src/common/error.h"
-#include "src/common/stream.h"
-#include "src/common/file.h"
+#include "src/common/readstream.h"
+#include "src/common/writefile.h"
 #include "src/common/configman.h"
 
 #include "src/aurora/util.h"
@@ -51,9 +51,9 @@ void playVideo(const Common::UString &video) {
 		return;
 
 	// Mute other sound sources
-	SoundMan.setTypeGain(Sound::kSoundTypeMusic, 0.0);
-	SoundMan.setTypeGain(Sound::kSoundTypeSFX  , 0.0);
-	SoundMan.setTypeGain(Sound::kSoundTypeVoice, 0.0);
+	SoundMan.setTypeGain(Sound::kSoundTypeMusic, 0.0f);
+	SoundMan.setTypeGain(Sound::kSoundTypeSFX  , 0.0f);
+	SoundMan.setTypeGain(Sound::kSoundTypeVoice, 0.0f);
 
 	try {
 		Video::Aurora::VideoPlayer videoPlayer(video);
@@ -87,7 +87,7 @@ Sound::ChannelHandle playSound(const Common::UString &sound, Sound::SoundType so
 		SoundMan.setChannelGain(channel, volume);
 
 		if (pitchVariance) {
-			const float pitch = 1.0 + ((((std::rand() % 1001) / 1000.0) / 5.0) - 0.1);
+			const float pitch = 1.0f + ((((std::rand() % 1001) / 1000.0f) / 5.0f) - 0.1f);
 
 			SoundMan.setChannelPitch(channel, pitch);
 		}
@@ -146,23 +146,26 @@ bool dumpResList(const Common::UString &name) {
 }
 
 bool dumpStream(Common::SeekableReadStream &stream, const Common::UString &fileName) {
-	Common::DumpFile file;
+	Common::WriteFile file;
 	if (!file.open(fileName))
 		return false;
 
-	uint32 pos = stream.pos();
+	size_t pos = stream.pos();
+	try {
+		stream.seek(0);
 
-	stream.seek(0);
+		file.writeStream(stream);
+		stream.seek(pos);
 
-	file.writeStream(stream);
-	file.flush();
+		file.flush();
 
-	bool error = file.err();
+	} catch (...) {
+		stream.seek(pos);
+		return false;
+	}
 
-	stream.seek(pos);
 	file.close();
-
-	return !error;
+	return true;
 }
 
 bool dumpResource(const Common::UString &name, Aurora::FileType type, Common::UString file) {

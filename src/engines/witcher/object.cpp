@@ -37,12 +37,13 @@ namespace Witcher {
 Object::Object(ObjectType type) : _type(type),
 	_static(false), _usable(true), _area(0) {
 
-	_position   [0] = 0.0;
-	_position   [1] = 0.0;
-	_position   [2] = 0.0;
-	_orientation[0] = 0.0;
-	_orientation[1] = 0.0;
-	_orientation[2] = 0.0;
+	_position   [0] = 0.0f;
+	_position   [1] = 0.0f;
+	_position   [2] = 0.0f;
+	_orientation[0] = 0.0f;
+	_orientation[1] = 0.0f;
+	_orientation[2] = 0.0f;
+	_orientation[3] = 0.0f;
 }
 
 Object::~Object() {
@@ -68,11 +69,11 @@ const Common::UString &Object::getUniqueID() const {
 	return _uniqueID;
 }
 
-const Common::UString &Object::getName() const {
+const Aurora::LocString &Object::getName() const {
 	return _name;
 }
 
-const Common::UString &Object::getDescription() const {
+const Aurora::LocString &Object::getDescription() const {
 	return _description;
 }
 
@@ -81,8 +82,6 @@ const Common::UString &Object::getConversation() const {
 }
 
 void Object::refreshLocalized() {
-	_name        = _names.getString();
-	_description = _descriptions.getString();
 }
 
 bool Object::isStatic() const {
@@ -127,10 +126,12 @@ void Object::getPosition(float &x, float &y, float &z) const {
 	z = _position[2];
 }
 
-void Object::getOrientation(float &x, float &y, float &z) const {
+void Object::getOrientation(float &x, float &y, float &z, float &angle) const {
 	x = _orientation[0];
 	y = _orientation[1];
 	z = _orientation[2];
+
+	angle = _orientation[3];
 }
 
 void Object::setPosition(float x, float y, float z) {
@@ -139,10 +140,11 @@ void Object::setPosition(float x, float y, float z) {
 	_position[2] = z;
 }
 
-void Object::setOrientation(float x, float y, float z) {
+void Object::setOrientation(float x, float y, float z, float angle) {
 	_orientation[0] = x;
 	_orientation[1] = y;
 	_orientation[2] = z;
+	_orientation[3] = angle;
 }
 
 void Object::enter() {
@@ -163,7 +165,7 @@ void Object::playSound(const Common::UString &sound, bool pitchVariance) {
 	if (sound.empty())
 		return;
 
-	_sound = ::Engines::playSound(sound, Sound::kSoundTypeVoice, false, 1.0, pitchVariance);
+	_sound = ::Engines::playSound(sound, Sound::kSoundTypeVoice, false, 1.0f, pitchVariance);
 }
 
 bool Object::click(Object *UNUSED(triggerer)) {

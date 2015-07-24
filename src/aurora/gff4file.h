@@ -57,10 +57,12 @@ class GFF4Struct;
  */
 class GFF4File : public AuroraBase {
 public:
-	GFF4File(Common::SeekableReadStream *gff4, uint32 type);
+	GFF4File(Common::SeekableReadStream *gff4, uint32 type = 0xFFFFFFFF);
 	GFF4File(const Common::UString &gff4, FileType fileType, uint32 type);
 	~GFF4File();
 
+	/** Return the GFF4's specific type. */
+	uint32 getType() const;
 	/** Return the GFF4's specific type version. */
 	uint32 getTypeVersion() const;
 	/** Return the platform this GFF4 is for. */
@@ -95,6 +97,7 @@ private:
 			uint32 offset;
 		};
 
+		uint32 index;
 		uint32 label;
 		uint32 size;
 
@@ -103,7 +106,7 @@ private:
 
 	typedef std::vector<StructTemplate> StructTemplates;
 	typedef std::vector<Common::UString> SharedStrings;
-	typedef std::map<uint32, GFF4Struct *> StructMap;
+	typedef std::map<uint64, GFF4Struct *> StructMap;
 
 
 
@@ -133,9 +136,9 @@ private:
 	// '---
 
 	// .--- Helper methods called by GFF4Struct
-	void registerStruct(uint32 offset, GFF4Struct *strct);
-	void unregisterStruct(uint32 offset);
-	GFF4Struct *findStruct(uint32 offset);
+	void registerStruct(uint64 id, GFF4Struct *strct);
+	void unregisterStruct(uint64 id);
+	GFF4Struct *findStruct(uint64 id);
 
 	Common::SeekableReadStream &getStream(uint32 offset) const;
 	const StructTemplate &getStructTemplate(uint32 i) const;
@@ -169,7 +172,7 @@ public:
 	uint32 getLabel() const;
 
 	/** Return the number of fields in this struct. */
-	uint getFieldCount() const;
+	size_t getFieldCount() const;
 	/** Does this specific field exist? */
 	bool hasField(uint32 field) const;
 
@@ -184,7 +187,8 @@ public:
 	 int64 getSint(uint32 field,  int64 def = 0    ) const;
 	bool   getBool(uint32 field, bool   def = false) const;
 
-	double getDouble(uint32 field, double def = 0.0) const;
+	double getDouble(uint32 field, double def = 0.0 ) const;
+	float  getFloat (uint32 field, float  def = 0.0f) const;
 
 	/** Return a field string, read from the given encoding. */
 	Common::UString getString(uint32 field, Common::Encoding encoding, const Common::UString &def = "") const;
@@ -203,8 +207,15 @@ public:
 
 	bool getMatrix4x4(uint32 field, double (&m)[16]) const;
 
+	bool getVector3(uint32 field, float &v1, float &v2, float &v3) const;
+	bool getVector4(uint32 field, float &v1, float &v2, float &v3, float &v4) const;
+
+	bool getMatrix4x4(uint32 field, float (&m)[16]) const;
+
 	/** Return a field vector or a matrix type as a std::vector of doubles. */
 	bool getVectorMatrix(uint32 field, std::vector<double> &vectorMatrix) const;
+	/** Return a field vector or a matrix type as a std::vector of doubles. */
+	bool getVectorMatrix(uint32 field, std::vector<float > &vectorMatrix) const;
 	// '---
 
 	// .--- Lists of values
@@ -212,7 +223,8 @@ public:
 	bool getSint(uint32 field, std::vector< int64> &list) const;
 	bool getBool(uint32 field, std::vector<bool  > &list) const;
 
-	bool getDouble(uint32 field, std::vector<double> &list) const;
+	bool  getDouble(uint32 field, std::vector<double> &list) const;
+	float getFloat (uint32 field, std::vector<float > &list) const;
 
 	/** Return field strings, read from the given encoding. */
 	bool getString(uint32 field, Common::Encoding encoding, std::vector<Common::UString> &list) const;
@@ -230,6 +242,8 @@ public:
 
 	/** Return field vector or a matrix types as std::vectors of doubles. */
 	bool getVectorMatrix(uint32 field, std::vector< std::vector<double> > &list) const;
+	/** Return field vector or a matrix types as std::vectors of floats. */
+	bool getVectorMatrix(uint32 field, std::vector< std::vector<float > > &list) const;
 	// '---
 
 	// .--- Structs and lists of structs
@@ -264,7 +278,7 @@ private:
 		kIFieldTypeColor4f     =     15, ///< 4 IEEE floats, RGBA color.
 		kIFieldTypeMatrix4x4f  =     16, ///< 16 IEEE floats, 4x4 matrix in row-major order.
 		kIFieldTypeTlkString   =     17, ///< 2 unsigned 32bit integers, reference into the TLK table.
-		kIFieldTypeUnknown18   =     18, ///< A 32bit integer, found in Sonic.
+		kIFieldTypeNDSFixed    =     18, ///< A 32bit fixed-point value, found in Sonic.
 		kIFieldTypeASCIIString =     20, ///< ASCII string, found in Sonic.
 		kIFieldTypeStruct      =  65534, ///< A struct.
 		kIFieldTypeGeneric     =  65535  ///< A "generic" field, able to hold any other type.
@@ -278,12 +292,13 @@ private:
 
 		bool isList;      ///< Is this field a singular item or a list?
 		bool isReference; ///< Is this field a reference (pointer) to another field?
+		bool isGeneric;   ///< Is this field found in a generic?
 
 		uint16   structIndex; ///< Index of the field's struct type (if kIFieldTypeStruct).
 		GFF4List structs;     ///< List of GFF4Struct (if kIFieldTypeStruct).
 
 		Field();
-		Field(uint32 l, uint16 t, uint16 f, uint32 o);
+		Field(uint32 l, uint16 t, uint16 f, uint32 o, bool g = false);
 		~Field();
 	};
 
@@ -294,8 +309,10 @@ private:
 
 	uint32 _label;
 
-	uint32 _id;
+	uint64 _id;
 	uint32 _refCount;
+
+	size_t _fieldCount;
 
 	FieldMap _fields;
 
@@ -312,6 +329,8 @@ private:
 	void loadGeneric(GFF4File &parent, Field &field);
 
 	void load(GFF4File &parent, const Field &genericParent);
+
+	static uint64 generateID(uint32 offset, const GFF4File::StructTemplate *tmplt = 0);
 	// '---
 
 	// .--- Field and field data accessors
@@ -334,11 +353,12 @@ private:
 	 int64 getSint(Common::SeekableReadStream &data, IFieldType type) const;
 
 	double getDouble(Common::SeekableReadStream &data, IFieldType type) const;
+	float  getFloat (Common::SeekableReadStream &data, IFieldType type) const;
 
 	Common::UString getString(Common::SeekableReadStream &data, Common::Encoding encoding) const;
 	Common::UString getString(Common::SeekableReadStream &data, Common::Encoding encoding,
 	                          uint32 offset) const;
-	Common::UString getString(Common::SeekableReadStream &data, IFieldType type,
+	Common::UString getString(Common::SeekableReadStream &data, const Field &field,
 	                          Common::Encoding encoding) const;
 
 	uint32 getVectorMatrixLength(const Field &field, uint32 maxLength) const;

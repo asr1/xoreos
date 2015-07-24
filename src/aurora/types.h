@@ -235,7 +235,7 @@ enum FileType {
 	kFileTypeNBFS           = 21010, ///< Image, Map, Nitro Basic File Screen.
 	kFileTypeNCER           = 21011, ///< Image, Nitro CEll Resource.
 	kFileTypeNCGR           = 21012, ///< Image, Nitro Character Graphic Resource.
-	kFileTypeNCLR           = 21013, ///< Palette, Nitro CoLouR.
+	kFileTypeNCLR           = 21013, ///< Palette, Nitro CoLoR.
 	kFileTypeNFTR           = 21014, ///< Font.
 	kFileTypeNSBCA          = 21015, ///< Model Animation.
 	kFileTypeNSBMD          = 21016, ///< Model.
@@ -282,6 +282,13 @@ enum FileType {
 	kFileTypeOPF            = 22028,
 	kFileTypeCRF            = 22029,
 	kFileTypeRIMP           = 22030,
+	kFileTypeMET            = 22031, ///< Resource meta information.
+	kFileTypeMETA           = 22032, ///< Resource meta information.
+	kFileTypeFXR            = 22033, ///< Face metadata, FaceFX.
+	kFileTypeFXT            = 22033, ///< Face metadata, FaceFX.
+	kFileTypeCIF            = 22034, ///< Campaign Information File, GFF4.
+	kFileTypeCUB            = 22035,
+	kFileTypeDLB            = 22036,
 
 	// Found in KotOR Mac
 	kFileTypeMOV            = 23000, ///< Video, QuickTime/MPEG-4.

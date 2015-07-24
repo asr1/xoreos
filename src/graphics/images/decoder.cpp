@@ -22,9 +22,11 @@
  *  Generic image decoder interface.
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/memreadstream.h"
 
 #include "src/graphics/graphics.h"
 
@@ -154,11 +156,11 @@ PixelDataType ImageDecoder::getDataType() const {
 	return _dataType;
 }
 
-uint32 ImageDecoder::getMipMapCount() const {
+size_t ImageDecoder::getMipMapCount() const {
 	return _mipMaps.size();
 }
 
-const ImageDecoder::MipMap &ImageDecoder::getMipMap(uint32 mipMap) const {
+const ImageDecoder::MipMap &ImageDecoder::getMipMap(size_t mipMap) const {
 	assert(mipMap < _mipMaps.size());
 
 	return *_mipMaps[mipMap];

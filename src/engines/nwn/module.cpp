@@ -30,6 +30,7 @@
 #include "src/events/events.h"
 
 #include "src/aurora/2dareg.h"
+#include "src/aurora/language.h"
 #include "src/aurora/talkman.h"
 #include "src/aurora/erffile.h"
 #include "src/aurora/resman.h"
@@ -207,7 +208,7 @@ void Module::setPCTokens() {
 
 	TokenMan.set("<Deity>", _pc->getDeity());
 
-	for (int i = 0; i < ARRAYSIZE(kGenderTokens); i++) {
+	for (size_t i = 0; i < ARRAYSIZE(kGenderTokens); i++) {
 		const uint32 strRef = _pc->isFemale() ? kGenderTokens[i].female : kGenderTokens[i].male;
 
 		TokenMan.set(kGenderTokens[i].token, TalkMan.getString(strRef));
@@ -237,7 +238,7 @@ void Module::removePCTokens() {
 
 	TokenMan.remove("<Deity>");
 
-	for (int i = 0; i < ARRAYSIZE(kGenderTokens); i++)
+	for (size_t i = 0; i < ARRAYSIZE(kGenderTokens); i++)
 		TokenMan.remove(kGenderTokens[i].token);
 }
 
@@ -255,7 +256,7 @@ void Module::usePC(const Common::UString &bic, bool local) {
 	}
 
 	setPCTokens();
-	TalkMan.setGender(_pc->isFemale() ? Aurora::kLanguageGenderFemale : Aurora::kLanguageGenderMale);
+	LangMan.setCurrentGender(_pc->isFemale() ? Aurora::kLanguageGenderFemale : Aurora::kLanguageGenderMale);
 
 	addObject(*_pc);
 }
@@ -315,11 +316,10 @@ void Module::enter() {
 	_ifo.getEntryPosition(entryX, entryY, entryZ);
 	_ifo.getEntryDirection(entryDirX, entryDirY);
 
-	float orientX, orientY, orientZ;
-	Common::vector2orientation(entryDirX, entryDirY, orientX, orientY, orientZ);
+	const float entryAngle = -Common::rad2deg(atan2(entryDirX, entryDirY));
 
 	_pc->setPosition(entryX, entryY, entryZ);
-	_pc->setOrientation(orientX, orientY, orientZ);
+	_pc->setOrientation(0.0f, 0.0f, 1.0f, entryAngle);
 
 	_pc->loadModel();
 
@@ -337,8 +337,8 @@ void Module::enter() {
 	CameraMan.reset();
 
 	// Roughly head position
-	CameraMan.setPosition(entryX, entryZ + 2.0, entryY);
-	CameraMan.setOrientation(entryDirX, entryDirY);
+	CameraMan.setPosition(entryX, entryY, entryZ + 1.8f);
+	CameraMan.setOrientation(90.0f, 0.0f, entryAngle);
 	CameraMan.update();
 }
 
@@ -558,7 +558,7 @@ void Module::loadHAKs() {
 
 	_resHAKs.resize(haks.size());
 
-	for (uint i = 0; i < haks.size(); i++)
+	for (size_t i = 0; i < haks.size(); i++)
 		indexMandatoryArchive(haks[i] + ".hak", 1001 + i, &_resHAKs[i]);
 }
 
@@ -611,8 +611,8 @@ void Module::loadAreas() {
 	status("Loading areas...");
 
 	const std::vector<Common::UString> &areas = _ifo.getAreas();
-	for (uint32 i = 0; i < areas.size(); i++) {
-		status("Loading area \"%s\" (%d / %d)", areas[i].c_str(), i, (int) areas.size() - 1);
+	for (size_t i = 0; i < areas.size(); i++) {
+		status("Loading area \"%s\" (%d / %d)", areas[i].c_str(), (int)i, (int)areas.size() - 1);
 
 		std::pair<AreaMap::iterator, bool> result;
 
@@ -707,7 +707,7 @@ void Module::movedPC() {
 	_pc->getPosition(x, y, z);
 
 	// Roughly head position
-	CameraMan.setPosition(x, z + 2.0, y);
+	CameraMan.setPosition(x, y, z + 1.8f);
 	CameraMan.update();
 
 	_newArea.clear();

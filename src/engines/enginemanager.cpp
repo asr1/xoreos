@@ -22,10 +22,12 @@
  *  The global engine manager, omniscient about all engines
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/error.h"
 #include "src/common/ustring.h"
-#include "src/common/file.h"
+#include "src/common/readfile.h"
 #include "src/common/filelist.h"
 #include "src/common/filepath.h"
 #include "src/common/debugman.h"
@@ -33,6 +35,7 @@
 
 #include "src/aurora/types.h"
 #include "src/aurora/util.h"
+#include "src/aurora/language.h"
 #include "src/aurora/resman.h"
 #include "src/aurora/talkman.h"
 #include "src/aurora/2dareg.h"
@@ -77,6 +80,8 @@ static const EngineProbe *kProbes[] = {
 	&KotOR::kKotOREngineProbeMac,
 	&KotOR::kKotOREngineProbeXbox,
 	&KotOR2::kKotOR2EngineProbeWin,
+	&KotOR2::kKotOR2EngineProbeLinux,
+	&KotOR2::kKotOR2EngineProbeMac,
 	&KotOR2::kKotOR2EngineProbeXbox,
 	&Jade::kJadeEngineProbe,
 	&Witcher::kWitcherEngineProbe,
@@ -153,7 +158,7 @@ bool GameInstanceEngine::probe() {
 	if (Common::FilePath::isRegularFile(_target)) {
 		// Try to probe from that file
 
-		Common::File file;
+		Common::ReadFile file;
 		if (file.open(_target))
 			return probe(file);
 	}
@@ -163,7 +168,7 @@ bool GameInstanceEngine::probe() {
 
 bool GameInstanceEngine::probe(const Common::FileList &rootFiles) {
 	// Try to find the first engine able to handle the directory's data
-	for (int i = 0; i < ARRAYSIZE(kProbes); i++) {
+	for (size_t i = 0; i < ARRAYSIZE(kProbes); i++) {
 		if (kProbes[i]->probe(_target, rootFiles)) {
 			_probe = kProbes[i];
 			return true;
@@ -175,7 +180,7 @@ bool GameInstanceEngine::probe(const Common::FileList &rootFiles) {
 
 bool GameInstanceEngine::probe(Common::SeekableReadStream &stream) {
 	// Try to find the first engine able to handle the stream's data
-	for (int i = 0; i < ARRAYSIZE(kProbes); i++) {
+	for (size_t i = 0; i < ARRAYSIZE(kProbes); i++) {
 		if (kProbes[i]->probe(stream)) {
 			_probe = kProbes[i];
 			return true;
@@ -217,7 +222,7 @@ void GameInstanceEngine::listLanguages() {
 		if (!langs.empty()) {
 			info("Available languages:");
 			for (std::vector<Aurora::Language>::iterator l = langs.begin(); l != langs.end(); ++l)
-				info("- %s", Aurora::getLanguageName(*l).c_str());
+				info("- %s", LangMan.getLanguageName(*l).c_str());
 		}
 	}
 
@@ -226,13 +231,13 @@ void GameInstanceEngine::listLanguages() {
 		if (!langsT.empty()) {
 			info("Available text languages:");
 			for (std::vector<Aurora::Language>::iterator l = langsT.begin(); l != langsT.end(); ++l)
-				info("- %s", Aurora::getLanguageName(*l).c_str());
+				info("- %s", LangMan.getLanguageName(*l).c_str());
 		}
 
 		if (!langsV.empty()) {
 			info("Available voice languages:");
 			for (std::vector<Aurora::Language>::iterator l = langsV.begin(); l != langsV.end(); ++l)
-				info("- %s", Aurora::getLanguageName(*l).c_str());
+				info("- %s", LangMan.getLanguageName(*l).c_str());
 		}
 	}
 
@@ -291,6 +296,7 @@ void EngineManager::cleanup() const {
 
 		TokenMan.clear();
 
+		LangMan.clear();
 		TalkMan.clear();
 		TwoDAReg.clear();
 		ResMan.clear();

@@ -28,18 +28,20 @@ Status [![Build Status](https://travis-ci.org/xoreos/xoreos.svg?branch=master)](
 ------
 
 Currently, the "foundation" work of managing resources, reading many basic
-file formats, displaying graphics and playing sounds has been done.
-Some games show a working menu or even partial ingame graphics and working
-scripts, but no actual "normal" gameplay is implemented yet.
+file formats, displaying graphics and playing sounds has been done. All
+targeted games show partial ingame graphics, such as the area geometry and
+objects, letting you fly around in a "spectator mode". Some games show partial
+menus, and something resembling a starting point for a script system is there.
+
+No actual "normal" gameplay is implemented yet, though.
 
 For further information about the status of specific games, please visit
 [our wiki](https://wiki.xoreos.org/index.php?title=Games).
 
 Note: We are always looking for people to join our efforts in reimplementing
-those games. Right now, the most pressing matter is a rewrite of the graphics
-stack. Please see [the related blog post](https://xoreos.org/blog/2013/06/07/xoreos-needs-your-help/).
-
-If you'd like to help, please feel free to contact us!
+those games. If you'd like to help, feel free to contact us!
+Please also read over our [CONTRIBUTING.md](CONTRIBUTING.md) for some
+guidelines. Thanks.
 
 
 Compiling xoreos
@@ -67,9 +69,9 @@ The quickest way to start a game in path /path/to/game/ would be to call
 
     xoreos -p/path/to/game/
 
-If you're on Windows and the path is, say, D:\Path\\To\\Game\\, call
+If you're on Windows and the path is, say, D:\\Path\\To\\Game\\, call
 
-    xoreos -pD:\Path\To\Game\
+    xoreos -pD:\\Path\\To\\Game\\
 
 
 Config file
@@ -114,11 +116,11 @@ the game' actual GUI into the target's section of the config file.
 
 The place where xoreos expects the config file depends on your operating system:
 
-- On GNU/Linux, the place is $XDG\_CONFIG\_HOME/.xoreosrc. $XDG\_CONFIG\_HOME
-  defaults to $HOME/.config/
-- On Mac OS X, the place is $HOME/Library/Preferences/xoreos\\ Preferences/.xoreosrc
-- On Windows, the file is called xoreos.ini and is in the subdirectory xoreos
-  in either $APPDATA or $USERPROFILE, depending on your Windows version
+- On GNU/Linux, the place is $XDG\_CONFIG\_HOME/xoreos/xoreos.conf.
+  $XDG\_CONFIG\_HOME defaults to $HOME/.config/
+- On Mac OS X, the place is $HOME/Library/Preferences/xoreos/xoreos.conf
+- On Windows, xoreos.conf is in the subdirectory xoreos in either $APPDATA
+  or $USERPROFILE, depending on your Windows version
 
 
 Links

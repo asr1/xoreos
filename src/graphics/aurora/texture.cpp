@@ -22,10 +22,12 @@
  *  A texture as used in the Aurora engines.
  */
 
+#include <cassert>
+
 #include "src/common/types.h"
 #include "src/common/util.h"
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 
 #include "src/graphics/aurora/texture.h"
 #include "src/graphics/aurora/pltfile.h"
@@ -192,7 +194,7 @@ void Texture::doRebuild() {
 	if (_image->isCompressed()) {
 		// Compressed texture data
 
-		for (uint32 i = 0; i < _image->getMipMapCount(); i++) {
+		for (size_t i = 0; i < _image->getMipMapCount(); i++) {
 			const ImageDecoder::MipMap &mipMap = _image->getMipMap(i);
 
 			glCompressedTexImage2D(GL_TEXTURE_2D, i, _image->getFormatRaw(),
@@ -203,7 +205,7 @@ void Texture::doRebuild() {
 	} else {
 		// Uncompressed texture data
 
-		for (uint32 i = 0; i < _image->getMipMapCount(); i++) {
+		for (size_t i = 0; i < _image->getMipMapCount(); i++) {
 			const ImageDecoder::MipMap &mipMap = _image->getMipMap(i);
 
 			glTexImage2D(GL_TEXTURE_2D, i, _image->getFormatRaw(),

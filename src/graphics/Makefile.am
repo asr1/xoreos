@@ -26,6 +26,7 @@ noinst_HEADERS = \
                  renderable.h \
                  object.h \
                  guifrontelement.h \
+                 guibackelement.h \
                  yuv_to_rgb.h \
                  ttf.h \
                  indexbuffer.h \
@@ -44,8 +45,6 @@ libgraphics_la_SOURCES = \
                          font.cpp \
                          camera.cpp \
                          renderable.cpp \
-                         object.cpp \
-                         guifrontelement.cpp \
                          yuv_to_rgb.cpp \
                          ttf.cpp \
                          indexbuffer.cpp \

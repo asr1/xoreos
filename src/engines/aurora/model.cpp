@@ -25,6 +25,8 @@
 #ifndef ENGINES_AURORA_MODEL_H
 #define ENGINES_AURORA_MODEL_H
 
+#include <cassert>
+
 #include "src/common/ustring.h"
 #include "src/common/error.h"
 
@@ -53,7 +55,8 @@ Graphics::Aurora::Model *loadModelObject(const Common::UString &resref,
 
 	try {
 
-		model = kModelLoader->load(resref, Graphics::Aurora::kModelTypeObject, texture);
+		if (!resref.empty())
+			model = kModelLoader->load(resref, Graphics::Aurora::kModelTypeObject, texture);
 
 	} catch (Common::Exception &e) {
 
@@ -72,7 +75,8 @@ Graphics::Aurora::Model *loadModelGUI(const Common::UString &resref) {
 
 	try {
 
-		model = kModelLoader->load(resref, Graphics::Aurora::kModelTypeGUIFront, "");
+		if (!resref.empty())
+			model = kModelLoader->load(resref, Graphics::Aurora::kModelTypeGUIFront, "");
 
 	} catch (Common::Exception &e) {
 

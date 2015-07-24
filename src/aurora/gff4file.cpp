@@ -26,8 +26,10 @@
  * (<http://social.bioware.com/wiki/datoolset/index.php/GFF>).
  */
 
+#include <cassert>
+
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/encoding.h"
 #include "src/common/strutil.h"
 
@@ -58,9 +60,6 @@ void GFF4File::Header::read(Common::SeekableReadStream &gff4, uint32 version) {
 	hasSharedStrings = (stringCount > 0) || (stringOffset != 0xFFFFFFFF);
 
 	dataOffset = gff4.readUint32LE();
-
-	if (gff4.err() || gff4.eos())
-		throw Common::Exception(Common::kReadError);
 }
 
 
@@ -95,6 +94,10 @@ void GFF4File::clear() {
 	_topLevelStruct = 0;
 }
 
+uint32 GFF4File::getType() const {
+	return _header.type;
+}
+
 uint32 GFF4File::getTypeVersion() const {
 	return _header.typeVersion;
 }
@@ -118,9 +121,6 @@ void GFF4File::load(uint32 type) {
 		loadStructs();
 		loadStrings();
 
-		if (_stream->err() || _stream->eos())
-			throw Common::Exception(Common::kReadError);
-
 	} catch (Common::Exception &e) {
 		clear();
 
@@ -140,7 +140,7 @@ void GFF4File::loadHeader(uint32 type) {
 
 	_header.read(*_stream, _version);
 
-	if (_header.type != type)
+	if ((type != 0xFFFFFFFF) && (_header.type != type))
 		throw Common::Exception("GFF4 has invalid type (want %s, got %s)",
 				Common::debugTag(type).c_str(), Common::debugTag(_header.type).c_str());
 }
@@ -159,6 +159,7 @@ void GFF4File::loadStructs() {
 
 		// Read struct properties
 
+		strct.index = i;
 		strct.label = _stream->readUint32BE();
 
 		const uint32 fieldCount  = _stream->readUint32LE();
@@ -189,11 +190,9 @@ void GFF4File::loadStructs() {
 		}
 	}
 
-	if (_stream->err() || _stream->eos())
-		throw Common::Exception(Common::kReadError);
-
 	// And load the top level struct, which itself recurses into field structs
 	_topLevelStruct = new GFF4Struct(*this, _header.dataOffset, _structTemplates[0]);
+	_topLevelStruct->_refCount++;
 }
 
 void GFF4File::loadStrings() {
@@ -209,20 +208,20 @@ void GFF4File::loadStrings() {
 
 // --- Helpers for GFF4Struct ---
 
-void GFF4File::registerStruct(uint32 offset, GFF4Struct *strct) {
+void GFF4File::registerStruct(uint64 id, GFF4Struct *strct) {
 	std::pair<StructMap::iterator, bool> result;
 
-	result = _structs.insert(std::make_pair(offset, strct));
+	result = _structs.insert(std::make_pair(id, strct));
 	if (!result.second)
 		throw Common::Exception("GFF4: Duplicate struct");
 }
 
-void GFF4File::unregisterStruct(uint32 offset) {
-	_structs.erase(offset);
+void GFF4File::unregisterStruct(uint64 id) {
+	_structs.erase(id);
 }
 
-GFF4Struct *GFF4File::findStruct(uint32 offset) {
-	StructMap::iterator s = _structs.find(offset);
+GFF4Struct *GFF4File::findStruct(uint64 id) {
+	StructMap::iterator s = _structs.find(id);
 	if (s == _structs.end())
 		return 0;
 
@@ -250,6 +249,9 @@ bool GFF4File::hasSharedStrings() const {
 }
 
 Common::UString GFF4File::getSharedString(uint32 i) const {
+	if (i == 0xFFFFFFFF)
+		return "";
+
 	assert(i < _sharedStrings.size());
 
 	return _sharedStrings[i];
@@ -257,11 +259,13 @@ Common::UString GFF4File::getSharedString(uint32 i) const {
 
 
 GFF4Struct::Field::Field() : label(0), type(kIFieldTypeNone), offset(0xFFFFFFFF),
-	isList(false), isReference(false), structIndex(0) {
+	isList(false), isReference(false), isGeneric(false), structIndex(0) {
 
 }
 
-GFF4Struct::Field::Field(uint32 l, uint16 t, uint16 f, uint32 o) : label(l), offset(o) {
+GFF4Struct::Field::Field(uint32 l, uint16 t, uint16 f, uint32 o, bool g) :
+	label(l), offset(o), isGeneric(g) {
+
 	isList      = (f & 0x8000) != 0;
 	isReference = (f & 0x2000) != 0;
 
@@ -285,27 +289,29 @@ GFF4Struct::Field::~Field() {
 
 
 GFF4Struct::GFF4Struct(GFF4File &parent, uint32 offset, const GFF4File::StructTemplate &tmplt) :
-	_parent(&parent), _label(tmplt.label), _id(offset), _refCount(0) {
+	_parent(&parent), _label(tmplt.label), _refCount(0), _fieldCount(0) {
 
-	parent.registerStruct(offset, this);
+	_id = generateID(offset, &tmplt);
+	parent.registerStruct(_id, this);
 
 	try {
 		load(parent, offset, tmplt);
 	} catch (...) {
-		parent.unregisterStruct(offset);
+		parent.unregisterStruct(_id);
 		throw;
 	}
 }
 
 GFF4Struct::GFF4Struct(GFF4File &parent, const Field &genericParent) :
-	_parent(&parent), _label(0), _id(genericParent.offset), _refCount(0) {
+	_parent(&parent), _label(0), _refCount(0), _fieldCount(0) {
 
-	parent.registerStruct(genericParent.offset, this);
+	_id = generateID(genericParent.offset);
+	parent.registerStruct(_id, this);
 
 	try {
 		load(parent, genericParent);
 	} catch (...) {
-		parent.unregisterStruct(genericParent.offset);
+		parent.unregisterStruct(_id);
 		throw;
 	}
 }
@@ -320,7 +326,7 @@ uint32 GFF4Struct::getLabel() const {
 // --- Loader ---
 
 void GFF4Struct::load(GFF4File &parent, uint32 offset, const GFF4File::StructTemplate &tmplt) {
-	for (uint32 i = 0; i < tmplt.fields.size(); i++) {
+	for (size_t i = 0; i < tmplt.fields.size(); i++) {
 		const GFF4File::StructTemplate::Field &field = tmplt.fields[i];
 
 		// Calculate the offset for the field data, but guard against NULL pointers
@@ -335,6 +341,8 @@ void GFF4Struct::load(GFF4File &parent, uint32 offset, const GFF4File::StructTem
 		if (f.type == kIFieldTypeGeneric)
 			loadGeneric(parent, f);
 	}
+
+	_fieldCount = _fields.size();
 }
 
 void GFF4Struct::loadStructs(GFF4File &parent, Field &field) {
@@ -355,7 +363,7 @@ void GFF4Struct::loadStructs(GFF4File &parent, Field &field) {
 		if (offset == 0xFFFFFFFF)
 			continue;
 
-		GFF4Struct *strct = parent.findStruct(offset);
+		GFF4Struct *strct = parent.findStruct(generateID(offset, &tmplt));
 		if (!strct)
 			strct = new GFF4Struct(parent, offset, tmplt);
 
@@ -370,7 +378,7 @@ void GFF4Struct::loadGeneric(GFF4File &parent, Field &field) {
 	if (field.offset == 0xFFFFFFFF)
 		return;
 
-	GFF4Struct *strct = parent.findStruct(field.offset);
+	GFF4Struct *strct = parent.findStruct(generateID(field.offset));
 	if (!strct)
 		strct = new GFF4Struct(parent, field);
 
@@ -395,17 +403,26 @@ void GFF4Struct::load(GFF4File &parent, const Field &genericParent) {
 
 		const uint32 fieldOffset = getDataOffset(genericParent.isReference, data.pos());
 
+		if (fieldOffset == 0xFFFFFFFF)
+			continue;
+
 		// Load the field and its struct(s), if any
-		Field &f = _fields[i] = Field(i, fieldType, fieldFlags, fieldOffset);
+		Field &f = _fields[i] = Field(i, fieldType, fieldFlags, fieldOffset, true);
 		if (f.type == kIFieldTypeStruct)
 			loadStructs(parent, f);
 	}
+
+	_fieldCount = genericCount;
+}
+
+uint64 GFF4Struct::generateID(uint32 offset, const GFF4File::StructTemplate *tmplt) {
+	return (((uint64) offset) << 32) | (tmplt ? tmplt->index : 0xFFFFFFFF);
 }
 
 // --- Field properties ---
 
-uint GFF4Struct::getFieldCount() const {
-	return _fields.size();
+size_t GFF4Struct::getFieldCount() const {
+	return _fieldCount;
 }
 
 bool GFF4Struct::hasField(uint32 field) const {
@@ -619,7 +636,6 @@ uint64 GFF4Struct::getUint(Common::SeekableReadStream &data, IFieldType type) co
 			return (uint64) ((int64) data.readSint16LE());
 
 		case kIFieldTypeUint32:
-		case kIFieldTypeUnknown18:
 			return (uint64) data.readUint32LE();
 
 		case kIFieldTypeSint32:
@@ -653,7 +669,6 @@ int64 GFF4Struct::getSint(Common::SeekableReadStream &data, IFieldType type) con
 			return (int64) data.readSint16LE();
 
 		case kIFieldTypeUint32:
-		case kIFieldTypeUnknown18:
 			return (int64) ((uint64) data.readUint32LE());
 
 		case kIFieldTypeSint32:
@@ -680,6 +695,27 @@ double GFF4Struct::getDouble(Common::SeekableReadStream &data, IFieldType type) 
 		case kIFieldTypeFloat64:
 			return (double) data.readIEEEDoubleLE();
 
+		case kIFieldTypeNDSFixed:
+			return readNintendoFixedPoint(data.readUint32LE(), true, 19, 12);
+
+		default:
+			break;
+	}
+
+	throw Common::Exception("GFF4: Field is not a float type");
+}
+
+float GFF4Struct::getFloat(Common::SeekableReadStream &data, IFieldType type) const {
+	switch (type) {
+		case kIFieldTypeFloat32:
+			return (float) data.readIEEEFloatLE();
+
+		case kIFieldTypeFloat64:
+			return (float) data.readIEEEDoubleLE();
+
+		case kIFieldTypeNDSFixed:
+			return (float) readNintendoFixedPoint(data.readUint32LE(), true, 19, 12);
+
 		default:
 			break;
 	}
@@ -690,28 +726,25 @@ double GFF4Struct::getDouble(Common::SeekableReadStream &data, IFieldType type) 
 Common::UString GFF4Struct::getString(Common::SeekableReadStream &data, Common::Encoding encoding) const {
 	/* When the string is encoded in UTF-8, then length field specifies the length in bytes.
 	 * Otherwise, it's the length in characters. */
-	const uint32 lengthMult = encoding == Common::kEncodingUTF8 ? 1 : Common::getBytesPerCodepoint(encoding);
+	const size_t lengthMult = encoding == Common::kEncodingUTF8 ? 1 : Common::getBytesPerCodepoint(encoding);
 
-	const uint32 offset = data.pos();
+	const size_t offset = data.pos();
 
 	const uint32 length = data.readUint32LE();
-	const uint32 size   = length * lengthMult;
+	const size_t size   = length * lengthMult;
 
 	try {
 		return readStringFixed(data, encoding, size);
 	} catch (...) {
 	}
 
-	return Common::UString::sprintf("GFF4: Invalid string encoding (0x%08X)", offset);
+	return Common::UString::format("GFF4: Invalid string encoding (0x%08X)", (uint) offset);
 }
 
 Common::UString GFF4Struct::getString(Common::SeekableReadStream &data, Common::Encoding encoding,
                                       uint32 offset) const {
 
-	if (_parent->hasSharedStrings())
-		return _parent->getSharedString(offset);
-
-	const uint32 pos = data.seekTo(offset);
+	const uint32 pos = data.seek(offset);
 
 	Common::UString str = getString(data, encoding);
 
@@ -720,18 +753,26 @@ Common::UString GFF4Struct::getString(Common::SeekableReadStream &data, Common::
 	return str;
 }
 
-Common::UString GFF4Struct::getString(Common::SeekableReadStream &data, IFieldType type,
+Common::UString GFF4Struct::getString(Common::SeekableReadStream &data, const Field &field,
                                       Common::Encoding encoding) const {
 
-	if (type == kIFieldTypeString) {
-		const uint32 offset = data.readUint32LE();
-		if (offset == 0xFFFFFFFF)
-			return "";
+	if (field.type == kIFieldTypeString) {
+		if (_parent->hasSharedStrings())
+			return _parent->getSharedString(data.readUint32LE());
 
-		return getString(data, encoding, _parent->getDataOffset() + offset);
+		uint32 offset = data.pos();
+		if (!field.isGeneric) {
+			offset = data.readUint32LE();
+			if (offset == 0xFFFFFFFF)
+				return "";
+
+			offset += _parent->getDataOffset();
+		}
+
+		return getString(data, encoding, offset);
 	}
 
-	if (type == kIFieldTypeASCIIString)
+	if (field.type == kIFieldTypeASCIIString)
 		return getString(data, Common::kEncodingASCII, data.pos());
 
 	throw Common::Exception("GFF4: Field is not a string type");
@@ -779,6 +820,18 @@ double GFF4Struct::getDouble(uint32 field, double def) const {
 	return getDouble(*data, f->type);
 }
 
+float GFF4Struct::getFloat(uint32 field, float def) const {
+	const Field *f;
+	Common::SeekableReadStream *data = getField(field, f);
+	if (!data)
+		return def;
+
+	if (f->isList)
+		throw Common::Exception("GFF4: Tried reading list as singular value");
+
+	return getFloat(*data, f->type);
+}
+
 Common::UString GFF4Struct::getString(uint32 field, Common::Encoding encoding,
                                       const Common::UString &def) const {
 
@@ -790,7 +843,7 @@ Common::UString GFF4Struct::getString(uint32 field, Common::Encoding encoding,
 	if (f->isList)
 		throw Common::Exception("GFF4: Tried reading list as singular value");
 
-	return getString(*data, f->type, encoding);
+	return getString(*data, *f, encoding);
 }
 
 Common::UString GFF4Struct::getString(uint32 field, const Common::UString &def) const {
@@ -843,6 +896,24 @@ bool GFF4Struct::getVector3(uint32 field, double &v1, double &v2, double &v3) co
 	return true;
 }
 
+bool GFF4Struct::getVector3(uint32 field, float &v1, float &v2, float &v3) const {
+	const Field *f;
+	Common::SeekableReadStream *data = getField(field, f);
+	if (!data)
+		return false;
+
+	if (f->isList)
+		throw Common::Exception("GFF4: Tried reading list as singular value");
+
+	getVectorMatrixLength(*f, 3);
+
+	v1 = getFloat(*data, kIFieldTypeFloat32);
+	v2 = getFloat(*data, kIFieldTypeFloat32);
+	v3 = getFloat(*data, kIFieldTypeFloat32);
+
+	return true;
+}
+
 bool GFF4Struct::getVector4(uint32 field, double &v1, double &v2, double &v3, double &v4) const {
 	const Field *f;
 	Common::SeekableReadStream *data = getField(field, f);
@@ -858,6 +929,25 @@ bool GFF4Struct::getVector4(uint32 field, double &v1, double &v2, double &v3, do
 	v2 = getDouble(*data, kIFieldTypeFloat32);
 	v3 = getDouble(*data, kIFieldTypeFloat32);
 	v4 = getDouble(*data, kIFieldTypeFloat32);
+
+	return true;
+}
+
+bool GFF4Struct::getVector4(uint32 field, float &v1, float &v2, float &v3, float &v4) const {
+	const Field *f;
+	Common::SeekableReadStream *data = getField(field, f);
+	if (!data)
+		return false;
+
+	if (f->isList)
+		throw Common::Exception("GFF4: Tried reading list as singular value");
+
+	getVectorMatrixLength(*f, 4);
+
+	v1 = getFloat(*data, kIFieldTypeFloat32);
+	v2 = getFloat(*data, kIFieldTypeFloat32);
+	v3 = getFloat(*data, kIFieldTypeFloat32);
+	v4 = getFloat(*data, kIFieldTypeFloat32);
 
 	return true;
 }
@@ -878,6 +968,22 @@ bool GFF4Struct::getMatrix4x4(uint32 field, double (&m)[16]) const {
 	return true;
 }
 
+bool GFF4Struct::getMatrix4x4(uint32 field, float (&m)[16]) const {
+	const Field *f;
+	Common::SeekableReadStream *data = getField(field, f);
+	if (!data)
+		return false;
+
+	if (f->isList)
+		throw Common::Exception("GFF4: Tried reading list as singular value");
+
+	const uint32 length = getVectorMatrixLength(*f, 16);
+	for (uint32 i = 0; i < length; i++)
+		m[i] = getFloat(*data, kIFieldTypeFloat32);
+
+	return true;
+}
+
 bool GFF4Struct::getVectorMatrix(uint32 field, std::vector<double> &vectorMatrix) const {
 	const Field *f;
 	Common::SeekableReadStream *data = getField(field, f);
@@ -892,6 +998,24 @@ bool GFF4Struct::getVectorMatrix(uint32 field, std::vector<double> &vectorMatrix
 	vectorMatrix.resize(length);
 	for (uint32 i = 0; i < length; i++)
 		vectorMatrix[i] = getDouble(*data, kIFieldTypeFloat32);
+
+	return true;
+}
+
+bool GFF4Struct::getVectorMatrix(uint32 field, std::vector<float> &vectorMatrix) const {
+	const Field *f;
+	Common::SeekableReadStream *data = getField(field, f);
+	if (!data)
+		return false;
+
+	if (f->isList)
+		throw Common::Exception("GFF4: Tried reading list as singular value");
+
+	const uint32 length = getVectorMatrixLength(*f, 16);
+
+	vectorMatrix.resize(length);
+	for (uint32 i = 0; i < length; i++)
+		vectorMatrix[i] = getFloat(*data, kIFieldTypeFloat32);
 
 	return true;
 }
@@ -958,6 +1082,21 @@ bool GFF4Struct::getDouble(uint32 field, std::vector<double> &list) const {
 	return true;
 }
 
+float GFF4Struct::getFloat(uint32 field, std::vector<float> &list) const {
+	const Field *f;
+	Common::SeekableReadStream *data = getField(field, f);
+	if (!data)
+		return false;
+
+	const uint32 count = getListCount(*data, *f);
+
+	list.resize(count);
+	for (uint32 i = 0; i < count; i++)
+		list[i] = getFloat(*data, f->type);
+
+	return true;
+}
+
 bool GFF4Struct::getString(uint32 field, Common::Encoding encoding,
                            std::vector<Common::UString> &list) const {
 
@@ -976,7 +1115,7 @@ bool GFF4Struct::getString(uint32 field, Common::Encoding encoding,
 
 	list.resize(count);
 	for (uint32 i = 0; i < count; i++)
-		list[i] = getString(*data, f->type, encoding);
+		list[i] = getString(*data, *f, encoding);
 
 	return true;
 }
@@ -1042,12 +1181,32 @@ bool GFF4Struct::getVectorMatrix(uint32 field, std::vector< std::vector<double> 
 	return true;
 }
 
+bool GFF4Struct::getVectorMatrix(uint32 field, std::vector< std::vector<float> > &list) const {
+	const Field *f;
+	Common::SeekableReadStream *data = getField(field, f);
+	if (!data)
+		return false;
+
+	const uint32 length = getVectorMatrixLength(*f, 16);
+	const uint32 count  = getListCount(*data, *f);
+
+	list.resize(count);
+	for (uint32 i = 0; i < count; i++) {
+
+		list[i].resize(length);
+		for (uint32 j = 0; j < length; j++)
+			list[i][j] = getFloat(*data, kIFieldTypeFloat32);
+	}
+
+	return true;
+}
+
 // --- Struct reader ---
 
 const GFF4Struct *GFF4Struct::getStruct(uint32 field) const {
 	const Field *f = getField(field);
 	if (!f)
-		throw Common::Exception("GFF4: No such field");
+		return 0;
 
 	if (f->type != kIFieldTypeStruct)
 		throw Common::Exception("GFF4: Field is not of struct type");
@@ -1065,7 +1224,7 @@ const GFF4Struct *GFF4Struct::getStruct(uint32 field) const {
 const GFF4Struct *GFF4Struct::getGeneric(uint32 field) const {
 	const Field *f = getField(field);
 	if (!f)
-		throw Common::Exception("GFF4: No such field");
+		return 0;
 
 	if (f->type != kIFieldTypeGeneric)
 		throw Common::Exception("GFF4: Field is not of generic type");

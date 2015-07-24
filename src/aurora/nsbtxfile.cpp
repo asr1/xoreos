@@ -33,10 +33,13 @@
  * (<http://problemkaputt.de/gbatek.htm>).
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/strutil.h"
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/memreadstream.h"
+#include "src/common/memwritestream.h"
 #include "src/common/encoding.h"
 
 #include "src/aurora/nsbtxfile.h"
@@ -44,7 +47,7 @@
 static const uint32 kXEOSID = MKTAG('X', 'E', 'O', 'S');
 static const uint32 kITEXID = MKTAG('I', 'T', 'E', 'X');
 
-static const uint32 kXEOSITEXHeaderSize       = 4 + 4 + 4 + 4 + 4 + 1 + 1 + 1 + 1 + 1;
+static const uint32 kXEOSITEXHeaderSize       = 4 + 4 + 4 + 4 + 4 + 1 + 1 + 1 + 1 + 1 + 1;
 static const uint32 kXEOSITEXMipMapHeaderSize = 4 + 4 + 4;
 
 static const uint32 kBTX0ID = MKTAG('B', 'T', 'X', '0');
@@ -88,7 +91,7 @@ uint32 NSBTXFile::getITEXSize(const Texture &texture) {
 
 uint32 NSBTXFile::getResourceSize(uint32 index) const {
 	if (index >= _textures.size())
-		throw Common::Exception("Texture index out of range (%d/%d)", index, _textures.size());
+		throw Common::Exception("Texture index out of range (%u/%u)", index, (uint)_textures.size());
 
 	return getITEXSize(_textures[index]);
 }
@@ -104,6 +107,8 @@ void NSBTXFile::writeITEXHeader(const ReadContext &ctx) {
 	ctx.stream->writeByte((uint8) ctx.texture->flipX);
 	ctx.stream->writeByte((uint8) ctx.texture->flipY);
 	ctx.stream->writeByte((uint8) ctx.texture->coordTransform);
+
+	ctx.stream->writeByte(0x00); // Don't filter the texture
 
 	ctx.stream->writeUint32LE(1); // Number of mip maps
 
@@ -248,7 +253,7 @@ const NSBTXFile::Palette *NSBTXFile::findPalette(const Texture &texture) const {
 void NSBTXFile::getPalette(ReadContext &ctx) const {
 	static const uint16 kPaletteSize[] = { 0, 32, 4, 16, 256, 256, 8,  0 };
 
-	const uint16 size = kPaletteSize[(int)ctx.texture->format] * 3;
+	const uint16 size = kPaletteSize[(size_t)ctx.texture->format] * 3;
 	if (size == 0)
 		return;
 
@@ -313,7 +318,7 @@ void NSBTXFile::getTexture(const ReadContext &ctx) {
 
 Common::SeekableReadStream *NSBTXFile::getResource(uint32 index, bool UNUSED(tryNoCopy)) const {
 	if (index >= _textures.size())
-		throw Common::Exception("Texture index out of range (%d/%d)", index, _textures.size());
+		throw Common::Exception("Texture index out of range (%u/%u)", index, (uint)_textures.size());
 
 	Common::MemoryWriteStreamDynamic stream(false, getITEXSize(_textures[index]));
 
@@ -340,9 +345,6 @@ void NSBTXFile::load(Common::SeekableSubReadStreamEndian &nsbtx) {
 		readPalettes(nsbtx);
 
 		createResourceList();
-
-		if (nsbtx.err())
-			throw Common::Exception(Common::kReadError);
 
 	} catch (Common::Exception &e) {
 		e.add("Failed reading NSBTX file");
@@ -371,7 +373,7 @@ void NSBTXFile::readFileHeader(Common::SeekableSubReadStreamEndian &nsbtx) {
 
 	const uint32 fileSize = nsbtx.readUint32();
 	if (fileSize > (uint32)nsbtx.size())
-		throw Common::Exception("Size too large (%u > %u)", fileSize, nsbtx.size());
+		throw Common::Exception("Size too large (%u > %u)", fileSize, (uint)nsbtx.size());
 
 	const uint16 headerSize = nsbtx.readUint16();
 	if (headerSize != 16)

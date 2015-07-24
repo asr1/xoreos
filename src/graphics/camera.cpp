@@ -22,8 +22,12 @@
  *  Camera management.
  */
 
+#include <cstring>
+
 #include "src/common/util.h"
 #include "src/common/maths.h"
+#include "src/common/vector3.h"
+#include "src/common/transmatrix.h"
 
 #include "src/graphics/camera.h"
 #include "src/graphics/graphics.h"
@@ -36,19 +40,26 @@ DECLARE_SINGLETON(Graphics::CameraManager)
 namespace Graphics {
 
 CameraManager::CameraManager() : _lastChanged(0), _needUpdate(false) {
-	_position   [0] = 0.0;
-	_position   [1] = 0.0;
-	_position   [2] = 0.0;
-	_orientation[0] = 0.0;
-	_orientation[1] = 0.0;
-	_orientation[2] = 0.0;
+	_minPosition[0] = -FLT_MAX;
+	_minPosition[1] = -FLT_MAX;
+	_minPosition[2] = -FLT_MAX;
+	_maxPosition[0] =  FLT_MAX;
+	_maxPosition[1] =  FLT_MAX;
+	_maxPosition[2] =  FLT_MAX;
 
-	_positionCache   [0] = 0.0;
-	_positionCache   [1] = 0.0;
-	_positionCache   [2] = 0.0;
-	_orientationCache[0] = 0.0;
-	_orientationCache[1] = 0.0;
-	_orientationCache[2] = 0.0;
+	_position   [0] = 0.0f;
+	_position   [1] = 0.0f;
+	_position   [2] = 0.0f;
+	_orientation[0] = 0.0f;
+	_orientation[1] = 0.0f;
+	_orientation[2] = 0.0f;
+
+	_positionCache   [0] = 0.0f;
+	_positionCache   [1] = 0.0f;
+	_positionCache   [2] = 0.0f;
+	_orientationCache[0] = 0.0f;
+	_orientationCache[1] = 0.0f;
+	_orientationCache[2] = 0.0f;
 }
 
 void CameraManager::update() {
@@ -79,22 +90,38 @@ const float *CameraManager::getOrientation() const {
 }
 
 void CameraManager::reset() {
-	_position   [0] = 0.0;
-	_position   [1] = 0.0;
-	_position   [2] = 0.0;
-	_orientation[0] = 0.0;
-	_orientation[1] = 0.0;
-	_orientation[2] = 0.0;
+	_minPosition[0] = -FLT_MAX;
+	_minPosition[1] = -FLT_MAX;
+	_minPosition[2] = -FLT_MAX;
+	_maxPosition[0] =  FLT_MAX;
+	_maxPosition[1] =  FLT_MAX;
+	_maxPosition[2] =  FLT_MAX;
+
+	_position   [0] = 0.0f;
+	_position   [1] = 0.0f;
+	_position   [2] = 0.0f;
+	_orientation[0] = 0.0f;
+	_orientation[1] = 0.0f;
+	_orientation[2] = 0.0f;
 
 	_lastChanged = EventMan.getTimestamp();
 
 	_needUpdate = true;
 }
 
+void CameraManager::limit(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+	_minPosition[0] = minX;
+	_minPosition[1] = minY;
+	_minPosition[2] = minZ;
+	_maxPosition[0] = maxX;
+	_maxPosition[1] = maxY;
+	_maxPosition[2] = maxZ;
+}
+
 void CameraManager::setPosition(float x, float y, float z) {
-	_position[0] = x;
-	_position[1] = y;
-	_position[2] = z;
+	_position[0] = CLIP(x, _minPosition[0], _maxPosition[0]);
+	_position[1] = CLIP(y, _minPosition[1], _maxPosition[1]);
+	_position[2] = CLIP(z, _minPosition[2], _maxPosition[2]);
 
 	_lastChanged = EventMan.getTimestamp();
 
@@ -102,21 +129,13 @@ void CameraManager::setPosition(float x, float y, float z) {
 }
 
 void CameraManager::setOrientation(float x, float y, float z) {
-	_orientation[0] = fmodf(x, 360.0);
-	_orientation[1] = fmodf(y, 360.0);
-	_orientation[2] = fmodf(z, 360.0);
+	_orientation[0] = fmodf(x, 360.0f);
+	_orientation[1] = fmodf(y, 360.0f);
+	_orientation[2] = fmodf(z, 360.0f);
 
 	_lastChanged = EventMan.getTimestamp();
 
 	_needUpdate = true;
-}
-
-void CameraManager::setOrientation(float vX, float vY) {
-	float x, y, z;
-
-	Common::vector2orientation(vX, vY, x, y, z);
-
-	setOrientation(x, 360.0 - y, z);
 }
 
 void CameraManager::turn(float x, float y, float z) {
@@ -127,31 +146,16 @@ void CameraManager::move(float x, float y, float z) {
 	setPosition(_position[0] + x, _position[1] + y, _position[2] + z);
 }
 
-void CameraManager::move(float n) {
-	float x = n * sin(Common::deg2rad(_orientation[1]));
-	float y = n * sin(Common::deg2rad(_orientation[0]));
-	float z = n * cos(Common::deg2rad(_orientation[1])) *
-	              cos(Common::deg2rad(_orientation[0]));
+void CameraManager::moveRelative(float x, float y, float z) {
+	Common::TransformationMatrix orientation;
 
-	move(x, y, z);
-}
+	orientation.rotate(_orientation[2], 0.0f, 0.0f, 1.0f);
+	orientation.rotate(_orientation[1], 0.0f, 1.0f, 0.0f);
+	orientation.rotate(_orientation[0], 1.0f, 0.0f, 0.0f);
 
-void CameraManager::strafe(float n) {
-	float x = n * sin(Common::deg2rad(_orientation[1] + 90.0)) *
-	              cos(Common::deg2rad(_orientation[2]));
-	float y = n * sin(Common::deg2rad(_orientation[2]));
-	float z = n * cos(Common::deg2rad(_orientation[1] + 90.0));
+	const Common::Vector3 relative = orientation * Common::Vector3(x, y, z);
 
-	move(x, y, z);
-}
-
-void CameraManager::fly(float n) {
-	float x = n * cos(Common::deg2rad(_orientation[2] + 90.0));
-	float y = n * sin(Common::deg2rad(_orientation[0] + 90.0)) *
-	              sin(Common::deg2rad(_orientation[2] + 90.0));
-	float z = n * cos(Common::deg2rad(_orientation[0] + 90.0));
-
-	move(x, y, z);
+	move(relative[0], relative[1], relative[2]);
 }
 
 uint32 CameraManager::lastChanged() const {

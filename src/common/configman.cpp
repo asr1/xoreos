@@ -24,9 +24,12 @@
  *  The global config manager.
  */
 
+#include <cassert>
+
 #include "src/common/configman.h"
 #include "src/common/strutil.h"
-#include "src/common/file.h"
+#include "src/common/readfile.h"
+#include "src/common/writefile.h"
 #include "src/common/filepath.h"
 #include "src/common/configfile.h"
 
@@ -82,7 +85,7 @@ void ConfigManager::clearCommandline() {
 }
 
 bool ConfigManager::fileExists() const {
-	return File::exists(getConfigFile());
+	return FilePath::isRegularFile(getConfigFile());
 }
 
 bool ConfigManager::changed() const {
@@ -94,13 +97,13 @@ bool ConfigManager::load() {
 
 	// Check that the config file actually exists.
 	UString file = getConfigFile();
-	if (!File::exists(file))
+	if (!FilePath::isRegularFile(file))
 		return false;
 
 	try {
 
 		// Open and load the config
-		File config;
+		ReadFile config;
 		if (!config.open(file))
 			throw Exception(kOpenError);
 
@@ -125,12 +128,12 @@ bool ConfigManager::save() {
 
 	// Create the directories in the path, if necessary
 	UString file = FilePath::canonicalize(getConfigFile());
-	FilePath::createDirectories(FilePath::getDirectory(file));
 
 	try {
+		FilePath::createDirectories(FilePath::getDirectory(file));
 
 		// Open and save the config
-		DumpFile config;
+		WriteFile config;
 		if (!config.open(file))
 			throw Exception(kOpenError);
 
@@ -164,9 +167,17 @@ UString ConfigManager::findGame(const UString &path) {
 
 	try {
 		const ConfigFile::DomainList &domains = _config->getDomains();
-		for (ConfigFile::DomainList::const_iterator d = domains.begin(); d != domains.end(); ++d)
-			if (FilePath::canonicalize((*d)->getString("path")) == canonicalPath)
+		for (ConfigFile::DomainList::const_iterator d = domains.begin(); d != domains.end(); ++d) {
+			if ((*d)->getName() == kDomainApp)
+				continue;
+
+			Common::UString domainPath = (*d)->getString("path");
+			if (domainPath.empty())
+				continue;
+
+			if (FilePath::canonicalize(domainPath) == canonicalPath)
 				return (*d)->getName();
+		}
 	} catch (...) {
 		return "";
 	}
@@ -195,7 +206,7 @@ UString ConfigManager::createGameID(const UString &path) {
 		return target;
 
 	for (uint32 i = 0; i < 65536; i++) {
-		UString targetNumbered = UString::sprintf("%s_%d", target.c_str(), i);
+		UString targetNumbered = UString::format("%s_%d", target.c_str(), i);
 
 		if (!_config->hasDomain(targetNumbered))
 			return targetNumbered;
@@ -214,7 +225,7 @@ UString ConfigManager::createGame(const UString &path, UString target) {
 	ConfigDomain *gameDomain = _config->addDomain(target);
 	assert(gameDomain);
 
-	gameDomain->setString("path", path);
+	gameDomain->setString("path", Common::FilePath::canonicalize(path, false));
 
 	_changed = true;
 

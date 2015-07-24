@@ -30,8 +30,8 @@
 #include "src/common/error.h"
 #include "src/common/strutil.h"
 #include "src/common/encoding.h"
-#include "src/common/stream.h"
-#include "src/common/file.h"
+#include "src/common/readstream.h"
+#include "src/common/writefile.h"
 #include "src/common/streamtokenizer.h"
 
 #include "src/aurora/2dafile.h"
@@ -50,7 +50,7 @@ TwoDARow::TwoDARow(TwoDAFile &parent) : _parent(&parent) {
 TwoDARow::~TwoDARow() {
 }
 
-const Common::UString &TwoDARow::getString(uint32 column) const {
+const Common::UString &TwoDARow::getString(size_t column) const {
 	const Common::UString &cell = getCell(column);
 	if (cell.empty() || (cell == "****"))
 		return _parent->_defaultString;
@@ -66,7 +66,7 @@ const Common::UString &TwoDARow::getString(const Common::UString &column) const 
 	return cell;
 }
 
-int32 TwoDARow::getInt(uint32 column) const {
+int32 TwoDARow::getInt(size_t column) const {
 	const Common::UString &cell = getCell(column);
 	if (cell.empty() || (cell == "****"))
 		return _parent->_defaultInt;
@@ -82,7 +82,7 @@ int32 TwoDARow::getInt(const Common::UString &column) const {
 	return _parent->parseInt(cell);
 }
 
-float TwoDARow::getFloat(uint32 column) const {
+float TwoDARow::getFloat(size_t column) const {
 	const Common::UString &cell = getCell(column);
 	if (cell.empty() || (cell == "****"))
 		return _parent->_defaultFloat;
@@ -98,7 +98,7 @@ float TwoDARow::getFloat(const Common::UString &column) const {
 	return _parent->parseFloat(cell);
 }
 
-bool TwoDARow::empty(uint32 column) const {
+bool TwoDARow::empty(size_t column) const {
 	const Common::UString &cell = getCell(column);
 	if (cell.empty() || (cell == "****"))
 		return true;
@@ -111,7 +111,7 @@ bool TwoDARow::empty(const Common::UString &column) const {
 }
 
 static const Common::UString kEmpty;
-const Common::UString &TwoDARow::getCell(uint32 n) const {
+const Common::UString &TwoDARow::getCell(size_t n) const {
 	if (n >= _data.size())
 		return kEmpty;
 
@@ -120,7 +120,7 @@ const Common::UString &TwoDARow::getCell(uint32 n) const {
 
 
 TwoDAFile::TwoDAFile(Common::SeekableReadStream &twoda) :
-	_defaultInt(0), _defaultFloat(0.0), _emptyRow(*this) {
+	_defaultInt(0), _defaultFloat(0.0f), _emptyRow(*this) {
 
 	load(twoda);
 }
@@ -142,7 +142,7 @@ void TwoDAFile::clear() {
 
 	_defaultString.clear();
 	_defaultInt   = 0;
-	_defaultFloat = 0.0;
+	_defaultFloat = 0.0f;
 }
 
 void TwoDAFile::load(Common::SeekableReadStream &twoda) {
@@ -165,9 +165,6 @@ void TwoDAFile::load(Common::SeekableReadStream &twoda) {
 
 		// Create the map to quickly translate headers to column indices
 		createHeaderMap();
-
-		if (twoda.err())
-			throw Common::Exception(Common::kReadError);
 
 	} catch (Common::Exception &e) {
 		clear();
@@ -204,7 +201,7 @@ void TwoDAFile::readDefault2a(Common::SeekableReadStream &twoda,
 	std::vector<Common::UString> defaultRow;
 	tokenize.getTokens(twoda, defaultRow, 2);
 
-	if (defaultRow[0] == "Default:")
+	if (defaultRow[0].equalsIgnoreCase("Default:"))
 		_defaultString = defaultRow[1];
 
 	_defaultInt   = parseInt(_defaultString);
@@ -224,14 +221,14 @@ void TwoDAFile::readHeaders2a(Common::SeekableReadStream &twoda,
 void TwoDAFile::readRows2a(Common::SeekableReadStream &twoda,
                            Common::StreamTokenizer &tokenize) {
 
-	uint32 columnCount = _headers.size();
+	size_t columnCount = _headers.size();
 
 	while (!twoda.eos()) {
 		TwoDARow *row = new TwoDARow(*this);
 
 		tokenize.skipToken(twoda);
 
-		int count = tokenize.getTokens(twoda, row->_data, columnCount, columnCount);
+		size_t count = tokenize.getTokens(twoda, row->_data, columnCount, columnCount);
 
 		tokenize.nextChunk(twoda);
 
@@ -275,9 +272,9 @@ void TwoDAFile::skipRowNames2b(Common::SeekableReadStream &twoda) {
 }
 
 void TwoDAFile::readRows2b(Common::SeekableReadStream &twoda) {
-	uint32 columnCount = _headers.size();
-	uint32 rowCount    = _rows.size();
-	uint32 cellCount   = columnCount * rowCount;
+	size_t columnCount = _headers.size();
+	size_t rowCount    = _rows.size();
+	size_t cellCount   = columnCount * rowCount;
 
 	uint32 *offsets = new uint32[cellCount];
 
@@ -285,20 +282,20 @@ void TwoDAFile::readRows2b(Common::SeekableReadStream &twoda) {
 
 	tokenize.addSeparator('\0');
 
-	for (uint32 i = 0; i < cellCount; i++)
+	for (size_t i = 0; i < cellCount; i++)
 		offsets[i] = twoda.readUint16LE();
 
 	twoda.skip(2); // Reserved
 
-	uint32 dataOffset = twoda.pos();
+	size_t dataOffset = twoda.pos();
 
-	for (uint32 i = 0; i < rowCount; i++) {
+	for (size_t i = 0; i < rowCount; i++) {
 		_rows[i] = new TwoDARow(*this);
 
 		_rows[i]->_data.resize(columnCount);
 
-		for (uint32 j = 0; j < columnCount; j++) {
-			uint32 offset = dataOffset + offsets[i * columnCount + j];
+		for (size_t j = 0; j < columnCount; j++) {
+			size_t offset = dataOffset + offsets[i * columnCount + j];
 
 			try {
 				twoda.seek(offset);
@@ -317,15 +314,15 @@ void TwoDAFile::readRows2b(Common::SeekableReadStream &twoda) {
 }
 
 void TwoDAFile::createHeaderMap() {
-	for (uint32 i = 0; i < _headers.size(); i++)
+	for (size_t i = 0; i < _headers.size(); i++)
 		_headerMap.insert(std::make_pair(_headers[i], i));
 }
 
-uint32 TwoDAFile::getRowCount() const {
+size_t TwoDAFile::getRowCount() const {
 	return _rows.size();
 }
 
-uint32 TwoDAFile::getColumnCount() const {
+size_t TwoDAFile::getColumnCount() const {
 	return _headers.size();
 }
 
@@ -333,7 +330,7 @@ const std::vector<Common::UString> &TwoDAFile::getHeaders() const {
 	return _headers;
 }
 
-uint32 TwoDAFile::headerToColumn(const Common::UString &header) const {
+size_t TwoDAFile::headerToColumn(const Common::UString &header) const {
 	HeaderMap::const_iterator column = _headerMap.find(header);
 	if (column == _headerMap.end())
 		// No such header
@@ -342,7 +339,7 @@ uint32 TwoDAFile::headerToColumn(const Common::UString &header) const {
 	return column->second;
 }
 
-const TwoDARow &TwoDAFile::getRow(uint32 row) const {
+const TwoDARow &TwoDAFile::getRow(size_t row) const {
 	if ((row >= _rows.size()) || !_rows[row])
 		// No such row
 		return _emptyRow;
@@ -351,46 +348,63 @@ const TwoDARow &TwoDAFile::getRow(uint32 row) const {
 }
 
 bool TwoDAFile::dumpASCII(const Common::UString &fileName) const {
-	Common::DumpFile file;
+	Common::WriteFile file;
 	if (!file.open(fileName))
 		return false;
 
 	// Write header
 
 	file.writeString("2DA V2.0\n");
-	file.writeString(_defaultString); file.writeByte('\n');
+	if (!_defaultString.empty())
+		file.writeString(Common::UString::format("DEFAULT: %s", _defaultString.c_str()));
+	file.writeByte('\n');
 
 	// Calculate column lengths
 
-	std::vector<uint32> colLength;
-	colLength.resize(_headers.size() + 1);
+	std::vector<size_t> colLength;
+	colLength.resize(_headers.size() + 1, 0);
 
-	const Common::UString maxRow = Common::UString::sprintf("%d", (int)_rows.size() - 1);
+	const Common::UString maxRow = Common::UString::format("%d", (int)_rows.size() - 1);
 	colLength[0] = maxRow.size();
 
-	for (uint32 i = 0; i < _headers.size(); i++)
+	for (size_t i = 0; i < _headers.size(); i++)
 		colLength[i + 1] = _headers[i].size();
 
-	for (uint32 i = 0; i < _rows.size(); i++)
-		for (uint32 j = 0; j < _rows[i]->_data.size(); j++)
-			colLength[j + 1] = MAX<uint32>(colLength[j + 1], _rows[i]->_data[j].size());
+	for (size_t i = 0; i < _rows.size(); i++) {
+		for (size_t j = 0; j < _rows[i]->_data.size(); j++) {
+			const bool   needQuote = _rows[i]->_data[j].contains(' ');
+			const size_t length    = needQuote ? _rows[i]->_data[j].size() + 2 : _rows[i]->_data[j].size();
+
+			colLength[j + 1] = MAX<size_t>(colLength[j + 1], length);
+		}
+	}
 
 	// Write column headers
 
-	file.writeString(Common::UString::sprintf("%-*s", colLength[0], ""));
+	file.writeString(Common::UString::format("%-*s", (int)colLength[0], ""));
 
-	for (uint32 i = 0; i < _headers.size(); i++)
-		file.writeString(Common::UString::sprintf(" %-*s", colLength[i + 1], _headers[i].c_str()));
+	for (size_t i = 0; i < _headers.size(); i++)
+		file.writeString(Common::UString::format(" %-*s", (int)colLength[i + 1], _headers[i].c_str()));
 
 	file.writeByte('\n');
 
 	// Write array
 
-	for (uint32 i = 0; i < _rows.size(); i++) {
-		file.writeString(Common::UString::sprintf("%*d", colLength[0], i));
+	for (size_t i = 0; i < _rows.size(); i++) {
+		file.writeString(Common::UString::format("%*u", (int)colLength[0], (uint)i));
 
-		for (uint32 j = 0; j < _rows[i]->_data.size(); j++)
-			file.writeString(Common::UString::sprintf(" %-*s", colLength[j + 1], _rows[i]->_data[j].c_str()));
+		for (size_t j = 0; j < _rows[i]->_data.size(); j++) {
+			const bool needQuote = _rows[i]->_data[j].contains(' ');
+
+			Common::UString cellString;
+			if (needQuote)
+				cellString = Common::UString::format("\"%s\"", _rows[i]->_data[j].c_str());
+			else
+				cellString = _rows[i]->_data[j];
+
+			file.writeString(Common::UString::format(" %-*s", (int)colLength[j + 1], cellString.c_str()));
+
+		}
 
 		file.writeByte('\n');
 	}
@@ -419,7 +433,7 @@ float TwoDAFile::parseFloat(const Common::UString &str) {
 	if (str.empty())
 		return 0;
 
-	float v = 0.0;
+	float v = 0.0f;
 
 	try {
 		Common::parseString(str, v);

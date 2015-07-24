@@ -152,7 +152,7 @@ public:
 	void removeAssociate(Creature &ssociate);
 
 	/** Get this creature's nth's associate of a specific type. */
-	Creature *getAssociate(AssociateType type, int nth = 1) const;
+	Creature *getAssociate(AssociateType type, size_t nth = 1) const;
 
 	/** Return the creature's master. */
 	Creature *getMaster() const;
@@ -169,7 +169,7 @@ public:
 	/** Set the creature's position. */
 	void setPosition(float x, float y, float z);
 	/** Set the creature's orientation. */
-	void setOrientation(float x, float y, float z);
+	void setOrientation(float x, float y, float z, float angle);
 
 	// Object/Cursor interactions
 

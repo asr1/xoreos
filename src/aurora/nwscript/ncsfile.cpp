@@ -32,7 +32,7 @@
 #include "src/common/error.h"
 #include "src/common/maths.h"
 #include "src/common/ustring.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/encoding.h"
 #include "src/common/debug.h"
 
@@ -315,9 +315,9 @@ void NCSFile::load() {
 
 	uint32 length = _script->readUint32BE();
 	if (length > ((uint32) _script->size()))
-		throw Common::Exception("Script size %d > stream size %d", length, _script->size());
+		throw Common::Exception("Script size %u > stream size %u", length, (uint)_script->size());
 	if (length < ((uint32) _script->size()))
-		warning("TODO: NCSFile::load(): Script size %d < stream size %d", length, _script->size());
+		warning("TODO: NCSFile::load(): Script size %u < stream size %u", length, (uint)_script->size());
 
 	setupOpcodes();
 
@@ -368,9 +368,6 @@ const Variable &NCSFile::execute(Object *owner, Object *triggerer) {
 
 	while (executeStep())
 		;
-
-	if (_script->err())
-		throw Common::Exception(Common::kReadError);
 
 	if (!_stack.empty())
 		_return = _stack.top();
@@ -494,8 +491,8 @@ void NCSFile::callEngine(Aurora::NWScript::FunctionContext &ctx,
                          uint32 function, uint8 argCount) {
 
 	if ((argCount < ctx.getParamMin()) || (argCount > ctx.getParamMax()))
-		throw Common::Exception("NCSFile::callEngine(): Argument count mismatch (%d vs %d - %d)",
-		                        argCount, ctx.getParamMin(), ctx.getParamMax());
+		throw Common::Exception("NCSFile::callEngine(): Argument count mismatch (%u vs %u - %u)",
+		                        argCount, (uint)ctx.getParamMin(), (uint)ctx.getParamMax());
 
 	ctx.setCurrentScript(this);
 	ctx.setCaller(_owner);
@@ -887,7 +884,7 @@ void NCSFile::o_jmp(InstructionType type) {
 		throw Common::Exception("NCSFile::o_jmp(): Illegal type %d", type);
 
 	int32 offset = _script->readSint32BE();
-	_script->seek(offset - 6, SEEK_CUR);
+	_script->skip(offset - 6);
 }
 
 void NCSFile::o_jz(InstructionType type) {
@@ -897,7 +894,7 @@ void NCSFile::o_jz(InstructionType type) {
 	int32 offset = _script->readSint32BE();
 
 	if (!_stack.pop().getInt())
-		_script->seek(offset - 6, SEEK_CUR);
+		_script->skip(offset - 6);
 }
 
 void NCSFile::o_not(InstructionType type) {
@@ -932,7 +929,7 @@ void NCSFile::o_jnz(InstructionType type) {
 	int32 offset = _script->readSint32BE();
 
 	if (_stack.pop().getInt())
-		_script->seek(offset - 6, SEEK_CUR);
+		_script->skip(offset - 6);
 }
 
 void NCSFile::o_decbp(InstructionType type) {
@@ -1287,7 +1284,7 @@ void NCSFile::o_jsr(InstructionType type) {
 	// Push the current script position
 	_returnOffsets.push(_script->pos());
 
-	_script->seek(offset - 6, SEEK_CUR);
+	_script->skip(offset - 6);
 }
 
 void NCSFile::o_retn(InstructionType UNUSED(type)) {

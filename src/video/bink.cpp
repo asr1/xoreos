@@ -25,13 +25,14 @@
  *  Decoding RAD Game Tools' Bink videos.
  */
 
+#include <cassert>
 #include <cmath>
+#include <cstring>
 
 #include "src/common/util.h"
 #include "src/common/error.h"
 #include "src/common/maths.h"
-#include "src/common/stream.h"
-#include "src/common/file.h"
+#include "src/common/readstream.h"
 #include "src/common/bitstream.h"
 #include "src/common/huffman.h"
 #include "src/common/rdft.h"
@@ -187,9 +188,9 @@ void Bink::processData() {
 
 	_bink->seek(frame.offset);
 
-	uint32 frameSize = frame.size;
+	size_t frameSize = frame.size;
 
-	for (uint32 i = 0; i < _audioTracks.size(); i++) {
+	for (size_t i = 0; i < _audioTracks.size(); i++) {
 		AudioTrack &audio = _audioTracks[i];
 
 		uint32 audioPacketLength = _bink->readUint32LE();
@@ -200,8 +201,8 @@ void Bink::processData() {
 			throw Common::Exception("Audio packet too big for the frame");
 
 		if (audioPacketLength >= 4) {
-			uint32 audioPacketStart = _bink->pos();
-			uint32 audioPacketEnd   = _bink->pos() + audioPacketLength;
+			size_t audioPacketStart = _bink->pos();
+			size_t audioPacketEnd   = _bink->pos() + audioPacketLength;
 
 			if (i == _audioTrack) {
 				// Only play one audio track
@@ -225,8 +226,8 @@ void Bink::processData() {
 		}
 	}
 
-	uint32 videoPacketStart = _bink->pos();
-	uint32 videoPacketEnd   = _bink->pos() + frameSize;
+	size_t videoPacketStart = _bink->pos();
+	size_t videoPacketEnd   = _bink->pos() + frameSize;
 
 	frame.bits =
 		new Common::BitStream32LELSB(new Common::SeekableSubReadStream(_bink,
@@ -642,7 +643,7 @@ void Bink::initAudioTrack(AudioTrack &audio) {
 
 	audio.overlapLen = audio.frameLen / 16;
 	audio.blockSize  = (audio.frameLen - audio.overlapLen) * audio.channels;
-	audio.root       = 2.0 / sqrt((float) audio.frameLen);
+	audio.root       = 2.0 / sqrt((double) audio.frameLen);
 
 	uint32 sampleRateHalf = (audio.sampleRate + 1) / 2;
 
@@ -1452,12 +1453,12 @@ void Bink::audioBlockDCT(AudioTrack &audio) {
 
 		readAudioCoeffs(audio, coeffs);
 
-		coeffs[0] /= 0.5;
+		coeffs[0] /= 0.5f;
 
 		audio.dct->calc(coeffs);
 
 		for (uint32 j = 0; j < audio.frameLen; j++)
-			coeffs[j] *= (audio.frameLen / 2.0);
+			coeffs[j] *= (audio.frameLen / 2.0f);
 	}
 
 }
@@ -1489,7 +1490,7 @@ void Bink::readAudioCoeffs(AudioTrack &audio, float *coeffs) {
 		quant[i] = expf(MIN(value, 95) * 0.15289164787221953823f) * audio.root;
 	}
 
-	float q = 0.0;
+	float q = 0.0f;
 
 	// Find band (k)
 	int k;
@@ -1531,7 +1532,7 @@ void Bink::readAudioCoeffs(AudioTrack &audio, float *coeffs) {
 						coeffs[i] =  q * coeff;
 
 				} else {
-					coeffs[i] = 0.0;
+					coeffs[i] = 0.0f;
 				}
 				i++;
 			}

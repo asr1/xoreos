@@ -29,6 +29,7 @@
 #endif
 
 #include <cassert>
+#include <cstring>
 
 #include "src/graphics/icon.h"
 
@@ -325,7 +326,7 @@ static void setStaticIcon(SDL_Window &window) {
 
 #if defined(WIN32)
 static bool setWindowsIcon(SDL_Window &window) {
-	HMODULE handle = GetModuleHandle(NULL);
+	HMODULE handle = GetModuleHandle(0);
 	HICON   ico    = LoadIcon(handle, MAKEINTRESOURCE(1001 /* IDI_ICON */));
 
 	if (!ico)

@@ -22,13 +22,15 @@
  *  The global graphics manager.
  */
 
+#include <cassert>
+#include <cstring>
+
 #include <boost/bind.hpp>
 
 #include "src/common/version.h"
 #include "src/common/util.h"
 #include "src/common/maths.h"
 #include "src/common/error.h"
-#include "src/common/file.h"
 #include "src/common/configman.h"
 #include "src/common/threads.h"
 #include "src/common/transmatrix.h"
@@ -76,7 +78,16 @@ GraphicsManager::GraphicsManager() {
 	_fsaa    = 0;
 	_fsaaMax = 0;
 
-	_gamma = 1.0;
+	_gamma = 1.0f;
+
+	_cullFaceEnabled = true;
+	_cullFaceMode    = GL_BACK;
+
+	_projectType = kProjectTypePerspective;
+
+	_viewAngle = 60.0f;
+	_clipNear  = 1.0f;
+	_clipFar   = 1000.0f;
 
 	_windowTitle = XOREOS_NAMEVERSION;
 
@@ -112,17 +123,7 @@ GraphicsManager::~GraphicsManager() {
 void GraphicsManager::init() {
 	Common::enforceMainThread();
 
-	uint32 sdlInitFlags = SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK;
-
-	// TODO: Is this actually needed on any systems? It seems to make MacOS X fail to
-	//       receive any events, too.
-/*
-// Might be needed on unixoid OS, but it crashes Windows. Nice.
-#ifndef WIN32
-	sdlInitFlags |= SDL_INIT_EVENTTHREAD;
-#endif
-*/
-
+	const uint32 sdlInitFlags = SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK;
 	if (SDL_Init(sdlInitFlags) < 0)
 		throw Common::Exception("Failed to initialize SDL: %s", SDL_GetError());
 
@@ -241,7 +242,10 @@ bool GraphicsManager::setFSAA(int level) {
 	destroyContext();
 
 	uint32 flags = SDL_GetWindowFlags(_screen);
-	int displayIndex = SDL_GetWindowDisplayIndex(_screen);
+
+	int x, y;
+	SDL_GetWindowPosition(_screen, &x, &y);
+
 	SDL_GL_DeleteContext(_glContext);
 	SDL_DestroyWindow(_screen);
 
@@ -250,7 +254,7 @@ bool GraphicsManager::setFSAA(int level) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, _fsaa);
 
 	// Now try to change the screen
-	_screen = SDL_CreateWindow(_windowTitle.c_str(), SDL_WINDOWPOS_UNDEFINED_DISPLAY(displayIndex), SDL_WINDOWPOS_UNDEFINED_DISPLAY(displayIndex), _width, _height, flags);
+	_screen = SDL_CreateWindow(_windowTitle.c_str(), x, y, _width, _height, flags);
 
 	if (!_screen) {
 		// Failed changing, back up
@@ -260,7 +264,7 @@ bool GraphicsManager::setFSAA(int level) {
 		// Set the multisample level
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, (_fsaa > 0) ? 1 : 0);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, _fsaa);
-		_screen = SDL_CreateWindow(_windowTitle.c_str(), SDL_WINDOWPOS_UNDEFINED_DISPLAY(displayIndex), SDL_WINDOWPOS_UNDEFINED_DISPLAY(displayIndex), _width, _height, flags);
+		_screen = SDL_CreateWindow(_windowTitle.c_str(), x, y, _width, _height, flags);
 
 		// There's no reason how this could possibly fail, but ok...
 		if (!_screen)
@@ -320,7 +324,10 @@ bool GraphicsManager::setupSDLGL(int width, int height, uint32 flags) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 
-	_screen = SDL_CreateWindow(_windowTitle.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
+	int x = ConfigMan.getInt("x", SDL_WINDOWPOS_UNDEFINED);
+	int y = ConfigMan.getInt("y", SDL_WINDOWPOS_UNDEFINED);
+
+	_screen = SDL_CreateWindow(_windowTitle.c_str(), x, y, width, height, flags);
 	if (!_screen)
 		return false;
 
@@ -332,10 +339,9 @@ bool GraphicsManager::setupSDLGL(int width, int height, uint32 flags) {
 
 	_glContext = SDL_GL_CreateContext(_screen);
 
-	if (_glContext != NULL) {
+	if (_glContext)
 		// OpenGL 3.2 context created, continue.
 		return (_gl3 = true);
-	}
 
 	// OpenGL 3.2 context not created. Spit out an error message, and try a 2.1 context.
 	_gl3 = false;
@@ -349,7 +355,7 @@ bool GraphicsManager::setupSDLGL(int width, int height, uint32 flags) {
 
 	_glContext = SDL_GL_CreateContext(_screen);
 
-	if (_glContext == NULL) {
+	if (!_glContext) {
 		SDL_DestroyWindow(_screen);
 		return false;
 	}
@@ -432,8 +438,8 @@ void GraphicsManager::setupScene() {
 	glLoadIdentity();
 
 	glShadeModel(GL_SMOOTH);
-	glClearColor(0.0, 0.0, 0.0, 0.5);
-	glClearDepth(1.0);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.5f);
+	glClearDepth(1.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -442,39 +448,136 @@ void GraphicsManager::setupScene() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glAlphaFunc(GL_GREATER, 0.1);
+	glAlphaFunc(GL_GREATER, 0.1f);
 	glEnable(GL_ALPHA_TEST);
 
-	glEnable(GL_CULL_FACE);
+	setCullFace(_cullFaceEnabled, _cullFaceMode);
 
-	perspective(60.0, ((float) _width) / ((float) _height), 1.0, 1000.0);
+	switch (_projectType) {
+		case kProjectTypePerspective:
+			perspective(_viewAngle, ((float) _width) / ((float) _height), _clipNear, _clipFar);
+			break;
+
+		case kProjectTypeOrthogonal:
+			ortho(0.0f, _width, 0.0f, _height, _clipNear, _clipFar);
+			break;
+
+		default:
+			assert(false);
+			break;
+	}
+}
+
+void GraphicsManager::setCullFace(bool enabled, GLenum mode) {
+	// Force calling it from the main thread
+	if (!Common::isMainThread()) {
+		Events::MainThreadFunctor<void> functor(boost::bind(&GraphicsManager::setCullFace, this, enabled, mode));
+
+		return RequestMan.callInMainThread(functor);
+	}
+
+	if (enabled)
+		glEnable(GL_CULL_FACE);
+	else
+		glDisable(GL_CULL_FACE);
+
+	glCullFace(mode);
+
+	_cullFaceEnabled = enabled;
+	_cullFaceMode    = mode;
+}
+
+void GraphicsManager::setPerspective(float viewAngle, float clipNear, float clipFar) {
+	// Force calling it from the main thread
+	if (!Common::isMainThread()) {
+		Events::MainThreadFunctor<void> functor(boost::bind(&GraphicsManager::setPerspective, this, viewAngle, clipNear, clipFar));
+
+		return RequestMan.callInMainThread(functor);
+	}
+
+	perspective(viewAngle, ((float) _width) / ((float) _height), clipNear, clipFar);
+
+	_projectType = kProjectTypePerspective;
+
+	_viewAngle = viewAngle;
+	_clipNear  = clipNear;
+	_clipFar   = clipFar;
 }
 
 void GraphicsManager::perspective(float fovy, float aspect, float zNear, float zFar) {
-	const float f = 1.0 / (tanf(Common::deg2rad(fovy) / 2.0));
+	assert(fabs(fovy) > 0.001f);
+	assert(zNear > 0);
+	assert(zFar > 0);
+	assert(zFar > zNear);
+	assert((zFar - zNear) > 0.001f);
+
+	const float f = 1.0f / (tanf(Common::deg2rad(fovy) / 2.0f));
 
 	const float t1 = (zFar + zNear) / (zNear - zFar);
 	const float t2 = (2 * zFar * zNear) / (zNear - zFar);
 
 	_projection(0, 0) =  f / aspect;
-	_projection(0, 1) =  0.0;
-	_projection(0, 2) =  0.0;
-	_projection(0, 3) =  0.0;
+	_projection(0, 1) =  0.0f;
+	_projection(0, 2) =  0.0f;
+	_projection(0, 3) =  0.0f;
 
-	_projection(1, 0) =  0.0;
+	_projection(1, 0) =  0.0f;
 	_projection(1, 1) =  f;
-	_projection(1, 2) =  0.0;
-	_projection(1, 3) =  0.0;
+	_projection(1, 2) =  0.0f;
+	_projection(1, 3) =  0.0f;
 
-	_projection(2, 0) =  0.0;
-	_projection(2, 1) =  0.0;
+	_projection(2, 0) =  0.0f;
+	_projection(2, 1) =  0.0f;
 	_projection(2, 2) =  t1;
 	_projection(2, 3) =  t2;
 
-	_projection(3, 0) =  0.0;
-	_projection(3, 1) =  0.0;
-	_projection(3, 2) = -1.0;
-	_projection(3, 3) =  0.0;
+	_projection(3, 0) =  0.0f;
+	_projection(3, 1) =  0.0f;
+	_projection(3, 2) = -1.0f;
+	_projection(3, 3) =  0.0f;
+
+	_projectionInv = _projection.getInverse();
+}
+
+void GraphicsManager::setOrthogonal(float clipNear, float clipFar) {
+	// Force calling it from the main thread
+	if (!Common::isMainThread()) {
+		Events::MainThreadFunctor<void> functor(boost::bind(&GraphicsManager::setOrthogonal, this, clipNear, clipFar));
+
+		return RequestMan.callInMainThread(functor);
+	}
+
+	ortho(0.0f, _width, 0.0f, _height, clipNear, clipFar);
+
+	_projectType = kProjectTypeOrthogonal;
+
+	_clipNear  = clipNear;
+	_clipFar   = clipFar;
+}
+
+void GraphicsManager::ortho(float left, float right, float bottom, float top, float zNear, float zFar) {
+	assert(zFar > zNear);
+	assert((zFar - zNear) > 0.001f);
+
+	_projection(0, 0) = 2.0f / (right - left);
+	_projection(0, 1) = 0.0f;
+	_projection(0, 2) = 0.0f;
+	_projection(0, 3) = - ((right + left) / (right - left));
+
+	_projection(1, 0) = 0.0f;
+	_projection(1, 1) = 2.0f / (top - bottom);
+	_projection(1, 2) = 0.0f;
+	_projection(1, 3) = - ((top + bottom) / (top - bottom));
+
+	_projection(2, 0) = 0.0f;
+	_projection(2, 1) = 0.0f;
+	_projection(2, 2) = - (2.0f / (zFar - zNear));
+	_projection(2, 3) = - ((zFar + zNear) / (zFar - zNear));
+
+	_projection(3, 0) = 0.0f;
+	_projection(3, 1) = 0.0f;
+	_projection(3, 2) = 0.0f;
+	_projection(3, 3) = 1.0f;
 
 	_projectionInv = _projection.getInverse();
 }
@@ -495,12 +598,12 @@ bool GraphicsManager::project(float x, float y, float z, float &sX, float &sY, f
 	memcpy(cOrient, CameraMan.getOrientation(), 3 * sizeof(float));
 
 	// Apply camera orientation
-	model.rotate(-cOrient[0], 1.0, 0.0, 0.0);
-	model.rotate( cOrient[1], 0.0, 1.0, 0.0);
-	model.rotate(-cOrient[2], 0.0, 0.0, 1.0);
+	model.rotate(-cOrient[0], 1.0f, 0.0f, 0.0f);
+	model.rotate(-cOrient[1], 0.0f, 1.0f, 0.0f);
+	model.rotate(-cOrient[2], 0.0f, 0.0f, 1.0f);
 
 	// Apply camera position
-	model.translate(-cPos[0], -cPos[1], cPos[2]);
+	model.translate(-cPos[0], -cPos[1], -cPos[2]);
 
 
 	Common::Vector3 coords(x, y, z);
@@ -520,8 +623,8 @@ bool GraphicsManager::project(float x, float y, float z, float &sX, float &sY, f
 
 	float view[4];
 
-	view[0] = 0.0;
-	view[1] = 0.0;
+	view[0] = 0.0f;
+	view[1] = 0.0f;
 	view[2] = _width;
 	view[3] = _height;
 
@@ -551,68 +654,72 @@ bool GraphicsManager::unproject(float x, float y,
 		memcpy(cOrient, CameraMan.getOrientation(), 3 * sizeof(float));
 
 		// Apply camera position
-		model.translate(cPos[0], cPos[1], -cPos[2]);
+		model.translate(cPos[0], cPos[1], cPos[2]);
 
 		// Apply camera orientation
-		model.rotate( cOrient[2], 0.0, 0.0, 1.0);
-		model.rotate(-cOrient[1], 0.0, 1.0, 0.0);
-		model.rotate( cOrient[0], 1.0, 0.0, 0.0);
+		model.rotate(cOrient[2], 0.0f, 0.0f, 1.0f);
+		model.rotate(cOrient[1], 0.0f, 1.0f, 0.0f);
+		model.rotate(cOrient[0], 1.0f, 0.0f, 0.0f);
 
 
 		// Multiply with the inverse of our projection matrix
 		model *= _projectionInv;
 
 
-		// Viewport coordinates
+		// Coordinates at the near and far clipping planes
+		Common::Vector3 coordsNear, coordsFar;
 
-		float view[4];
+		if (_projectType == kProjectTypePerspective) {
+			/* With a perspective projection, the viewport runs from -1.0 to 0.0
+			 * on the x and y axes, and the clipping planes are at 0.0 and 1.0. */
 
-		view[0] = 0.0;
-		view[1] = 0.0;
-		view[2] = _width;
-		view[3] = _height;
+			const float view[4] = { 0.0f, 0.0f, (float) _width, (float) _height };
+			const float zNear   = 0.0f;
+			const float zFar    = 1.0f;
 
-		float zNear = 0.0;
-		float zFar  = 1.0;
+			coordsNear._x = ((2 * (x - view[0])) / (view[2])) - 1.0f;
+			coordsNear._y = ((2 * (y - view[1])) / (view[3])) - 1.0f;
+			coordsNear._z = (2 * zNear) - 1.0f;
+			coordsNear._w = 1.0f;
 
+			coordsFar._x = ((2 * (x - view[0])) / (view[2])) - 1.0f;
+			coordsFar._y = ((2 * (y - view[1])) / (view[3])) - 1.0f;
+			coordsFar._z = (2 * zFar) - 1.0f;
+			coordsFar._w = 1.0f;
 
-		// Generate a matrix for the coordinates at the near plane
+		} else if (_projectType == kProjectTypeOrthogonal) {
+			/* With an orthogonal projection, the viewport runs from 0.0 to width
+			 * on the x axis and from 0.0 to height on the y axis (which already
+			 * matches the coordinates we were given), and the clipping planes are
+			 * at -clipNear and -clipFar. */
 
-		Common::Vector3 coordsNear;
+			coordsNear._x = x;
+			coordsNear._y = y;
+			coordsNear._z = -_clipNear;
+			coordsNear._w = 1.0f;
 
-		coordsNear._x = ((2 * (x - view[0])) / (view[2])) - 1.0f;
-		coordsNear._y = ((2 * (y - view[1])) / (view[3])) - 1.0f;
-		coordsNear._z = (2 * zNear) - 1.0f;
-		coordsNear._w = 1.0f;
-
-
-
-		// Generate a matrix for the coordinates at the far plane
-
-		Common::Vector3 coordsFar;
-
-		coordsFar._x = ((2 * (x - view[0])) / (view[2])) - 1.0f;
-		coordsFar._y = ((2 * (y - view[1])) / (view[3])) - 1.0f;
-		coordsFar._z = (2 * zFar) - 1.0f;
-		coordsFar._w = 1.0f;
-
+			coordsFar._x = x;
+			coordsFar._y = y;
+			coordsFar._z = -_clipFar;
+			coordsFar._w = 1.0f;
+		}
 
 		// Unproject
 		Common::Vector3 oNear(model * coordsNear);
 		Common::Vector3 oFar (model * coordsFar );
-		if ((oNear._w == 0.0) || (oFar._w == 0.0))
+		if ((oNear._w == 0.0f) || (oFar._w == 0.0f))
 			return false; // TODO: check for close to 0.0f, not exactly 0.0f.
 
 
 		// And return the values
 
-		oNear._w = 1.0 / oNear._w;
+		oNear._w = 1.0f / oNear._w;
 
 		x1 = oNear._x * oNear._w;
 		y1 = oNear._y * oNear._w;
 		z1 = oNear._z * oNear._w;
 
-		oFar._w = 1.0 / oFar._w;
+		oFar._w = 1.0f / oFar._w;
 
 		x2 = oFar._x * oFar._w;
 		y2 = oFar._y * oFar._w;
@@ -657,12 +764,22 @@ void GraphicsManager::recalculateObjectDistances() {
 	// GUI front objects
 	QueueMan.lockQueue(kQueueVisibleGUIFrontObject);
 
-	const std::list<Queueable *> &gui = QueueMan.getQueue(kQueueVisibleGUIFrontObject);
-	for (std::list<Queueable *>::const_iterator g = gui.begin(); g != gui.end(); ++g)
+	const std::list<Queueable *> &guiFront = QueueMan.getQueue(kQueueVisibleGUIFrontObject);
+	for (std::list<Queueable *>::const_iterator g = guiFront.begin(); g != guiFront.end(); ++g)
 		static_cast<Renderable *>(*g)->calculateDistance();
 
 	QueueMan.sortQueue(kQueueVisibleGUIFrontObject);
 	QueueMan.unlockQueue(kQueueVisibleGUIFrontObject);
+
+	// GUI back objects
+	QueueMan.lockQueue(kQueueVisibleGUIBackObject);
+
+	const std::list<Queueable *> &guiBack = QueueMan.getQueue(kQueueVisibleGUIBackObject);
+	for (std::list<Queueable *>::const_iterator g = guiBack.begin(); g != guiBack.end(); ++g)
+		static_cast<Renderable *>(*g)->calculateDistance();
+
+	QueueMan.sortQueue(kQueueVisibleGUIBackObject);
+	QueueMan.unlockQueue(kQueueVisibleGUIBackObject);
 }
 
 uint32 GraphicsManager::createRenderableID() {
@@ -721,8 +838,8 @@ Renderable *GraphicsManager::getGUIObjectAt(float x, float y) const {
 		return 0;
 
 	// Map the screen coordinates to our OpenGL GUI screen coordinates
-	x =            x  - (_width  / 2.0);
-	y = (_height - y) - (_height / 2.0);
+	x =            x  - (_width  / 2.0f);
+	y = (_height - y) - (_height / 2.0f);
 
 	Renderable *object = 0;
 
@@ -829,7 +946,7 @@ bool GraphicsManager::playVideo() {
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glScalef(2.0 / _width, 2.0 / _height, 0.0);
+	glScalef(2.0f / _width, 2.0f / _height, 0.0f);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -866,18 +983,18 @@ bool GraphicsManager::renderWorld() {
 	glLoadIdentity();
 
 	// Apply camera orientation
-	glRotatef(-cOrient[0], 1.0, 0.0, 0.0);
-	glRotatef( cOrient[1], 0.0, 1.0, 0.0);
-	glRotatef(-cOrient[2], 0.0, 0.0, 1.0);
+	glRotatef(-cOrient[0], 1.0f, 0.0f, 0.0f);
+	glRotatef(-cOrient[1], 0.0f, 1.0f, 0.0f);
+	glRotatef(-cOrient[2], 0.0f, 0.0f, 1.0f);
 
 	// Apply camera position
-	glTranslatef(-cPos[0], -cPos[1], cPos[2]);
+	glTranslatef(-cPos[0], -cPos[1], -cPos[2]);
 
 	_modelview.loadIdentity();
-	_modelview.rotate(-cOrient[0], 1.0, 0.0, 0.0);
-	_modelview.rotate( cOrient[1], 0.0, 1.0, 0.0);
-	_modelview.rotate(-cOrient[2], 0.0, 0.0, 1.0);
-	_modelview.translate(-cPos[0], -cPos[1], cPos[2]);
+	_modelview.rotate(-cOrient[0], 1.0f, 0.0f, 0.0f);
+	_modelview.rotate(-cOrient[1], 0.0f, 1.0f, 0.0f);
+	_modelview.rotate(-cOrient[2], 0.0f, 0.0f, 1.0f);
+	_modelview.translate(-cPos[0], -cPos[1], -cPos[2]);
 
 	QueueMan.lockQueue(kQueueVisibleWorldObject);
 	const std::list<Queueable *> &objects = QueueMan.getQueue(kQueueVisibleWorldObject);
@@ -931,7 +1048,7 @@ bool GraphicsManager::renderGUIFront() {
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glScalef(2.0 / _width, 2.0 / _height, 0.0);
+	glScalef(2.0f / _width, 2.0f / _height, 0.0f);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -955,6 +1072,40 @@ bool GraphicsManager::renderGUIFront() {
 	return true;
 }
 
+bool GraphicsManager::renderGUIBack() {
+	if (QueueMan.isQueueEmpty(kQueueVisibleGUIBackObject))
+		return false;
+
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(false);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glScalef(2.0f / _width, 2.0f / _height, 0.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	QueueMan.lockQueue(kQueueVisibleGUIBackObject);
+	const std::list<Queueable *> &gui = QueueMan.getQueue(kQueueVisibleGUIBackObject);
+
+	buildNewTextures();
+
+	for (std::list<Queueable *>::const_reverse_iterator g = gui.rbegin();
+	     g != gui.rend(); ++g) {
+
+		glPushMatrix();
+		static_cast<Renderable *>(*g)->render(kRenderPassAll);
+		glPopMatrix();
+	}
+
+	QueueMan.unlockQueue(kQueueVisibleGUIBackObject);
+
+	glDepthMask(true);
+	glEnable(GL_DEPTH_TEST);
+	return true;
+}
+
 bool GraphicsManager::renderCursor() {
 	if (!_cursor)
 		return false;
@@ -964,8 +1115,8 @@ bool GraphicsManager::renderCursor() {
 	glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glScalef(2.0 / _width, 2.0 / _height, 0.0);
-	glTranslatef(- (_width / 2.0), _height / 2.0, 0.0);
+	glScalef(2.0f / _width, 2.0f / _height, 0.0f);
+	glTranslatef(- (_width / 2.0f), _height / 2.0f, 0.0f);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -994,7 +1145,7 @@ void GraphicsManager::renderScene() {
 
 	cleanupAbandoned();
 
-	if (_frameLock.load(boost::memory_order_acquire) > 0) {
+	if (EventMan.quitRequested() || (_frameLock.load(boost::memory_order_acquire) > 0)) {
 		_frameEndSignal.store(true, boost::memory_order_release);
 
 		return;
@@ -1007,6 +1158,7 @@ void GraphicsManager::renderScene() {
 		return;
 	}
 
+	renderGUIBack();
 	renderWorld();
 	renderGUIFront();
 	renderCursor();

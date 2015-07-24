@@ -22,6 +22,8 @@
  *  The NWN ingame GUI elements.
  */
 
+#include <cassert>
+
 #include "src/common/error.h"
 
 #include "src/engines/nwn/module.h"
@@ -45,8 +47,8 @@ IngameGUI::IngameGUI(Module &module, ::Engines::Console *console) :
 	_main = new IngameMainMenu(_module->getGameVersion(), console);
 
 	_quickbar  = new Quickbar;
-	_quickchat = new Quickchat(_quickbar->getHeight() - 3.0);
-	_compass   = new Compass(_quickbar->getHeight() + _quickchat->getHeight() - 6.0);
+	_quickchat = new Quickchat(_quickbar->getHeight() - 3.0f);
+	_compass   = new Compass(_quickbar->getHeight() + _quickchat->getHeight() - 6.0f);
 
 	_party.resize(1);
 	_party[0] = new PartyLeader(module);
@@ -140,15 +142,15 @@ void IngameGUI::processEventQueue() {
 	_quickbar->processEventQueue();
 }
 
-void IngameGUI::setPortrait(uint partyMember, const Common::UString &portrait) {
+void IngameGUI::setPortrait(size_t partyMember, const Common::UString &portrait) {
 	_party[partyMember]->setPortrait(portrait);
 }
 
-void IngameGUI::setHealth(uint partyMember, uint32 current, uint32 max) {
+void IngameGUI::setHealth(size_t partyMember, uint32 current, uint32 max) {
 	_party[partyMember]->setHealth(current, max);
 }
 
-void IngameGUI::setName(uint partyMember, const Common::UString &name) {
+void IngameGUI::setName(size_t partyMember, const Common::UString &name) {
 	_party[partyMember]->setName(name);
 }
 
@@ -157,19 +159,19 @@ void IngameGUI::setArea(const Common::UString &area) {
 		(*p)->setArea(area);
 }
 
-void IngameGUI::setHealthy(uint partyMember) {
-	_party[partyMember]->setHealthColor(1.0, 0.0, 0.0, 1.0);
+void IngameGUI::setHealthy(size_t partyMember) {
+	_party[partyMember]->setHealthColor(1.0f, 0.0f, 0.0f, 1.0f);
 }
 
-void IngameGUI::setSick(uint partyMember) {
-	_party[partyMember]->setHealthColor(189.0 / 255.0, 146.0 / 255.0,  74.0 / 255.0, 1.0);
+void IngameGUI::setSick(size_t partyMember) {
+	_party[partyMember]->setHealthColor(189.0f / 255.0f, 146.0f / 255.0f,  74.0f / 255.0f, 1.0f);
 }
 
-void IngameGUI::setPoisoned(uint partyMember) {
-	_party[partyMember]->setHealthColor(132.0 / 255.0, 182.0 / 255.0,  74.0 / 255.0, 1.0);
+void IngameGUI::setPoisoned(size_t partyMember) {
+	_party[partyMember]->setHealthColor(132.0f / 255.0f, 182.0f / 255.0f,  74.0f / 255.0f, 1.0f);
 }
 
-void IngameGUI::updatePartyMember(uint partyMember, const Creature &creature, bool force) {
+void IngameGUI::updatePartyMember(size_t partyMember, const Creature &creature, bool force) {
 	assert(partyMember < _party.size());
 
 	uint32 lastPartyMemberChange = creature.lastChangedGUIDisplay();

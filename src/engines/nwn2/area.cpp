@@ -81,7 +81,7 @@ Area::Area(Module &module, const Common::UString &resRef) : _module(&module), _l
 }
 
 Area::~Area() {
-	removeContainer();
+	_module->removeObject(*this);
 
 	hide();
 
@@ -92,8 +92,12 @@ Area::~Area() {
 
 void Area::clear() {
 	// Delete objects
-	for (ObjectList::iterator o = _objects.begin(); o != _objects.end(); ++o)
+	for (ObjectList::iterator o = _objects.begin(); o != _objects.end(); ++o) {
+		if (!(*o)->isStatic())
+			_module->removeObject(**o);
+
 		delete *o;
+	}
 
 	_objects.clear();
 
@@ -354,8 +358,8 @@ void Area::loadProperties(const Aurora::GFF3Struct &props) {
 	uint32 ambientDayVol   = CLIP<uint32>(props.getUint("AmbientSndDayVol"  , 127), 0, 127);
 	uint32 ambientNightVol = CLIP<uint32>(props.getUint("AmbientSndNitVol", 127), 0, 127);
 
-	_ambientDayVol   = 1.25 * (1.0 - (1.0 / powf(5.0, ambientDayVol   / 127.0)));
-	_ambientNightVol = 1.25 * (1.0 - (1.0 / powf(5.0, ambientNightVol / 127.0)));
+	_ambientDayVol   = 1.25f * (1.0f - (1.0f / powf(5.0f, ambientDayVol   / 127.0f)));
+	_ambientNightVol = 1.25f * (1.0f - (1.0f / powf(5.0f, ambientNightVol / 127.0f)));
 
 	// TODO: PresetInstance0 - PresetInstance7
 
@@ -415,7 +419,7 @@ void Area::loadTile(const Aurora::GFF3Struct &t, Tile &tile) {
 		Common::UString tileType = tiles.getRow(tile.tileID).getString("Tile_Type");
 		int             tileVar  = t.getUint("Variation") + 1;
 
-		tile.modelName = Common::UString::sprintf("tl_%s_%s_%02d", tileSet.c_str(), tileType.c_str(), tileVar);
+		tile.modelName = Common::UString::format("tl_%s_%s_%02d", tileSet.c_str(), tileType.c_str(), tileVar);
 	} else {
 		// "Meta tile". Spreads over the space of several normal tiles
 
@@ -424,7 +428,7 @@ void Area::loadTile(const Aurora::GFF3Struct &t, Tile &tile) {
 		Common::UString tileSet = metatiles.getRow(tile.tileID).getString("TileSet");
 		Common::UString name    = metatiles.getRow(tile.tileID).getString("Name");
 
-		tile.modelName = Common::UString::sprintf("tl_%s_%s", tileSet.c_str(), name.c_str());
+		tile.modelName = Common::UString::format("tl_%s_%s", tileSet.c_str(), name.c_str());
 	}
 }
 
@@ -469,10 +473,10 @@ void Area::loadTileModels() {
 			((Graphics::Aurora::Model_NWN2 *) t->model)->setTintWalls(t->wallTint);
 		}
 
-		float rotation = (((int) t->orientation) * 90.0f);
+		const float rotation = -(((int) t->orientation) * 90.0f);
 
 		t->model->setPosition(t->position[0], t->position[1], t->position[2]);
-		t->model->setRotation(0.0, 0.0, rotation);
+		t->model->setOrientation(0.0f, 0.0f, 1.0f, rotation);
 
 		// Rotate static floors back
 		const std::list<Graphics::Aurora::ModelNode *> &nodes = t->model->getNodes();
@@ -480,7 +484,7 @@ void Area::loadTileModels() {
 			if (t->metaTile || !(*n)->getName().endsWith("_F"))
 				continue;
 
-			(*n)->rotate(0.0, 0.0, -rotation);
+			(*n)->rotate(0.0f, 0.0f, -rotation);
 		}
 	}
 }

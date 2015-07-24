@@ -68,6 +68,8 @@ public:
 
 	/** Should a bounding box be drawn around this model? */
 	void drawBound(bool enabled);
+	/** Should a skeleton showing the nodes and their relation be drawn inside the model? */
+	void drawSkeleton(bool enabled, bool showInvisible);
 
 
 	/** Is that point within the model's bounding box? */
@@ -80,23 +82,29 @@ public:
 
 	// Positioning
 
+	/** Get the current scale of the model. */
+	void getScale   (float &x, float &y, float &z) const;
+	/** Get the current orientation of the model. */
+	void getOrientation(float &x, float &y, float &z, float &angle) const;
 	/** Get the current position of the model. */
 	void getPosition(float &x, float &y, float &z) const;
-	/** Get the current rotation of the model. */
-	void getRotation(float &x, float &y, float &z) const;
 
 	/** Get the position of the node after translate/rotate. */
 	void getAbsolutePosition(float &x, float &y, float &z) const;
 
+	/** Set the current scale of the model. */
+	void setScale   (float x, float y, float z);
+	/** Set the current orientation of the model. */
+	void setOrientation(float x, float y, float z, float angle);
 	/** Set the current position of the model. */
 	void setPosition(float x, float y, float z);
-	/** Set the current rotation of the model. */
-	void setRotation(float x, float y, float z);
 
+	/** Scale the model, relative to its current scale. */
+	void scale (float x, float y, float z);
+	/** Rotate the model, relative to its current orientation. */
+	void rotate(float x, float y, float z, float angle);
 	/** Move the model, relative to its current position. */
 	void move  (float x, float y, float z);
-	/** Rotate the model, relative to its current rotation. */
-	void rotate(float x, float y, float z);
 
 	/** Get the point where the feedback tooltip is anchored. */
 	void getTooltipAnchor(float &x, float &y, float &z) const;
@@ -202,11 +210,11 @@ protected:
 	/** All default animations, sorted from least to most probable. */
 	DefaultAnimations _defaultAnimations;
 
-	float _modelScale[3]; ///< The model's scale.
+	float _scale      [3]; ///< Model's scale.
+	float _orientation[4]; ///< Model's orientation.
+	float _position   [3]; ///< Model's position.
 
-	float _position[3]; ///< Model's position.
-	float _rotation[3]; ///< Model's rotation.
-	float _center  [3]; ///< Model's center.
+	float _center[3]; ///< Model's center.
 
 	Common::TransformationMatrix _absolutePosition;
 
@@ -215,6 +223,11 @@ protected:
 	/** The model's box after translate/rotate. */
 	Common::BoundingBox _absoluteBoundBox;
 
+
+	// Rendering
+
+	void doDrawBound();
+	void doDrawSkeleton();
 
 	// Animation
 
@@ -235,6 +248,9 @@ protected:
 
 private:
 	bool _drawBound;
+	bool _drawSkeleton;
+	bool _drawSkeletonInvisible;
+
 	float _elapsedTime; ///< Track animation duration
 
 	void createStateNamesList(); ///< Create the list of all state names.
@@ -242,7 +258,6 @@ private:
 
 	void createAbsolutePosition();
 
-	void doDrawBound();
 	void manageAnimations(float dt);
 
 	Animation *selectDefaultAnimation() const;

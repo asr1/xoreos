@@ -28,7 +28,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "src/common/ustring.h"
-#include "src/common/file.h"
+#include "src/common/writefile.h"
 #include "src/common/filepath.h"
 #include "src/common/threads.h"
 
@@ -45,13 +45,13 @@ using boost::posix_time::second_clock;
 static bool constructFilename(Common::UString &filename) {
 	// Construct a file name from the current time
 	ptime t(second_clock::universal_time());
-	filename = Common::UString::sprintf("%04d%02d%02dT%02d%02d%02d.bmp",
+	filename = Common::UString::format("%04d%02d%02dT%02d%02d%02d.bmp",
 		(int) t.date().year(), (int) t.date().month(), (int) t.date().day(),
 		(int) t.time_of_day().hours(), (int) t.time_of_day().minutes(),
 		(int) t.time_of_day().seconds());
 
 	filename = Common::FilePath::getUserDataFile(filename);
-	if (Common::File::exists(filename))
+	if (Common::FilePath::isRegularFile(filename))
 		// We already did a screenshot this second
 		return false;
 
@@ -64,7 +64,7 @@ static bool writeBMP(const Common::UString &filename, const byte *data,
 	if ((width <= 0) || (height <= 0) || !data)
 		return false;
 
-	Common::DumpFile file;
+	Common::WriteFile file;
 	if (!file.open(filename))
 		return false;
 
@@ -110,9 +110,7 @@ static bool writeBMP(const Common::UString &filename, const byte *data,
 		file.write(data, width * height * 3);
 	}
 
-	if (!file.flush() || file.err())
-		return false;
-
+	file.flush();
 	file.close();
 	return true;
 }

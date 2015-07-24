@@ -26,8 +26,11 @@
  * (<https://github.com/xoreos/xoreos-docs/tree/master/specs/bioware>)
  */
 
+#include <cstdio>
+#include <cstring>
+
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 
 #include "src/aurora/ifofile.h"
 #include "src/aurora/gff3file.h"
@@ -66,11 +69,11 @@ void IFOFile::clear() {
 
 	_entryArea.clear();
 
-	_entryX    = 0.0;
-	_entryY    = 0.0;
-	_entryZ    = 0.0;
-	_entryDirX = 0.0;
-	_entryDirY = 0.0;
+	_entryX    = 0.0f;
+	_entryY    = 0.0f;
+	_entryZ    = 0.0f;
+	_entryDirX = 0.0f;
+	_entryDirY = 0.0f;
 
 	_haks.clear();
 	_areas.clear();
@@ -86,7 +89,7 @@ void IFOFile::clear() {
 	_startMonth = 1;
 	_startYear  = 0;
 
-	_xpScale = 1.0;
+	_xpScale = 1.0f;
 }
 
 void IFOFile::unload() {
@@ -122,7 +125,7 @@ void IFOFile::load() {
 	ifoTop.getLocString("Mod_Description", _description);
 
 	// ID
-	uint idSize = _isSave ? 32 : 16;
+	size_t idSize = _isSave ? 32 : 16;
 	Common::SeekableReadStream *id = ifoTop.getData("Mod_ID");
 	if (id && (id->read(_id, idSize) != idSize))
 		throw Common::Exception("Can't read MOD ID");
@@ -215,11 +218,11 @@ void IFOFile::load() {
 	_snowChance          = ifoTop.getSint("Mod_SnowChance",   0);
 
 	// XP Scale
-	_xpScale = ifoTop.getUint("Mod_XPScale", 100) / 100.0;
+	_xpScale = ifoTop.getUint("Mod_XPScale", 100) / 100.0f;
 }
 
 void IFOFile::parseVersion(const Common::UString &version) {
-	if (sscanf(version.c_str(), "%d.%d", &_minVersionMajor, &_minVersionMinor) != 2)
+	if (std::sscanf(version.c_str(), "%d.%d", &_minVersionMajor, &_minVersionMinor) != 2)
 		_minVersionMajor = _minVersionMinor = 0;
 }
 

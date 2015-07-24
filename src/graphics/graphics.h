@@ -110,6 +110,14 @@ public:
 	/** Set the overall gamma correction. */
 	void setGamma(float gamma);
 
+	/** Enable/Disable face culling. */
+	void setCullFace(bool enabled, GLenum mode = GL_BACK);
+
+	/** Change the perspective projection matrix. */
+	void setPerspective(float viewAngle, float clipNear, float clipFar);
+	/** Change the projection matrix to be orthogonal. */
+	void setOrthogonal(float clipNear, float clipFar);
+
 	/** Show/Hide the cursor. */
 	void showCursor(bool show);
 	/** Set the current cursor. */
@@ -171,6 +179,11 @@ private:
 		kCursorStateSwitchOff
 	};
 
+	enum ProjectType {
+		kProjectTypePerspective,
+		kProjectTypeOrthogonal
+	};
+
 	bool _ready; ///< Was the graphics subsystem successfully initialized?
 
 	// Extensions
@@ -188,6 +201,15 @@ private:
 	int _height; ///< The game's screen height.
 
 	float _gamma; ///< The current gamma correction value.
+
+	bool   _cullFaceEnabled;
+	GLenum _cullFaceMode;
+
+	ProjectType _projectType;
+
+	float _viewAngle;
+	float _clipNear;
+	float _clipFar;
 
 	Common::UString _windowTitle; ///< The current window title.
 
@@ -231,6 +253,8 @@ private:
 
 	/** Set up a projection matrix. Analog to gluPerspective. */
 	void perspective(float fovy, float aspect, float zNear, float zFar);
+	/** Set up an orthogonal projection matrix. Analog to glOrtho. */
+	void ortho(float left, float right, float bottom, float top, float zNear, float zFar);
 
 	void rebuildGLContainers();
 	void destroyGLContainers();
@@ -251,6 +275,7 @@ private:
 	bool playVideo();
 	bool renderWorld();
 	bool renderGUIFront();
+	bool renderGUIBack();
 	bool renderCursor();
 	void endScene();
 };

@@ -33,7 +33,7 @@
 
 namespace Sound {
 
-LoopingAudioStream::LoopingAudioStream(RewindableAudioStream *stream, uint loops, bool disposeAfterUse)
+LoopingAudioStream::LoopingAudioStream(RewindableAudioStream *stream, size_t loops, bool disposeAfterUse)
     : _parent(stream), _disposeAfterUse(disposeAfterUse), _loops(loops), _completeIterations(0) {
 }
 
@@ -42,18 +42,20 @@ LoopingAudioStream::~LoopingAudioStream() {
 		delete _parent;
 }
 
-int LoopingAudioStream::readBuffer(int16 *buffer, const int numSamples) {
+size_t LoopingAudioStream::readBuffer(int16 *buffer, const size_t numSamples) {
 	if ((_loops && _completeIterations == _loops) || !numSamples)
 		return 0;
 
-	int samplesRead = _parent->readBuffer(buffer, numSamples);
+	const size_t samplesRead = _parent->readBuffer(buffer, numSamples);
+	if (samplesRead == kSizeInvalid)
+		return kSizeInvalid;
 
 	if (_parent->endOfStream()) {
 		++_completeIterations;
 		if (_completeIterations == _loops)
 			return samplesRead;
 
-		const int remainingSamples = numSamples - samplesRead;
+		const size_t remainingSamples = numSamples - samplesRead;
 
 		if (!_parent->rewind()) {
 			// TODO: Properly indicate error
@@ -61,7 +63,11 @@ int LoopingAudioStream::readBuffer(int16 *buffer, const int numSamples) {
 			return samplesRead;
 		}
 
-		return samplesRead + readBuffer(buffer + samplesRead, remainingSamples);
+		const size_t samplesReadNext = readBuffer(buffer + samplesRead, remainingSamples);
+		if (samplesReadNext == kSizeInvalid)
+			return kSizeInvalid;
+
+		return samplesRead + samplesReadNext;
 	}
 
 	return samplesRead;
@@ -71,7 +77,7 @@ bool LoopingAudioStream::endOfData() const {
 	return (_loops != 0 && (_completeIterations == _loops));
 }
 
-AudioStream *makeLoopingAudioStream(RewindableAudioStream *stream, uint loops) {
+AudioStream *makeLoopingAudioStream(RewindableAudioStream *stream, size_t loops) {
 	if (loops != 1)
 		return new LoopingAudioStream(stream, loops);
 	else
@@ -127,7 +133,7 @@ public:
 	~QueuingAudioStreamImpl();
 
 	// Implement the AudioStream API
-	virtual int readBuffer(int16 *buffer, const int numSamples);
+	virtual size_t readBuffer(int16 *buffer, const size_t numSamples);
 	virtual int getChannels() const { return _channels; }
 	virtual int getRate() const { return _rate; }
 	virtual bool endOfData() const {
@@ -140,7 +146,7 @@ public:
 	virtual void queueAudioStream(AudioStream *stream, bool disposeAfterUse);
 	virtual void finish() { _finished = true; }
 
-	uint32 numQueuedStreams() const {
+	size_t numQueuedStreams() const {
 		//Common::StackLock lock(_mutex);
 		return _queue.size();
 	}
@@ -166,13 +172,18 @@ void QueuingAudioStreamImpl::queueAudioStream(AudioStream *stream, bool disposeA
 	_queue.push(StreamHolder(stream, disposeAfterUse));
 }
 
-int QueuingAudioStreamImpl::readBuffer(int16 *buffer, const int numSamples) {
+size_t QueuingAudioStreamImpl::readBuffer(int16 *buffer, const size_t numSamples) {
 	Common::StackLock lock(_mutex);
-	int samplesDecoded = 0;
+	size_t samplesDecoded = 0;
 
 	while (samplesDecoded < numSamples && !_queue.empty()) {
 		AudioStream *stream = _queue.front()._stream;
-		samplesDecoded += stream->readBuffer(buffer + samplesDecoded, numSamples - samplesDecoded);
+
+		const size_t n = stream->readBuffer(buffer + samplesDecoded, numSamples - samplesDecoded);
+		if (n == kSizeInvalid)
+			return kSizeInvalid;
+
+		samplesDecoded += n;
 
 		if (stream->endOfData()) {
 			StreamHolder tmp = _queue.front();

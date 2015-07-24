@@ -26,10 +26,12 @@
  * (<https://github.com/xoreos/xoreos-docs/tree/master/specs/bioware>)
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/strutil.h"
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/memreadstream.h"
 
 #include "src/aurora/biffile.h"
 #include "src/aurora/keyfile.h"
@@ -77,9 +79,6 @@ void BIFFile::load(Common::SeekableReadStream &bif) {
 	try {
 
 		readVarResTable(bif, offVarResTable);
-
-		if (bif.err())
-			throw Common::Exception(Common::kReadError);
 
 	} catch (Common::Exception &e) {
 		e.add("Failed reading BIF file");
@@ -136,7 +135,7 @@ const Archive::ResourceList &BIFFile::getResources() const {
 
 const BIFFile::IResource &BIFFile::getIResource(uint32 index) const {
 	if (index >= _iResources.size())
-		throw Common::Exception("Resource index out of range (%d/%d)", index, _iResources.size());
+		throw Common::Exception("Resource index out of range (%u/%u)", index, (uint)_iResources.size());
 
 	return _iResources[index];
 }

@@ -26,8 +26,10 @@
  * (<https://github.com/xoreos/xoreos-docs/tree/master/specs/bioware>)
  */
 
+#include <cassert>
+
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 
 #include "src/aurora/gff3file.h"
 #include "src/aurora/dlgfile.h"
@@ -295,7 +297,7 @@ bool DLGFile::runScript(const Common::UString &script) const {
 		if (retVal.getType() == NWScript::kTypeInt)
 			return retVal.getInt() != 0;
 		if (retVal.getType() == NWScript::kTypeFloat)
-			return retVal.getFloat() != 0.0;
+			return retVal.getFloat() != 0.0f;
 
 		return true;
 

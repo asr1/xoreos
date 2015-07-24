@@ -66,14 +66,12 @@ bool Waypoint::hasMapNote() const {
 	return _hasMapNote;
 }
 
-Common::UString Waypoint::getMapNote() const {
+const Aurora::LocString &Waypoint::getMapNote() const {
 	return _mapNote;
 }
 
 void Waypoint::refreshLocalized() {
 	Object::refreshLocalized();
-
-	_mapNote = _mapNotes.getString();
 }
 
 void Waypoint::enableMapNote(bool enabled) {
@@ -98,10 +96,7 @@ void Waypoint::load(const Aurora::GFF3Struct &instance, const Aurora::GFF3Struct
 	float bearingX = instance.getDouble("XOrientation");
 	float bearingY = instance.getDouble("YOrientation");
 
-	float o[3];
-	Common::vector2orientation(bearingX, bearingY, o[0], o[1], o[2]);
-
-	setOrientation(o[0], o[1], o[2]);
+	setOrientation(0.0f, 0.0f, 1.0f, -Common::rad2deg(atan2(bearingX, bearingY)));
 }
 
 void Waypoint::loadProperties(const Aurora::GFF3Struct &gff) {
@@ -114,7 +109,7 @@ void Waypoint::loadProperties(const Aurora::GFF3Struct &gff) {
 
 	_hasMapNote = gff.getBool("HasMapNote", _hasMapNote);
 	if (gff.hasField("MapNote"))
-		gff.getLocString("MapNote", _mapNotes);
+		gff.getLocString("MapNote", _mapNote);
 
 	refreshLocalized();
 }

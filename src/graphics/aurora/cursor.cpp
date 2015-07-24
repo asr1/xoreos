@@ -24,7 +24,7 @@
 
 #include "src/common/util.h"
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 
 #include "src/aurora/types.h"
 #include "src/aurora/resman.h"
@@ -60,17 +60,17 @@ void Cursor::render() {
 	int x, y;
 	CursorMan.getPosition(x, y);
 
-	glTranslatef(x - _hotspotX, -y - _height + _hotspotY, 0.0);
+	glTranslatef(x - _hotspotX, -y - _height + _hotspotY, 0.0f);
 
 	glBegin(GL_QUADS);
-		glTexCoord2f(0.0, 0.0);
-		glVertex2f(0.0, 0.0);
-		glTexCoord2f(1.0, 0.0);
-		glVertex2f(_height, 0.0);
-		glTexCoord2f(1.0, 1.0);
+		glTexCoord2f(0.0f, 0.0f);
+		glVertex2f(0.0f, 0.0f);
+		glTexCoord2f(1.0f, 0.0f);
+		glVertex2f(_height, 0.0f);
+		glTexCoord2f(1.0f, 1.0f);
 		glVertex2f(_height, _width);
-		glTexCoord2f(0.0, 1.0);
-		glVertex2f(0.0, _width);
+		glTexCoord2f(0.0f, 1.0f);
+		glVertex2f(0.0f, _width);
 	glEnd();
 }
 

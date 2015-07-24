@@ -26,8 +26,10 @@
  * (<https://github.com/xoreos/xoreos-docs/tree/master/specs/bioware>)
  */
 
+#include <cassert>
+
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/memreadstream.h"
 #include "src/common/encoding.h"
 #include "src/common/ustring.h"
 #include "src/common/strutil.h"
@@ -87,6 +89,10 @@ void GFF3File::clear() {
 	_structs.clear();
 }
 
+uint32 GFF3File::getType() const {
+	return _id;
+}
+
 const GFF3Struct &GFF3File::getTopLevel() const {
 	return getStruct(0);
 }
@@ -100,9 +106,6 @@ void GFF3File::load(uint32 id) {
 		loadStructs();
 		loadLists();
 
-		if (_stream->err() || _stream->eos())
-			throw Common::Exception(Common::kReadError);
-
 	} catch (Common::Exception &e) {
 		clear();
 
@@ -114,7 +117,7 @@ void GFF3File::load(uint32 id) {
 void GFF3File::loadHeader(uint32 id) {
 	readHeader(*_stream);
 
-	if (_id != id)
+	if ((id != 0xFFFFFFFF) && (_id != id))
 		throw Common::Exception("GFF3 has invalid ID (want %s, got %s)",
 				Common::debugTag(id).c_str(), Common::debugTag(_id).c_str());
 
@@ -143,7 +146,7 @@ void GFF3File::loadLists() {
 
 	// Counting the actual amount of lists
 	uint32 listCount = 0;
-	for (uint32 i = 0; i < rawLists.size(); i++) {
+	for (size_t i = 0; i < rawLists.size(); i++) {
 		uint32 n = rawLists[i];
 
 		if ((i + n) > rawLists.size())
@@ -158,7 +161,7 @@ void GFF3File::loadLists() {
 
 	// Converting the raw list array into real, useable lists
 	uint32 listIndex = 0;
-	for (uint32 i = 0; i < rawLists.size(); listIndex++) {
+	for (size_t i = 0; i < rawLists.size(); listIndex++) {
 		_listOffsetToIndex[i] = listIndex;
 
 		const uint32 n = rawLists[i++];
@@ -293,15 +296,14 @@ Common::SeekableReadStream &GFF3Struct::getData(const Field &field) const {
 	assert(field.extended);
 
 	Common::SeekableReadStream &data = _parent->getFieldData();
-
-	data.seek(field.data, SEEK_CUR);
+	data.skip(field.data);
 
 	return data;
 }
 
 // --- Field properties ---
 
-uint GFF3Struct::getFieldCount() const {
+size_t GFF3Struct::getFieldCount() const {
 	return _fields.size();
 }
 
@@ -447,7 +449,7 @@ Common::UString GFF3Struct::getString(const Common::UString &field,
 	    (f->type == kFieldTypeUint64) ||
 	    (f->type == kFieldTypeStrRef)) {
 
-		return Common::UString::sprintf("%lu", getUint(field));
+		return Common::composeString(getUint(field));
 	}
 
 	if ((f->type == kFieldTypeChar  ) ||
@@ -455,27 +457,32 @@ Common::UString GFF3Struct::getString(const Common::UString &field,
 	    (f->type == kFieldTypeSint32) ||
 	    (f->type == kFieldTypeSint64)) {
 
-		return Common::UString::sprintf("%ld", getSint(field));
+		return Common::composeString(getSint(field));
 	}
 
 	if ((f->type == kFieldTypeFloat) ||
 	    (f->type == kFieldTypeDouble)) {
 
-		return Common::UString::sprintf("%lf", getDouble(field));
+		return Common::composeString(getDouble(field));
 	}
 
 	if (f->type == kFieldTypeVector) {
-		float x, y, z;
+		float x = 0.0, y = 0.0, z = 0.0;
 
 		getVector(field, x, y, z);
-		return Common::UString::sprintf("%f/%f/%f", x, y, z);
+		return Common::composeString(x) + "/" +
+		       Common::composeString(y) + "/" +
+		       Common::composeString(z);
 	}
 
 	if (f->type == kFieldTypeOrientation) {
-		float a, b, c, d;
+		float a = 0.0, b = 0.0, c = 0.0, d = 0.0;
 
 		getOrientation(field, a, b, c, d);
-		return Common::UString::sprintf("%f/%f/%f/%f", a, b, c, d);
+		return Common::composeString(a) + "/" +
+		       Common::composeString(b) + "/" +
+		       Common::composeString(c) + "/" +
+		       Common::composeString(d);
 	}
 
 	throw Common::Exception("GFF3: Field is not a string(able) type");

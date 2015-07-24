@@ -46,7 +46,7 @@ OptionsVideoAdvancedMenu::OptionsVideoAdvancedMenu(bool isMain, ::Engines::Conso
 
 	if (isMain) {
 		WidgetPanel *backdrop = new WidgetPanel(*this, "PNL_MAINMENU", "pnl_mainmenu");
-		backdrop->setPosition(0.0, 0.0, 100.0);
+		backdrop->setPosition(0.0f, 0.0f, 100.0f);
 		addWidget(backdrop);
 	}
 
@@ -155,7 +155,7 @@ void OptionsVideoAdvancedMenu::updateFSAALabel(int n) {
 	else if (n == 2)
 		text = TalkMan.getString(67542);
 	else
-		text = Common::UString::sprintf("%dx %s", 1 << n, TalkMan.getString(67538).c_str());
+		text = Common::UString::format("%dx %s", 1 << n, TalkMan.getString(67538).c_str());
 
 	getLabel("AntialiasLabel", true)->setText(text);
 }

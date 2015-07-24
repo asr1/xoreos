@@ -26,12 +26,16 @@
  * (<https://github.com/xoreos/xoreos-docs/tree/master/specs/bioware>)
  */
 
-#include "src/common/stream.h"
-#include "src/common/file.h"
+#include <cassert>
+
+#include "src/common/memreadstream.h"
+#include "src/common/readfile.h"
 #include "src/common/util.h"
 #include "src/common/strutil.h"
 #include "src/common/error.h"
 #include "src/common/encoding.h"
+#include "src/common/md5.h"
+#include "src/common/blowfish.h"
 
 #include "src/aurora/erffile.h"
 #include "src/aurora/util.h"
@@ -50,8 +54,8 @@ static const uint32 kVersion3  = MKTAG('V', '3', '.', '0');
 
 namespace Aurora {
 
-ERFFile::ERFFile(Common::SeekableReadStream *erf) : _erf(erf) {
-	assert(_erf);
+ERFFile::ERFFile(Common::SeekableReadStream *erf, const std::vector<byte> &password) :
+	_erf(erf), _password(password) {
 
 	try {
 		load(*_erf);
@@ -78,6 +82,64 @@ void ERFFile::verifyVersion(uint32 id, uint32 version, bool utf16le) {
 		throw Common::Exception("ERF file version 2.0+, but not UTF-16LE");
 }
 
+void ERFFile::verifyPasswordDigest() {
+	if (_header.encryption == kEncryptionNone)
+		return;
+
+	if (_password.empty())
+		throw Common::Exception("Encrypted; password required");
+
+		if (_header.encryption == kEncryptionXOR)
+			throw Common::Exception("Unsupported XOR encryption");
+
+	if (_header.encryption == kEncryptionBlowfishDAO) {
+		// The digest is the simple MD5 sum of the password
+		if (!Common::compareMD5Digest(_password, _header.passwordDigest))
+			throw Common::Exception("Password digest does not match");
+
+		// Parse the password into a number, and create an 8-byte little endian array out of it
+
+		Common::UString passwordString((const char *) &_password[0], _password.size());
+
+		uint64 passwordNumber = 0;
+		Common::parseString(passwordString, passwordNumber);
+
+		_password.resize(8);
+		for (size_t i = 0; i < 8; i++) {
+			_password[i] = passwordNumber & 0xFF;
+
+			passwordNumber >>= 8;
+		}
+
+		return;
+	}
+
+	if (_header.encryption == kEncryptionBlowfishDA2) {
+		// The digest is the MD5 sum of an [0-255] array encrypted by the password
+		byte buffer[256];
+		for (size_t i = 0; i < sizeof(buffer); i++)
+			buffer[i] = i;
+
+		Common::MemoryReadStream bufferStream(buffer, sizeof(buffer));
+		Common::SeekableReadStream *bufferEncrypted = Common::encryptBlowfishEBC(bufferStream, _password);
+
+		try {
+
+			if (!Common::compareMD5Digest(*bufferEncrypted,  _header.passwordDigest))
+				throw Common::Exception("Password digest does not match");
+
+		} catch (...) {
+			delete bufferEncrypted;
+			throw;
+		}
+
+		delete bufferEncrypted;
+		return;
+	}
+
+	throw Common::Exception("Invalid encryption type %u", (uint)_header.encryption);
+}
+
 void ERFFile::load(Common::SeekableReadStream &erf) {
 	readHeader(erf);
 
@@ -87,10 +149,9 @@ void ERFFile::load(Common::SeekableReadStream &erf) {
 
 		readERFHeader(erf, _header, _version);
 
-		if (_header.flags & 0xF0)
-			throw Common::Exception("Unhandled ERF encryption");
-
 		try {
+
+			verifyPasswordDigest();
 
 			readDescription(_description, erf, _header, _version);
 			readResources(erf, _header);
@@ -102,9 +163,6 @@ void ERFFile::load(Common::SeekableReadStream &erf) {
 
 		delete[] _header.stringTable;
 		_header.stringTable = 0;
-
-		if (erf.err())
-			throw Common::Exception(Common::kReadError);
 
 	} catch (Common::Exception &e) {
 		e.add("Failed reading ERF file");
@@ -118,6 +176,8 @@ void ERFFile::readERFHeader(Common::SeekableReadStream &erf, ERFHeader &header, 
 	header.buildDay        = 0;
 	header.stringTableSize = 0;
 	header.stringTable     = 0;
+
+	uint32 flags = 0;
 
 	if        ((version == kVersion1) || (version == kVersion11)) {
 
@@ -136,7 +196,6 @@ void ERFFile::readERFHeader(Common::SeekableReadStream &erf, ERFHeader &header, 
 
 		erf.skip(116); // Reserved
 
-		header.flags    = 0; // No flags in ERF V1.0 / V1.1
 		header.moduleID = 0; // No module ID in ERF V1.0 / V1.1
 
 	} else if (version == kVersion2) {
@@ -154,7 +213,6 @@ void ERFFile::readERFHeader(Common::SeekableReadStream &erf, ERFHeader &header, 
 		header.offKeyList      = 0;    // No separate key list in ERF V2.0
 		header.offResList      = 0x20; // Resource list always starts at 0x20 in ERF V2.0
 
-		header.flags    = 0; // No flags in ERF V2.0
 		header.moduleID = 0; // No module ID in ERF V2.0
 
 	} else if (version == kVersion22) {
@@ -167,10 +225,13 @@ void ERFFile::readERFHeader(Common::SeekableReadStream &erf, ERFHeader &header, 
 
 		erf.skip(4);     // Unknown, always 0xFFFFFFFF?
 
-		header.flags    = erf.readUint32LE();
+		flags = erf.readUint32LE();
+
 		header.moduleID = erf.readUint32LE();
 
-		header.passwordDigest = Common::readStringFixed(erf, Common::kEncodingASCII, 16);
+		header.passwordDigest.resize(16);
+		if (erf.read(&header.passwordDigest[0], 16) != 16)
+			throw Common::Exception(Common::kReadError);
 
 		header.descriptionID   = 0;    // No description in ERF V2.2
 		header.offDescription  = 0;    // No description in ERF V2.2
@@ -183,10 +244,13 @@ void ERFFile::readERFHeader(Common::SeekableReadStream &erf, ERFHeader &header, 
 		header.stringTableSize = erf.readUint32LE();
 		header.resCount        = erf.readUint32LE(); // Number of resources in the ERF
 
-		header.flags    = erf.readUint32LE();
+		flags = erf.readUint32LE();
+
 		header.moduleID = erf.readUint32LE();
 
-		header.passwordDigest = Common::readStringFixed(erf, Common::kEncodingASCII, 16);
+		header.passwordDigest.resize(16);
+		if (erf.read(&header.passwordDigest[0], 16) != 16)
+			throw Common::Exception(Common::kReadError);
 
 		header.stringTable = new char[header.stringTableSize];
 		if (erf.read(header.stringTable, header.stringTableSize) != header.stringTableSize) {
@@ -200,6 +264,9 @@ void ERFFile::readERFHeader(Common::SeekableReadStream &erf, ERFHeader &header, 
 		header.offResList     = 0x30 + header.stringTableSize; // Resource list always starts after the string table in ERF V3.2
 
 	}
+
+	header.encryption  = (Encryption)  ((flags >>  4) & 0x0000000F);
+	header.compression = (Compression) ((flags >> 29) & 0x00000007);
 }
 
 void ERFFile::readDescription(LocString &description, Common::SeekableReadStream &erf,
@@ -371,7 +438,7 @@ const Archive::ResourceList &ERFFile::getResources() const {
 
 const ERFFile::IResource &ERFFile::getIResource(uint32 index) const {
 	if (index >= _iResources.size())
-		throw Common::Exception("Resource index out of range (%d/%d)", index, _iResources.size());
+		throw Common::Exception("Resource index out of range (%u/%u)", index, (uint)_iResources.size());
 
 	return _iResources[index];
 }
@@ -383,39 +450,56 @@ uint32 ERFFile::getResourceSize(uint32 index) const {
 Common::SeekableReadStream *ERFFile::getResource(uint32 index, bool tryNoCopy) const {
 	const IResource &res = getIResource(index);
 
-	if (tryNoCopy && (getCompressionType() == 0))
+	if (tryNoCopy && (_header.encryption == kEncryptionNone) && (_header.compression == kCompressionNone))
 		return new Common::SeekableSubReadStream(_erf, res.offset, res.offset + res.packedSize);
 
 	_erf->seek(res.offset);
 
-	return decompress(_erf->readStream(res.packedSize), res.unpackedSize);
+	// Read, decrypt and decompress
+	return decompress(decrypt(_erf->readStream(res.packedSize)), res.unpackedSize);
 }
 
-uint32 ERFFile::getCompressionType() const {
-	return (_header.flags >> 29) & 0x7;
+Common::MemoryReadStream *ERFFile::decrypt(Common::MemoryReadStream *cryptStream) const {
+	try {
+		Common::MemoryReadStream *decryptStream = 0;
+
+		switch (_header.encryption) {
+			case kEncryptionNone:
+				return cryptStream;
+
+			case kEncryptionBlowfishDAO:
+			case kEncryptionBlowfishDA2:
+				decryptStream = Common::decryptBlowfishEBC(*cryptStream, _password);
+				delete cryptStream;
+				return decryptStream;
+
+			default:
+				throw Common::Exception("Invalid ERF encryption %u", (uint) _header.encryption);
+		}
+	} catch (...) {
+		delete cryptStream;
+		throw;
+	}
 }
 
 Common::SeekableReadStream *ERFFile::decompress(Common::MemoryReadStream *packedStream,
                                                 uint32 unpackedSize) const {
-	switch (getCompressionType()) {
-	case 0:
-		// No compression
-		return packedStream;
-	case 1:
-		// Bioware Zlib
-		return decompressBiowareZlib(packedStream, unpackedSize);
-	case 2:
-	case 3:
-		// Unknown
-		delete packedStream;
-		throw Common::Exception("Unknown ERF compression %d", getCompressionType());
-	case 7:
-		// Headerless Zlib
-		return decompressHeaderlessZlib(packedStream, unpackedSize);
-	default:
-		// Invalid
-		delete packedStream;
-		throw Common::Exception("Invalid ERF compression %d", getCompressionType());
+	switch (_header.compression) {
+		case kCompressionNone:
+			if (packedStream->size() == unpackedSize)
+				return packedStream;
+
+			return new Common::SeekableSubReadStream(packedStream, 0, unpackedSize, true);
+
+		case kCompressionBioWareZlib:
+			return decompressBiowareZlib(packedStream, unpackedSize);
+
+		case kCompressionHeaderlessZlib:
+			return decompressHeaderlessZlib(packedStream, unpackedSize);
+
+		default:
+			delete packedStream;
+			throw Common::Exception("Invalid ERF compression %u", (uint) _header.compression);
 	}
 }
 
@@ -528,7 +612,7 @@ LocString ERFFile::getDescription(Common::SeekableReadStream &erf) {
 }
 
 LocString ERFFile::getDescription(const Common::UString &fileName) {
-	Common::File erf(fileName);
+	Common::ReadFile erf(fileName);
 
 	return getDescription(erf);
 }

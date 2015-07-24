@@ -37,10 +37,10 @@ Font::~Font() {
 }
 
 float Font::getLineSpacing() const {
-	return 0.0;
+	return 0.0f;
 }
 
-uint32 Font::getLineCount(const Common::UString &text, float maxWidth, float maxHeight) const {
+size_t Font::getLineCount(const Common::UString &text, float maxWidth, float maxHeight) const {
 	std::vector<Common::UString> lines;
 
 	split(text, lines, maxWidth, maxHeight);
@@ -55,10 +55,10 @@ float Font::getWidth(const Common::UString &text, float maxWidth) const {
 }
 
 float Font::getHeight(const Common::UString &text, float maxWidth, float maxHeight) const {
-	uint32 lines = getLineCount(text, maxWidth, maxHeight);
+	size_t lines = getLineCount(text, maxWidth, maxHeight);
 
 	if (lines == 0)
-		return 0.0;
+		return 0.0f;
 
 	return (lines * getHeight()) + ((lines - 1) * getLineSpacing());
 }
@@ -75,9 +75,9 @@ void Font::draw(Common::UString text, const ColorPositions &colors,
 	float maxLength = split(text, lines, maxWidth, maxHeight, false);
 
 	// Move position to the top
-	glTranslatef(0.0, (lines.size() - 1) * (getHeight() + getLineSpacing()), 0.0);
+	glTranslatef(0.0f, (lines.size() - 1) * (getHeight() + getLineSpacing()), 0.0f);
 
-	uint32 position = 0;
+	size_t position = 0;
 
 	ColorPositions::const_iterator color = colors.begin();
 
@@ -87,7 +87,7 @@ void Font::draw(Common::UString text, const ColorPositions &colors,
 		glPushMatrix();
 
 		// Align
-		glTranslatef(roundf((maxLength - getLineWidth(*l)) * align), 0.0, 0.0);
+		glTranslatef(roundf((maxLength - getLineWidth(*l)) * align), 0.0f, 0.0f);
 
 		// Draw line
 		for (Common::UString::iterator s = l->begin(); s != l->end(); ++s, position++) {
@@ -108,13 +108,13 @@ void Font::draw(Common::UString text, const ColorPositions &colors,
 		glPopMatrix();
 
 		// Move to the next line
-		glTranslatef(0.0, -(getHeight() + getLineSpacing()), 0.0);
+		glTranslatef(0.0f, -(getHeight() + getLineSpacing()), 0.0f);
 
 		// \n character
 		position++;
 	}
 
-	glColor4f(1.0, 1.0, 1.0, 1.0);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 float Font::split(const Common::UString &line, std::vector<Common::UString> &lines,
@@ -122,20 +122,20 @@ float Font::split(const Common::UString &line, std::vector<Common::UString> &lin
 
 	if (line.empty())
 		// Nothing to do
-		return 0.0;
+		return 0.0f;
 
-	if (maxWidth <= 0.0)
+	if (maxWidth <= 0.0f)
 		maxWidth = FLT_MAX;
 
-	if (maxHeight <= 0.0)
+	if (maxHeight <= 0.0f)
 		maxHeight = FLT_MAX;
 
 	// Wrap the line into several lines of at max maxWidth pixel length, breaking
 	// the line at font-specific word boundaries.
 
-	float length     = 0.0;
-	float wordLength = 0.0;
-	float lineLength = 0.0;
+	float length     = 0.0f;
+	float wordLength = 0.0f;
+	float lineLength = 0.0f;
 
 	Common::UString currentWord;
 	Common::UString currentLine;
@@ -181,7 +181,7 @@ float Font::split(const Common::UString &line, std::vector<Common::UString> &lin
 					length = MAX(length, lineLength);
 
 					currentLine.clear();
-					lineLength = 0.0;
+					lineLength = 0.0f;
 
 					currentLine += lineColor;
 				}
@@ -194,7 +194,7 @@ float Font::split(const Common::UString &line, std::vector<Common::UString> &lin
 				lineColor = wordColor;
 
 				currentWord.clear();
-				wordLength = 0.0;
+				wordLength = 0.0f;
 			}
 
 			float charWidth = getWidth(c);
@@ -215,10 +215,10 @@ float Font::split(const Common::UString &line, std::vector<Common::UString> &lin
 				length = MAX(length, MAX(lineLength, wordLength));
 
 				currentLine.clear();
-				lineLength = 0.0;
+				lineLength = 0.0f;
 
 				currentWord.clear();
-				wordLength = 0.0;
+				wordLength = 0.0f;
 
 				lineColor = wordColor;
 				currentLine += lineColor;
@@ -234,10 +234,10 @@ float Font::split(const Common::UString &line, std::vector<Common::UString> &lin
 				length = MAX(length, lineLength);
 
 				currentLine.clear();
-				lineLength = 0.0;
+				lineLength = 0.0f;
 
 				currentWord.clear();
-				wordLength = 0.0;
+				wordLength = 0.0f;
 
 				currentLine += lineColor;
 			} else {
@@ -261,7 +261,7 @@ float Font::split(const Common::UString &line, std::vector<Common::UString> &lin
 			length = MAX(length, lineLength);
 
 			currentLine.clear();
-			lineLength = 0.0;
+			lineLength = 0.0f;
 
 			currentLine += lineColor;
 		}
@@ -285,14 +285,14 @@ float Font::split(const Common::UString &line, std::vector<Common::UString> &lin
 	return length;
 }
 
-float Font::split(Common::UString &line, float maxWidth, float maxHeight) const {
-	return split(line, line, maxWidth, maxHeight);
+float Font::split(Common::UString &line, float maxWidth, float maxHeight, bool trim) const {
+	return split(line, line, maxWidth, maxHeight, trim);
 }
 
-float Font::split(const Common::UString &line, Common::UString &lines, float maxWidth, float maxHeight) const {
+float Font::split(const Common::UString &line, Common::UString &lines, float maxWidth, float maxHeight, bool trim) const {
 	std::vector<Common::UString> sLines;
 
-	float width = split(line, sLines, maxWidth, maxHeight);
+	float width = split(line, sLines, maxWidth, maxHeight, trim);
 
 	lines.clear();
 	for (std::vector<Common::UString>::const_iterator l = sLines.begin(); l != sLines.end(); ++l) {
@@ -306,7 +306,7 @@ float Font::split(const Common::UString &line, Common::UString &lines, float max
 }
 
 float Font::getLineWidth(const Common::UString &text) const {
-	float width = 0.0;
+	float width = 0.0f;
 
 	for (Common::UString::iterator c = text.begin(); c != text.end(); ++c)
 		width += getWidth(*c);

@@ -28,9 +28,11 @@
  * (<http://www.tbotr.net/modules.php?mod=Downloads&op=download&sid=3&ssid=3&dlid=19>).
  */
 
+#include <cassert>
+
 #include "src/common/error.h"
 #include "src/common/maths.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/encoding.h"
 
 #include "src/aurora/types.h"
@@ -175,7 +177,7 @@ void Model_Witcher::load(ParserContext &ctx) {
 
 	ctx.mdb->skip(4);
 
-	float scale = ctx.mdb->readIEEEFloatLE();
+	float modelScale = ctx.mdb->readIEEEFloatLE();
 
 	Common::UString superModel = Common::readStringFixed(*ctx.mdb, Common::kEncodingASCII, 64);
 
@@ -417,7 +419,7 @@ void ModelNode_Witcher::readMesh(Model_Witcher::ParserContext &ctx) {
 
 	ctx.offTextureInfo = ctx.mdb->readUint32LE();
 
-	uint32 endPos = ctx.mdb->seekTo(ctx.offRawData + offMeshArrays);
+	uint32 endPos = ctx.mdb->seek(ctx.offRawData + offMeshArrays);
 
 	ctx.mdb->skip(4);
 
@@ -448,7 +450,7 @@ void ModelNode_Witcher::readMesh(Model_Witcher::ParserContext &ctx) {
 
 
 	if ((vertexCount == 0) || (facesCount == 0)) {
-		ctx.mdb->seekTo(endPos);
+		ctx.mdb->seek(endPos);
 		return;
 	}
 
@@ -459,50 +461,22 @@ void ModelNode_Witcher::readMesh(Model_Witcher::ParserContext &ctx) {
 
 	loadTextures(textures);
 
-	uint texCount = textures.size();
+	size_t texCount = textures.size();
 
 	// Read vertices
 
-	GLsizei vpsize = 3;
-	GLsizei vnsize = 3;
-	GLsizei vtsize = 2;
-	uint32 vertexSize = (vpsize + vnsize + vtsize * texCount) * sizeof(float);
-	_vertexBuffer.setSize(vertexCount, vertexSize);
-
-	float *vertexData = (float *) _vertexBuffer.getData();
 	VertexDecl vertexDecl;
 
-	VertexAttrib vp;
-	vp.index = VPOSITION;
-	vp.size = vpsize;
-	vp.type = GL_FLOAT;
-	vp.stride = 0;
-	vp.pointer = vertexData;
-	vertexDecl.push_back(vp);
+	vertexDecl.push_back(VertexAttrib(VPOSITION, 3, GL_FLOAT));
+	vertexDecl.push_back(VertexAttrib(VNORMAL  , 3, GL_FLOAT));
+	for (uint t = 0; t < texCount; t++)
+		vertexDecl.push_back(VertexAttrib(VTCOORD + t, 2, GL_FLOAT));
 
-	VertexAttrib vn;
-	vn.index = VNORMAL;
-	vn.size = vnsize;
-	vn.type = GL_FLOAT;
-	vn.stride = 0;
-	vn.pointer = vertexData + vpsize * vertexCount;
-	vertexDecl.push_back(vn);
-
-	VertexAttrib vt[4];
-	for (uint t = 0; t < texCount; t++) {
-		vt[t].index = VTCOORD + t;
-		vt[t].size = vtsize;
-		vt[t].type = GL_FLOAT;
-		vt[t].stride = 0;
-		vt[t].pointer = vertexData + (vpsize + vnsize + t * vtsize) * vertexCount;
-		vertexDecl.push_back(vt[t]);
-	}
-
-	_vertexBuffer.setVertexDecl(vertexDecl);
+	_vertexBuffer.setVertexDeclLinear(vertexCount, vertexDecl);
 
 	// Read vertex position
-	ctx.mdb->seekTo(ctx.offRawData + vertexOffset);
-	float *v = (float *) vp.pointer;
+	ctx.mdb->seek(ctx.offRawData + vertexOffset);
+	float *v = (float *) vertexDecl[0].pointer;
 	for (uint32 i = 0; i < vertexCount; i++) {
 		*v++ = ctx.mdb->readIEEEFloatLE();
 		*v++ = ctx.mdb->readIEEEFloatLE();
@@ -511,8 +485,8 @@ void ModelNode_Witcher::readMesh(Model_Witcher::ParserContext &ctx) {
 
 	// Read vertex normals
 	assert(normalsCount == vertexCount);
-	ctx.mdb->seekTo(ctx.offRawData + normalsOffset);
-	v = (float *) vn.pointer;
+	ctx.mdb->seek(ctx.offRawData + normalsOffset);
+	v = (float *) vertexDecl[1].pointer;
 	for (uint32 i = 0; i < normalsCount; i++) {
 		*v++ = ctx.mdb->readIEEEFloatLE();
 		*v++ = ctx.mdb->readIEEEFloatLE();
@@ -522,15 +496,15 @@ void ModelNode_Witcher::readMesh(Model_Witcher::ParserContext &ctx) {
 	// Read texture coordinates
 	for (uint t = 0; t < texCount; t++) {
 
-		ctx.mdb->seekTo(ctx.offRawData + tVertsOffset[t]);
-		v = (float *) vt[t].pointer;
+		ctx.mdb->seek(ctx.offRawData + tVertsOffset[t]);
+		v = (float *) vertexDecl[2 + t].pointer;
 		for (uint32 i = 0; i < tVertsCount[t]; i++) {
 			if (i < tVertsCount[t]) {
 				*v++ = ctx.mdb->readIEEEFloatLE();
 				*v++ = ctx.mdb->readIEEEFloatLE();
 			} else {
-				*v++ = 0.0;
-				*v++ = 0.0;
+				*v++ = 0.0f;
+				*v++ = 0.0f;
 			}
 		}
 	}
@@ -540,7 +514,7 @@ void ModelNode_Witcher::readMesh(Model_Witcher::ParserContext &ctx) {
 
 	_indexBuffer.setSize(facesCount * 3, sizeof(uint32), GL_UNSIGNED_INT);
 
-	ctx.mdb->seekTo(ctx.offRawData + facesOffset);
+	ctx.mdb->seek(ctx.offRawData + facesOffset);
 	uint32 *f = (uint32 *) _indexBuffer.getData();
 	for (uint32 i = 0; i < facesCount; i++) {
 		ctx.mdb->skip(4 * 4 + 4);
@@ -559,7 +533,7 @@ void ModelNode_Witcher::readMesh(Model_Witcher::ParserContext &ctx) {
 
 	createBound();
 
-	ctx.mdb->seekTo(endPos);
+	ctx.mdb->seek(endPos);
 }
 
 void ModelNode_Witcher::readTexturePaint(Model_Witcher::ParserContext &ctx) {
@@ -649,7 +623,7 @@ void ModelNode_Witcher::readTexturePaint(Model_Witcher::ParserContext &ctx) {
 	bool enableSpecular      = ctx.mdb->readByte() == 1;
 
 
-	uint32 endPos = ctx.mdb->seekTo(ctx.offRawData + offMeshArrays);
+	uint32 endPos = ctx.mdb->seek(ctx.offRawData + offMeshArrays);
 
 	ctx.mdb->skip(4);
 
@@ -676,7 +650,7 @@ void ModelNode_Witcher::readTexturePaint(Model_Witcher::ParserContext &ctx) {
 	Model::readArrayDef(*ctx.mdb, facesOffset, facesCount);
 
 	if ((vertexCount == 0) || (facesCount == 0)) {
-		ctx.mdb->seekTo(endPos);
+		ctx.mdb->seek(endPos);
 		return;
 	}
 
@@ -684,7 +658,7 @@ void ModelNode_Witcher::readTexturePaint(Model_Witcher::ParserContext &ctx) {
 	layers.resize(layersCount);
 
 	for (uint32 l = 0; l < layersCount; l++) {
-		ctx.mdb->seekTo(ctx.offRawData + layersOffset + l * 52);
+		ctx.mdb->seek(ctx.offRawData + layersOffset + l * 52);
 
 		layers[l].hasTexture = ctx.mdb->readByte() == 1;
 		if (!layers[l].hasTexture)
@@ -698,7 +672,7 @@ void ModelNode_Witcher::readTexturePaint(Model_Witcher::ParserContext &ctx) {
 		uint32 weightsOffset, weightsCount;
 		Model::readArrayDef(*ctx.mdb, weightsOffset, weightsCount);
 
-		ctx.mdb->seekTo(ctx.offRawData + weightsOffset);
+		ctx.mdb->seek(ctx.offRawData + weightsOffset);
 		layers[l].weights.resize(weightsCount);
 
 		for (std::vector<float>::iterator w = layers[l].weights.begin(); w != layers[l].weights.end(); ++w)
@@ -712,50 +686,22 @@ void ModelNode_Witcher::readTexturePaint(Model_Witcher::ParserContext &ctx) {
 
 	loadTextures(textures);
 
-	uint texCount = textures.size();
+	size_t texCount = textures.size();
 
 	// Read vertices
 
-	GLsizei vpsize = 3;
-	GLsizei vnsize = 3;
-	GLsizei vtsize = 2;
-	uint32 vertexSize = (vpsize + vnsize + vtsize * texCount) * sizeof(float);
-	_vertexBuffer.setSize(vertexCount, vertexSize);
-
-	float *vertexData = (float *) _vertexBuffer.getData();
 	VertexDecl vertexDecl;
 
-	VertexAttrib vp;
-	vp.index = VPOSITION;
-	vp.size = vpsize;
-	vp.type = GL_FLOAT;
-	vp.stride = 0;
-	vp.pointer = vertexData;
-	vertexDecl.push_back(vp);
+	vertexDecl.push_back(VertexAttrib(VPOSITION, 3, GL_FLOAT));
+	vertexDecl.push_back(VertexAttrib(VNORMAL  , 3, GL_FLOAT));
+	for (uint t = 0; t < texCount; t++)
+		vertexDecl.push_back(VertexAttrib(VTCOORD + t, 2, GL_FLOAT));
 
-	VertexAttrib vn;
-	vn.index = VNORMAL;
-	vn.size = vnsize;
-	vn.type = GL_FLOAT;
-	vn.stride = 0;
-	vn.pointer = vertexData + vpsize * vertexCount;
-	vertexDecl.push_back(vn);
-
-	VertexAttrib vt[4];
-	for (uint t = 0; t < texCount; t++) {
-		vt[t].index = VTCOORD + t;
-		vt[t].size = vtsize;
-		vt[t].type = GL_FLOAT;
-		vt[t].stride = 0;
-		vt[t].pointer = vertexData + (vpsize + vnsize + t * vtsize) * vertexCount;
-		vertexDecl.push_back(vt[t]);
-	}
-
-	_vertexBuffer.setVertexDecl(vertexDecl);
+	_vertexBuffer.setVertexDeclLinear(vertexCount, vertexDecl);
 
 	// Read vertex position
-	ctx.mdb->seekTo(ctx.offRawData + vertexOffset);
-	float *v = (float *) vp.pointer;
+	ctx.mdb->seek(ctx.offRawData + vertexOffset);
+	float *v = (float *) vertexDecl[0].pointer;
 	for (uint32 i = 0; i < vertexCount; i++) {
 		*v++ = ctx.mdb->readIEEEFloatLE();
 		*v++ = ctx.mdb->readIEEEFloatLE();
@@ -764,8 +710,8 @@ void ModelNode_Witcher::readTexturePaint(Model_Witcher::ParserContext &ctx) {
 
 	// Read vertex normals
 	assert(normalsCount == vertexCount);
-	ctx.mdb->seekTo(ctx.offRawData + normalsOffset);
-	v = (float *) vn.pointer;
+	ctx.mdb->seek(ctx.offRawData + normalsOffset);
+	v = (float *) vertexDecl[1].pointer;
 	for (uint32 i = 0; i < normalsCount; i++) {
 		*v++ = ctx.mdb->readIEEEFloatLE();
 		*v++ = ctx.mdb->readIEEEFloatLE();
@@ -775,15 +721,15 @@ void ModelNode_Witcher::readTexturePaint(Model_Witcher::ParserContext &ctx) {
 	// Read texture coordinates
 	for (uint t = 0; t < texCount; t++) {
 
-		ctx.mdb->seekTo(ctx.offRawData + tVertsOffset[t]);
-		v = (float *) vt[t].pointer;
+		ctx.mdb->seek(ctx.offRawData + tVertsOffset[t]);
+		v = (float *) vertexDecl[2 + t].pointer;
 		for (uint32 i = 0; i < tVertsCount[t]; i++) {
 			if (i < tVertsCount[t]) {
 				*v++ = ctx.mdb->readIEEEFloatLE();
 				*v++ = ctx.mdb->readIEEEFloatLE();
 			} else {
-				*v++ = 0.0;
-				*v++ = 0.0;
+				*v++ = 0.0f;
+				*v++ = 0.0f;
 			}
 		}
 	}
@@ -793,7 +739,7 @@ void ModelNode_Witcher::readTexturePaint(Model_Witcher::ParserContext &ctx) {
 
 	_indexBuffer.setSize(facesCount * 3, sizeof(uint32), GL_UNSIGNED_INT);
 
-	ctx.mdb->seekTo(ctx.offRawData + facesOffset);
+	ctx.mdb->seek(ctx.offRawData + facesOffset);
 	uint32 *f = (uint32 *) _indexBuffer.getData();
 	for (uint32 i = 0; i < facesCount; i++) {
 		// Vertex indices
@@ -806,7 +752,7 @@ void ModelNode_Witcher::readTexturePaint(Model_Witcher::ParserContext &ctx) {
 
 	createBound();
 
-	ctx.mdb->seekTo(endPos);
+	ctx.mdb->seek(endPos);
 }
 
 void ModelNode_Witcher::readTextures(Model_Witcher::ParserContext &ctx,
@@ -918,7 +864,7 @@ void ModelNode_Witcher::evaluateTextures(int n, std::vector<Common::UString> &te
 void ModelNode_Witcher::readNodeControllers(Model_Witcher::ParserContext &ctx,
 		uint32 offset, uint32 count, std::vector<float> &data) {
 
-	uint32 pos = ctx.mdb->seekTo(offset);
+	uint32 pos = ctx.mdb->seek(offset);
 
 	// TODO: readNodeControllers: Implement this properly :P
 
@@ -954,7 +900,7 @@ void ModelNode_Witcher::readNodeControllers(Model_Witcher::ParserContext &ctx,
 
 	}
 
-	ctx.mdb->seekTo(pos);
+	ctx.mdb->seek(pos);
 }
 
 } // End of namespace Aurora

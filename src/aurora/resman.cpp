@@ -22,11 +22,14 @@
  *  The global resource manager for Aurora resources.
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/filepath.h"
-#include "src/common/file.h"
+#include "src/common/readfile.h"
+#include "src/common/writefile.h"
 
 #include "src/aurora/resman.h"
 #include "src/aurora/util.h"
@@ -181,7 +184,7 @@ void ResourceManager::clearResources() {
 	_baseDir.clear();
 	_baseArchive.clear();
 
-	for (int i = 0; i < kArchiveMAX; i++)
+	for (size_t i = 0; i < kArchiveMAX; i++)
 		_knownArchives[i].clear();
 
 	for (OpenedArchives::iterator a = _openedArchives.begin(); a != _openedArchives.end(); ++a)
@@ -257,7 +260,7 @@ const Common::UString &ResourceManager::getDataBase() const {
 
 ResourceManager::KnownArchive *ResourceManager::findArchive(const Common::UString &file) {
 	ArchiveType archiveType = getArchiveType(file);
-	if (((uint) archiveType) >= kArchiveMAX)
+	if (((size_t) archiveType) >= kArchiveMAX)
 		return 0;
 
 	return findArchive(file, _knownArchives[archiveType]);
@@ -401,7 +404,13 @@ void ResourceManager::indexArchive(KnownArchive &knownArchive, Archive *archive,
 		                        "algorithm than we do (%d vs. %d)", (int) hashAlgo, (int) _hashAlgo);
 
 	_openedArchives.push_back(OpenedArchive());
-	_openedArchives.back().set(knownArchive, *archive);
+
+	try {
+		_openedArchives.back().set(knownArchive, *archive);
+	} catch (...) {
+		_openedArchives.pop_back();
+		throw;
+	}
 
 	// Add the information of the new archive to the change set
 	if (change)
@@ -635,10 +644,11 @@ bool ResourceManager::hasResource(const Common::UString &name) const {
 }
 
 bool ResourceManager::hasResource(const Common::UString &name, const std::vector<FileType> &types) const {
-	if (getRes(name, types))
-		return true;
+	return getRes(name, types) != 0;
+}
 
-	return false;
+bool ResourceManager::hasResource(uint64 hash) const {
+	return getRes(hash) != 0;
 }
 
 uint32 ResourceManager::getResourceSize(const Resource &res) const {
@@ -688,12 +698,24 @@ Common::SeekableReadStream *ResourceManager::getResource(const Common::UString &
 	return getResource(*res);
 }
 
+Common::SeekableReadStream *ResourceManager::getResource(uint64 hash, FileType *type) const {
+	const Resource *res = getRes(hash);
+	if (!res)
+		return 0;
+
+	// Return the actually found type
+	if (type)
+		*type = res->type;
+
+	return getResource(*res);
+}
+
 Common::SeekableReadStream *ResourceManager::getResource(const Resource &res, bool tryNoCopy) const {
 	Common::SeekableReadStream *stream = 0;
 
 	switch (res.source) {
 		case kSourceFile:
-			stream = new Common::File(res.path);
+			stream = new Common::ReadFile(res.path);
 			break;
 
 		case kSourceArchive:
@@ -741,6 +763,7 @@ void ResourceManager::getAvailableResources(FileType type,
 
 			list.back().name = r->second.front().name;
 			list.back().type = r->second.front().type;
+			list.back().hash = r->first;
 		}
 	}
 }
@@ -755,6 +778,7 @@ void ResourceManager::getAvailableResources(const std::vector<FileType> &types,
 
 				list.back().name = r->second.front().name;
 				list.back().type = r->second.front().type;
+				list.back().hash = r->first;
 			}
 		}
 
@@ -768,7 +792,7 @@ void ResourceManager::getAvailableResources(ResourceType type,
 }
 
 ArchiveType ResourceManager::getArchiveType(FileType type) const {
-	for (int i = 0; i < kArchiveMAX; i++)
+	for (size_t i = 0; i < kArchiveMAX; i++)
 		if (_archiveTypeTypes[i].find(type) != _archiveTypeTypes[i].end())
 			return (ArchiveType) i;
 
@@ -899,11 +923,9 @@ void ResourceManager::addResource(Resource &resource, uint64 hash, Change *chang
 	checkHashCollision(resource, resList);
 #endif
 
-	// Add the resource to the list and sort by priority
+	// Add the resource to the list
 	resList->second.push_back(resource);
 	Resource *res = &resList->second.back();
-
-	resList->second.sort();
 
 	checkResourceIsArchive(*res, change);
 
@@ -913,6 +935,9 @@ void ResourceManager::addResource(Resource &resource, uint64 hash, Change *chang
 		change->_change->resources.back().hashIt = resList;
 		change->_change->resources.back().resIt  = --resList->second.end();
 	}
+
+	// Resort the list by priority
+	resList->second.sort();
 }
 
 void ResourceManager::addResource(const Common::UString &path, Change *change, uint32 priority) {
@@ -980,7 +1005,7 @@ const ResourceManager::Resource *ResourceManager::getRes(const Common::UString &
 }
 
 void ResourceManager::dumpResourcesList(const Common::UString &fileName) const {
-	Common::DumpFile file;
+	Common::WriteFile file;
 
 	if (!file.open(fileName))
 		throw Common::Exception(Common::kOpenError);
@@ -1000,17 +1025,13 @@ void ResourceManager::dumpResourcesList(const Common::UString &fileName) const {
 		const uint32           size = getResourceSize(res);
 
 		const Common::UString line =
-			Common::UString::sprintf("%32s%4s | %s | %12d\n", name.c_str(), ext.c_str(),
+			Common::UString::format("%32s%4s | %s | %12d\n", name.c_str(), ext.c_str(),
                                Common::formatHash(hash).c_str(), size);
 
 		file.writeString(line);
 	}
 
 	file.flush();
-
-	if (file.err())
-		throw Common::Exception("Write error");
-
 	file.close();
 }
 

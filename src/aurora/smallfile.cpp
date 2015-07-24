@@ -22,8 +22,9 @@
  *  Decompressing "small" files, Nintendo DS LZSS (types 0x00 and 0x10), found in Sonic.
  */
 
-#include "src/common/stream.h"
 #include "src/common/error.h"
+#include "src/common/memreadstream.h"
+#include "src/common/memwritestream.h"
 
 #include "src/aurora/smallfile.h"
 
@@ -74,7 +75,7 @@ static void decompress10(Common::SeekableReadStream &small, Common::WriteStream 
 
 			// Copy length bytes (and store each back into the buffer)
 			for (uint8 i = 0; i < length; i++, copyOffset++) {
-				if ((copyOffset % sizeof(buffer)) > outSize)
+				if ((copyOffset % sizeof(buffer)) >= outSize)
 					throw Common::Exception("Tried to copy past the buffer");
 
 				const byte data = buffer[copyOffset % sizeof(buffer)];
@@ -149,6 +150,24 @@ Common::SeekableReadStream *Small::decompress(Common::SeekableReadStream *small)
 	}
 
 	delete small;
+	return new Common::MemoryReadStream(out.getData(), out.size(), true);
+}
+
+Common::SeekableReadStream *Small::decompress(Common::SeekableReadStream &small) {
+	uint32 type, size;
+	readSmallHeader(small, type, size);
+
+	Common::MemoryWriteStreamDynamic out(false, size);
+
+	try {
+		::Aurora::decompress(small, out, type, size);
+	} catch (Common::Exception &e) {
+		out.dispose();
+
+		e.add("Failed to decompress \"small\" file");
+		throw e;
+	}
+
 	return new Common::MemoryReadStream(out.getData(), out.size(), true);
 }
 

@@ -25,13 +25,14 @@
  *  Essentially, they are BIF files with LZMA-compressed data.
  */
 
+#include <cassert>
+
 #include <lzma.h>
 
 #include "src/common/util.h"
 #include "src/common/strutil.h"
 #include "src/common/error.h"
-#include "src/common/stream.h"
-#include "src/common/file.h"
+#include "src/common/memreadstream.h"
 
 #include "src/aurora/bzffile.h"
 #include "src/aurora/keyfile.h"
@@ -78,9 +79,6 @@ void BZFFile::load(Common::SeekableReadStream &bzf) {
 	try {
 
 		readVarResTable(bzf, offVarResTable);
-
-		if (bzf.err())
-			throw Common::Exception(Common::kReadError);
 
 	} catch (Common::Exception &e) {
 		e.add("Failed reading BZF file");
@@ -140,7 +138,7 @@ const Archive::ResourceList &BZFFile::getResources() const {
 
 const BZFFile::IResource &BZFFile::getIResource(uint32 index) const {
 	if (index >= _iResources.size())
-		throw Common::Exception("Resource index out of range (%d/%d)", index, _iResources.size());
+		throw Common::Exception("Resource index out of range (%u/%u)", index, (uint)_iResources.size());
 
 	return _iResources[index];
 }

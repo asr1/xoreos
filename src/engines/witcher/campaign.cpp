@@ -18,13 +18,13 @@
  * along with xoreos. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file engines/witcher/campaign.cpp
+/** @file
  *  The context holding a Witcher campaign.
  */
 
 #include "src/common/util.h"
 #include "src/common/error.h"
-#include "src/common/file.h"
+#include "src/common/readfile.h"
 #include "src/common/filepath.h"
 #include "src/common/filelist.h"
 #include "src/common/configman.h"
@@ -88,7 +88,7 @@ void Campaign::findCampaigns() {
 }
 
 bool Campaign::readCampaign(const Common::UString &mmdFile, CampaignDescription &desc) {
-	Common::File *file = new Common::File;
+	Common::ReadFile *file = new Common::ReadFile;
 	if (!file->open(mmdFile)) {
 		delete file;
 		return false;
@@ -136,7 +136,7 @@ void Campaign::load(const CampaignDescription &desc) {
 }
 
 void Campaign::loadCampaignFile(const CampaignDescription &desc) {
-	Common::File    *file = 0;
+	Common::ReadFile *file = 0;
 	Aurora::GFF3File *gff  = 0;
 	try {
 
@@ -144,7 +144,7 @@ void Campaign::loadCampaignFile(const CampaignDescription &desc) {
 			if (desc.file.empty())
 				throw Common::Exception("Campaign file is empty");
 
-			file = new Common::File(desc.file);
+			file = new Common::ReadFile(desc.file);
 			gff  = new Aurora::GFF3File(file, MKTAG('M', 'M', 'D', ' '));
 		} catch (Common::Exception &UNUSED(e)) {
 			delete file;
@@ -216,12 +216,12 @@ void Campaign::replaceCampaign() {
 	loadCampaign(*campaign);
 }
 
-const Common::UString &Campaign::getName() const {
-	return _currentCampaign.name.getString();
+const Aurora::LocString&Campaign::getName() const {
+	return _currentCampaign.name;
 }
 
-const Common::UString &Campaign::getDescription() const {
-	return _currentCampaign.description.getString();
+const Aurora::LocString &Campaign::getDescription() const {
+	return _currentCampaign.description;
 }
 
 void Campaign::refreshLocalized() {

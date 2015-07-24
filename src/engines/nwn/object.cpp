@@ -24,6 +24,7 @@
 
 #include "src/common/util.h"
 #include "src/common/error.h"
+#include "src/common/uuid.h"
 
 #include "src/aurora/ssffile.h"
 #include "src/aurora/2dafile.h"
@@ -51,12 +52,15 @@ Object::Object(ObjectType type) : _type(type),
 	_soundSet(Aurora::kFieldIDInvalid), _ssf(0), _static(false), _usable(true),
 	_pcSpeaker(0), _area(0) {
 
-	_position   [0] = 0.0;
-	_position   [1] = 0.0;
-	_position   [2] = 0.0;
-	_orientation[0] = 0.0;
-	_orientation[1] = 0.0;
-	_orientation[2] = 0.0;
+	_id = Common::generateIDNumber();
+
+	_position   [0] = 0.0f;
+	_position   [1] = 0.0f;
+	_position   [2] = 0.0f;
+	_orientation[0] = 0.0f;
+	_orientation[1] = 0.0f;
+	_orientation[2] = 0.0f;
+	_orientation[3] = 0.0f;
 }
 
 Object::~Object() {
@@ -151,10 +155,12 @@ void Object::getPosition(float &x, float &y, float &z) const {
 	z = _position[2];
 }
 
-void Object::getOrientation(float &x, float &y, float &z) const {
+void Object::getOrientation(float &x, float &y, float &z, float &angle) const {
 	x = _orientation[0];
 	y = _orientation[1];
 	z = _orientation[2];
+
+	angle = _orientation[3];
 }
 
 void Object::setPosition(float x, float y, float z) {
@@ -163,10 +169,11 @@ void Object::setPosition(float x, float y, float z) {
 	_position[2] = z;
 }
 
-void Object::setOrientation(float x, float y, float z) {
+void Object::setOrientation(float x, float y, float z, float angle) {
 	_orientation[0] = x;
 	_orientation[1] = y;
 	_orientation[2] = z;
+	_orientation[3] = angle;
 }
 
 void Object::enter() {
@@ -240,7 +247,7 @@ void Object::playSound(const Common::UString &sound, bool pitchVariance) {
 	if (sound.empty())
 		return;
 
-	_sound = ::Engines::playSound(sound, Sound::kSoundTypeVoice, false, 1.0, pitchVariance);
+	_sound = ::Engines::playSound(sound, Sound::kSoundTypeVoice, false, 1.0f, pitchVariance);
 }
 
 bool Object::click(Object *UNUSED(triggerer)) {

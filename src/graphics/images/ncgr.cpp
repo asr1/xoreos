@@ -20,7 +20,7 @@
 
 /** @file
  *  Nitro Character Graphic Resource, a Nintendo DS image format.
- *  Uses NCLR, Nitro CoLouR, palette files.
+ *  Uses NCLR, Nitro CoLoR, palette files.
  */
 
 /* Based heavily on the NCGR reader found in the NDS file viewer
@@ -33,7 +33,7 @@
 
 #include "src/common/util.h"
 #include "src/common/strutil.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/error.h"
 
 #include "src/graphics/images/ncgr.h"
@@ -88,7 +88,7 @@ void NCGR::load(const std::vector<Common::SeekableReadStream *> &ncgrs, uint32 w
                 Common::SeekableReadStream &nclr) {
 
 	if ((width * height) != ncgrs.size())
-		throw Common::Exception("%u NCGRs won't fill a grid of %ux%u", ncgrs.size(), width, height);
+		throw Common::Exception("%u NCGRs won't fill a grid of %ux%u", (uint)ncgrs.size(), width, height);
 
 	ReadContext ctx;
 
@@ -98,7 +98,7 @@ void NCGR::load(const std::vector<Common::SeekableReadStream *> &ncgrs, uint32 w
 
 	ctx.ncgrs.resize(ncgrs.size());
 
-	for (uint32 i = 0; i < ncgrs.size(); i++) {
+	for (size_t i = 0; i < ncgrs.size(); i++) {
 		if (!ncgrs[i])
 			continue;
 
@@ -133,8 +133,8 @@ void NCGR::readHeader(NCGRFile &ctx) {
 		throw Common::Exception("Unsupported version %u.%u", versionMajor, versionMinor);
 
 	const uint32 fileSize = ctx.ncgr->readUint32();
-	if (fileSize > (uint32)ctx.ncgr->size())
-		throw Common::Exception("Size too large (%u > %u)", fileSize, ctx.ncgr->size());
+	if (fileSize > ctx.ncgr->size())
+		throw Common::Exception("Size too large (%u > %u)", fileSize, (uint)ctx.ncgr->size());
 
 	const uint16 headerSize = ctx.ncgr->readUint16();
 	if (headerSize != 16)
@@ -214,31 +214,20 @@ void NCGR::calculateGrid(ReadContext &ctx, uint32 &imageWidth, uint32 &imageHeig
 	// Go through the whole image and get the max height of a row of NCGR
 	for (uint32 y = 0; y < ctx.height; y++) {
 		uint32 rowHeight = 0;
+		uint32 rowWidth  = 0;
 
 		for (uint32 x = 0; x < ctx.width; x++) {
 			NCGRFile &ncgr = ctx.ncgrs[y * ctx.width + x];
+			ncgr.offsetX = rowWidth;
 			ncgr.offsetY = imageHeight;
 
 			rowHeight = MAX(rowHeight, ncgr.height);
+			rowWidth += ncgr.width;
 		}
 
 		imageHeight += rowHeight;
+		imageWidth   = MAX(imageWidth, rowWidth);
 	}
-
-	// Go through the whole image and get the max width of a column of NCGR
-	for (uint32 x = 0; x < ctx.width; x++) {
-		uint32 colWidth = 0;
-
-		for (uint32 y = 0; y < ctx.height; y++) {
-			NCGRFile &ncgr = ctx.ncgrs[y * ctx.width + x];
-			ncgr.offsetX = imageWidth;
-
-			colWidth = MAX(colWidth, ncgr.width);
-		}
-
-		imageWidth += colWidth;
-	}
-
 }
 
 void NCGR::draw(ReadContext &ctx) {

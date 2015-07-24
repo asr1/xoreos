@@ -26,10 +26,12 @@
  * (<https://github.com/xoreos/xoreos-docs/tree/master/specs/bioware>)
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/strutil.h"
-#include "src/common/stream.h"
-#include "src/common/file.h"
+#include "src/common/memreadstream.h"
+#include "src/common/readfile.h"
 #include "src/common/error.h"
 
 #include "src/aurora/talktable_tlk.h"
@@ -84,9 +86,6 @@ void TalkTable_TLK::load() {
 		else
 			readEntryTableV4();
 
-		if (_tlk->err())
-			throw Common::Exception(Common::kReadError);
-
 	} catch (Common::Exception &e) {
 		delete _tlk;
 
@@ -125,12 +124,12 @@ void TalkTable_TLK::readString(Entry &entry) const {
 
 	_tlk->seek(entry.offset);
 
-	uint32 length = MIN<uint32>(entry.length, _tlk->size() - _tlk->pos());
+	uint32 length = MIN<size_t>(entry.length, _tlk->size() - _tlk->pos());
 	if (length == 0)
 		return;
 
 	Common::MemoryReadStream *data   = _tlk->readStream(length);
-	Common::MemoryReadStream *parsed = preParseColorCodes(*data);
+	Common::MemoryReadStream *parsed = LangMan.preParseColorCodes(*data);
 
 	if (_encoding != Common::kEncodingInvalid)
 		entry.text = Common::readString(*parsed, _encoding);
@@ -179,7 +178,7 @@ uint32 TalkTable_TLK::getLanguageID(Common::SeekableReadStream &tlk) {
 }
 
 uint32 TalkTable_TLK::getLanguageID(const Common::UString &file) {
-	Common::File tlk;
+	Common::ReadFile tlk;
 	if (!tlk.open(file))
 		return kLanguageInvalid;
 

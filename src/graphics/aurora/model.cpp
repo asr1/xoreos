@@ -22,9 +22,11 @@
  *  A 3D model of an object.
  */
 
+#include <cassert>
+
 #include <SDL_timer.h>
 
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/debug.h"
 
 #include "src/graphics/camera.h"
@@ -46,16 +48,22 @@ namespace Aurora {
 
 Model::Model(ModelType type) : Renderable((RenderableType) type),
 	_type(type), _supermodel(0), _currentState(0),
-	_currentAnimation(0), _nextAnimation(0), _drawBound(false) {
+	_currentAnimation(0), _nextAnimation(0), _drawBound(false),
+	_drawSkeleton(false), _drawSkeletonInvisible(false) {
 
-	_position[0] = 0.0; _position[1] = 0.0; _position[2] = 0.0;
-	_rotation[0] = 0.0; _rotation[1] = 0.0; _rotation[2] = 0.0;
+	_scale   [0] = 1.0f; _scale   [1] = 1.0f; _scale   [2] = 1.0f;
+	_position[0] = 0.0f; _position[1] = 0.0f; _position[2] = 0.0f;
 
-	_modelScale[0] = 1.0; _modelScale[1] = 1.0; _modelScale[2] = 1.0;
+	_orientation[0] = 0.0f;
+	_orientation[1] = 0.0f;
+	_orientation[2] = 0.0f;
+	_orientation[3] = 0.0f;
+
+	_center[0] = 0.0f; _center[1] = 0.0f; _center[2] = 0.0f;
 
 	// TODO: Is this the same as modelScale for non-UI?
-	_animationScale = 1.0;
-	_elapsedTime = 0.0;
+	_animationScale = 1.0f;
+	_elapsedTime = 0.0f;
 
 	_loopAnimation = 0;
 
@@ -91,13 +99,10 @@ const Common::UString &Model::getName() const {
 
 bool Model::isIn(float x, float y) const {
 	if (_type == kModelTypeGUIFront) {
-		x /= _modelScale[0];
-		y /= _modelScale[1];
-
 		const float minX = _position[0];
 		const float minY = _position[1];
-		const float maxX = minX + _boundBox.getWidth();
-		const float maxY = minY + _boundBox.getHeight();
+		const float maxX = minX + (_boundBox.getWidth()  * _scale[0]);
+		const float maxY = minY + (_boundBox.getHeight() * _scale[1]);
 
 		if ((x < minX) || (x > maxX))
 			return false;
@@ -126,19 +131,24 @@ bool Model::isIn(float x1, float y1, float z1, float x2, float y2, float z2) con
 }
 
 float Model::getWidth() const {
-	return _boundBox.getWidth() * _modelScale[0];
+	return _boundBox.getWidth() * _scale[0];
 }
 
 float Model::getHeight() const {
-	return _boundBox.getHeight() * _modelScale[1];
+	return _boundBox.getHeight() * _scale[1];
 }
 
 float Model::getDepth() const {
-	return _boundBox.getDepth() * _modelScale[2];
+	return _boundBox.getDepth() * _scale[2];
 }
 
 void Model::drawBound(bool enabled) {
 	_drawBound = enabled;
+}
+
+void Model::drawSkeleton(bool enabled, bool showInvisible) {
+	_drawSkeleton = enabled;
+	_drawSkeletonInvisible = showInvisible;
 }
 
 void Model::playAnimation(const Common::UString &anim, bool restart, int32 loopCount) {
@@ -169,16 +179,24 @@ Animation *Model::selectDefaultAnimation() const {
 	return 0;
 }
 
-void Model::getPosition(float &x, float &y, float &z) const {
-	x = _position[0] * _modelScale[0];
-	y = _position[1] * _modelScale[1];
-	z = _position[2] * _modelScale[2];
+void Model::getScale(float &x, float &y, float &z) const {
+	x = _scale[0];
+	y = _scale[1];
+	z = _scale[2];
 }
 
-void Model::getRotation(float &x, float &y, float &z) const {
-	x = _rotation[0];
-	y = _rotation[1];
-	z = _rotation[2];
+void Model::getOrientation(float &x, float &y, float &z, float &angle) const {
+	x = _orientation[0];
+	y = _orientation[1];
+	z = _orientation[2];
+
+	angle = _orientation[3];
+}
+
+void Model::getPosition(float &x, float &y, float &z) const {
+	x = _position[0];
+	y = _position[1];
+	z = _position[2];
 }
 
 void Model::getAbsolutePosition(float &x, float &y, float &z) const {
@@ -187,12 +205,43 @@ void Model::getAbsolutePosition(float &x, float &y, float &z) const {
 	z = _absolutePosition.getZ();
 }
 
+void Model::setScale(float x, float y, float z) {
+	lockFrameIfVisible();
+
+	_scale[0] = x;
+	_scale[1] = y;
+	_scale[2] = z;
+
+	createAbsolutePosition();
+	calculateDistance();
+
+	resort();
+
+	unlockFrameIfVisible();
+}
+
+void Model::setOrientation(float x, float y, float z, float angle) {
+	lockFrameIfVisible();
+
+	_orientation[0] = x;
+	_orientation[1] = y;
+	_orientation[2] = z;
+	_orientation[3] = angle;
+
+	createAbsolutePosition();
+	calculateDistance();
+
+	resort();
+
+	unlockFrameIfVisible();
+}
+
 void Model::setPosition(float x, float y, float z) {
 	lockFrameIfVisible();
 
-	_position[0] = x / _modelScale[0];
-	_position[1] = y / _modelScale[1];
-	_position[2] = z / _modelScale[2];
+	_position[0] = x;
+	_position[1] = y;
+	_position[2] = z;
 
 	createAbsolutePosition();
 	calculateDistance();
@@ -202,37 +251,29 @@ void Model::setPosition(float x, float y, float z) {
 	unlockFrameIfVisible();
 }
 
-void Model::setRotation(float x, float y, float z) {
-	lockFrameIfVisible();
+void Model::scale(float x, float y, float z) {
+	setScale(_scale[0] * x, _scale[1] * y, _scale[2] * z);
+}
 
-	_rotation[0] = x;
-	_rotation[1] = y;
-	_rotation[2] = z;
+void Model::rotate(float x, float y, float z, float angle) {
+	Common::TransformationMatrix orientation;
 
-	createAbsolutePosition();
-	calculateDistance();
+	orientation.rotate(_orientation[3], _orientation[0], _orientation[1], _orientation[2]);
+	orientation.rotate(angle, x, y, z);
 
-	resort();
+	orientation.getAxisAngle(angle, x, y, z);
 
-	unlockFrameIfVisible();
+	setOrientation(x, y, z, angle);
 }
 
 void Model::move(float x, float y, float z) {
-	x /= _modelScale[0];
-	y /= _modelScale[1];
-	z /= _modelScale[2];
-
 	setPosition(_position[0] + x, _position[1] + y, _position[2] + z);
-}
-
-void Model::rotate(float x, float y, float z) {
-	setRotation(_rotation[0] + x, _rotation[1] + y, _rotation[2] + z);
 }
 
 void Model::getTooltipAnchor(float &x, float &y, float &z) const {
 	Common::TransformationMatrix pos = _absolutePosition;
 
-	pos.translate(0.0, 0.0, _absoluteBoundBox.getHeight() + 0.5);
+	pos.translate(0.0f, 0.0f, _absoluteBoundBox.getHeight() + 0.5f);
 
 	pos.getPosition(x, y, z);
 }
@@ -240,16 +281,9 @@ void Model::getTooltipAnchor(float &x, float &y, float &z) const {
 void Model::createAbsolutePosition() {
 	_absolutePosition.loadIdentity();
 
-	_absolutePosition.scale(_modelScale[0], _modelScale[1], _modelScale[2]);
-
-	if (_type == kModelTypeObject)
-		_absolutePosition.rotate(90.0, -1.0, 0.0, 0.0);
-
 	_absolutePosition.translate(_position[0], _position[1], _position[2]);
-
-	_absolutePosition.rotate( _rotation[0], 1.0, 0.0, 0.0);
-	_absolutePosition.rotate( _rotation[1], 0.0, 1.0, 0.0);
-	_absolutePosition.rotate(-_rotation[2], 0.0, 0.0, 1.0);
+	_absolutePosition.rotate(_orientation[3], _orientation[0], _orientation[1], _orientation[2]);
+	_absolutePosition.scale(_scale[0], _scale[1], _scale[2]);
 
 	_absoluteBoundBox = _boundBox;
 	_absoluteBoundBox.transform(_absolutePosition);
@@ -394,8 +428,8 @@ void Model::calculateDistance() {
 	center.translate(_center[0], _center[1], _center[2]);
 
 
-	const float cameraX =  CameraMan.getPosition()[0];
-	const float cameraY =  CameraMan.getPosition()[1];
+	const float cameraX = -CameraMan.getPosition()[0];
+	const float cameraY = -CameraMan.getPosition()[1];
 	const float cameraZ = -CameraMan.getPosition()[2];
 
 	const float x = ABS(center.getX() - cameraX);
@@ -465,18 +499,9 @@ void Model::render(RenderPass pass) {
 	}
 
 	// Apply our global model transformation
-	glScalef(_modelScale[0], _modelScale[1], _modelScale[2]);
-
-	if (_type == kModelTypeObject)
-		// Aurora world objects have a rotated axis
-		glRotatef(90.0, -1.0, 0.0, 0.0);
-
 	glTranslatef(_position[0], _position[1], _position[2]);
-
-	glRotatef( _rotation[0], 1.0, 0.0, 0.0);
-	glRotatef( _rotation[1], 0.0, 1.0, 0.0);
-	glRotatef(-_rotation[2], 0.0, 0.0, 1.0);
-
+	glRotatef(_orientation[3], _orientation[0], _orientation[1], _orientation[2]);
+	glScalef(_scale[0], _scale[1], _scale[2]);
 
 	// Draw the bounding box, if requested
 	doDrawBound();
@@ -492,14 +517,17 @@ void Model::render(RenderPass pass) {
 
 	// Reset the first texture units
 	TextureMan.reset();
+
+	// Draw the skeleton, if requested
+	doDrawSkeleton();
 }
 
 void Model::doDrawBound() {
 	if (!_drawBound)
 		return;
 
-	glColor4f(1.0, 1.0, 1.0, 1.0);
-	glLineWidth(1.0);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glLineWidth(1.0f);
 
 	Common::BoundingBox object = _boundBox;
 
@@ -557,6 +585,26 @@ void Model::doDrawBound() {
 	_boundRenderable->renderImmediate(tform);
 }
 
+void Model::doDrawSkeleton() {
+	if (!_drawSkeleton)
+		return;
+
+	Common::TransformationMatrix tform;
+
+	if (_type == kModelTypeObject)
+		glDisable(GL_DEPTH_TEST);
+
+	for (NodeList::iterator n = _currentState->rootNodes.begin(); n != _currentState->rootNodes.end(); ++n)
+		(*n)->drawSkeleton(tform, _drawSkeletonInvisible);
+
+	if (_type == kModelTypeObject)
+		glEnable(GL_DEPTH_TEST);
+
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glLineWidth(1.0f);
+	glPointSize(1.0f);
+}
+
 void Model::doRebuild() {
 	// TODO: remove this and all references to it.
 }
@@ -608,9 +656,9 @@ void Model::createBound() {
 	_boundBox.getMin(minX, minY, minZ);
 	_boundBox.getMax(maxX, maxY, maxZ);
 
-	_center[0] = minX + ((maxX - minX) / 2.0);
-	_center[1] = minY + ((maxY - minY) / 2.0);
-	_center[2] = minZ + ((maxZ - minZ) / 2.0);
+	_center[0] = minX + ((maxX - minX) / 2.0f);
+	_center[1] = minY + ((maxY - minY) / 2.0f);
+	_center[2] = minZ + ((maxZ - minZ) / 2.0f);
 
 
 	_absoluteBoundBox = _boundBox;
@@ -645,13 +693,13 @@ template<typename T>
 void Model::readArray(Common::SeekableReadStream &stream,
                       uint32 offset, uint32 count, std::vector<T> &values) {
 
-	uint32 pos = stream.seekTo(offset);
+	uint32 pos = stream.seek(offset);
 
 	values.resize(count);
 	for (uint32 i = 0; i < count; i++)
 		readValue(stream, values[i]);
 
-	stream.seekTo(pos);
+	stream.seek(pos);
 }
 
 template

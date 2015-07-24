@@ -33,13 +33,13 @@
 #include "src/common/util.h"
 #include "src/common/error.h"
 #include "src/common/ustring.h"
-#include "src/common/stream.h"
+#include "src/common/memreadstream.h"
 
 namespace Common {
 
 void printDataHex(SeekableReadStream &stream) {
-	uint32 pos  = stream.pos();
-	uint32 size = stream.size() - pos;
+	size_t pos  = stream.pos();
+	size_t size = stream.size() - pos;
 
 	if (size == 0)
 		return;
@@ -49,7 +49,7 @@ void printDataHex(SeekableReadStream &stream) {
 
 	while (size > 0) {
 		// At max 16 bytes printed per row
-		uint32 n = MIN<uint32>(size, 16);
+		uint32 n = MIN<size_t>(size, 16);
 		if (stream.read(rowData, n) != n)
 			throw Exception(kReadError);
 
@@ -89,7 +89,7 @@ void printDataHex(SeekableReadStream &stream) {
 	stream.seek(pos);
 }
 
-void printDataHex(const byte *data, uint32 size) {
+void printDataHex(const byte *data, size_t size) {
 	if (!data || (size == 0))
 		return;
 
@@ -97,14 +97,14 @@ void printDataHex(const byte *data, uint32 size) {
 	printDataHex(stream);
 }
 
-static bool tagToString(uint32 tag, bool trim, Common::UString &str) {
+static bool tagToString(uint32 tag, bool trim, UString &str) {
 	tag = TO_BE_32(tag);
 
 	const char *tS = (const char *) &tag;
 	if (!std::isprint(tS[0]) || !std::isprint(tS[1]) || !std::isprint(tS[2]) || !std::isprint(tS[3]))
 		return false;
 
-	str = UString::sprintf("%c%c%c%c", tS[0], tS[1], tS[2], tS[3]);
+	str = UString::format("%c%c%c%c", tS[0], tS[1], tS[2], tS[3]);
 	if (trim)
 		str.trim();
 
@@ -112,11 +112,11 @@ static bool tagToString(uint32 tag, bool trim, Common::UString &str) {
 }
 
 UString debugTag(uint32 tag, bool trim) {
-	Common::UString str;
+	UString str;
 	if (tagToString(tag, trim, str))
-		return UString::sprintf("0x%08X ('%s')", FROM_BE_32(tag), str.c_str());
+		return UString::format("0x%08X ('%s')", FROM_BE_32(tag), str.c_str());
 
-	return UString::sprintf("0x%08X", FROM_BE_32(tag));
+	return UString::format("0x%08X", FROM_BE_32(tag));
 }
 
 // Helper functions for parseString()
@@ -208,9 +208,9 @@ template<typename T> void parseString(const UString &str, T &value) {
 
 	try {
 		if (endptr && (*endptr != '\0'))
-			throw Exception("Can't convert \"%s\" to type of size %d", str.c_str(), sizeof(T));
+			throw Exception("Can't convert \"%s\" to type of size %u", str.c_str(), (uint)sizeof(T));
 		if (errno == ERANGE)
-			throw Exception("\"%s\" out of range for type of size %d", str.c_str(), sizeof(T));
+			throw Exception("\"%s\" out of range for type of size %u", str.c_str(), (uint)sizeof(T));
 	} catch (...) {
 		value = oldValue;
 		throw;
@@ -289,11 +289,11 @@ template<> UString composeString(bool value) {
 }
 
 template<> UString composeString(float value) {
-	return UString::sprintf("%f", value);
+	return UString::format("%f", value);
 }
 
 template<> UString composeString(double value) {
-	return UString::sprintf("%lf", value);
+	return UString::format("%lf", value);
 }
 
 template UString composeString<bool              >(bool               value);

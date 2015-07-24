@@ -22,6 +22,8 @@
  *  A NWN slider widget.
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/ustring.h"
 
@@ -36,7 +38,7 @@ namespace NWN {
 
 WidgetSlider::WidgetSlider(::Engines::GUI &gui, const Common::UString &tag,
                            const Common::UString &model) :
-	ModelWidget(gui, tag, model), _position(0.0), _steps(0), _state(0) {
+	ModelWidget(gui, tag, model), _position(0.0f), _steps(0), _state(0) {
 
 	_model->setClickable(true);
 
@@ -46,7 +48,7 @@ WidgetSlider::WidgetSlider(::Engines::GUI &gui, const Common::UString &tag,
 
 	assert(_thumb);
 
-	changePosition(0.0);
+	changePosition(0.0f);
 }
 
 WidgetSlider::~WidgetSlider() {
@@ -105,7 +107,7 @@ void WidgetSlider::changedValue(float x, float UNUSED(y)) {
 	_state = state;
 
 	if (_steps == 0) {
-		changePosition(0.0);
+		changePosition(0.0f);
 		return;
 	}
 
@@ -115,9 +117,9 @@ void WidgetSlider::changedValue(float x, float UNUSED(y)) {
 }
 
 void WidgetSlider::changePosition(float value) {
-	value = (value * _width) - (_thumb->getWidth() / 2.0);
+	value = (value * _width) - (_thumb->getWidth() / 2.0f);
 
-	_thumb->move(-_position + value, 0.0, 0.0);
+	_thumb->move(-_position + value, 0.0f, 0.0f);
 
 	_position = value;
 }

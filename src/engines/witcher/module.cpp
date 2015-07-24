@@ -18,7 +18,7 @@
  * along with xoreos. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file engines/witcher/module.cpp
+/** @file
  *  The context needed to run a Witcher module.
  */
 
@@ -144,6 +144,8 @@ void Module::enter() {
 	_ifo.getEntryPosition(entryX, entryY, entryZ);
 	_ifo.getEntryDirection(entryDirX, entryDirY);
 
+	const float entryAngle = -Common::rad2deg(atan2(entryDirX, entryDirY));
+
 	Common::UString startMovie = _ifo.getStartMovie();
 	if (!startMovie.empty())
 		playVideo(startMovie);
@@ -154,8 +156,8 @@ void Module::enter() {
 	CameraMan.reset();
 
 	// Roughly head position
-	CameraMan.setPosition(entryX, entryZ + 2.0, entryY);
-	CameraMan.setOrientation(entryDirX, entryDirY);
+	CameraMan.setPosition(entryX, entryY, entryZ + 1.8f);
+	CameraMan.setOrientation(90.0f, 0.0f, entryAngle);
 	CameraMan.update();
 }
 
@@ -188,7 +190,7 @@ void Module::enterArea() {
 	EventMan.flushEvents();
 
 	_console->printf("Entering area \"%s\" (\"%s\")", _currentArea->getResRef().c_str(),
-			_currentArea->getName().c_str());
+			_currentArea->getName().getString().c_str());
 }
 
 void Module::run() {
@@ -280,8 +282,8 @@ void Module::loadAreas() {
 	status("Loading areas...");
 
 	const std::vector<Common::UString> &areas = _ifo.getAreas();
-	for (uint32 i = 0; i < areas.size(); i++) {
-		status("Loading area \"%s\" (%d / %d)", areas[i].c_str(), i, (int) areas.size() - 1);
+	for (size_t i = 0; i < areas.size(); i++) {
+		status("Loading area \"%s\" (%d / %d)", areas[i].c_str(), (int)i, (int)areas.size() - 1);
 
 		std::pair<AreaMap::iterator, bool> result;
 
@@ -314,7 +316,7 @@ void Module::movePC(const Common::UString &area) {
 
 void Module::movePC(float x, float y, float z) {
 	// Roughly head position
-	CameraMan.setPosition(x, y + 2.0, z);
+	CameraMan.setPosition(x, y, z + 1.8f);
 	CameraMan.update();
 }
 

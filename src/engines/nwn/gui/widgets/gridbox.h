@@ -40,7 +40,7 @@ namespace NWN {
 class WidgetGridBox : public WidgetListBox {
 public:
 	WidgetGridBox(::Engines::GUI &gui, const Common::UString &tag, const Common::UString &model,
-	              float innerHSpace = 0.0, float InnerVSpace = 0.0);
+	              float innerHSpace = 0.0f, float InnerVSpace = 0.0f);
 	~WidgetGridBox();
 
 	void mouseDown(uint8 state, float x, float y);
@@ -51,10 +51,10 @@ protected:
 	void updateScrollbarLength();
 	void updateVisible();
 
-	void scrollUp(uint n);
-	void scrollDown(uint n);
+	void scrollUp(size_t n);
+	void scrollDown(size_t n);
 
-	uint _itemsByRow;
+	size_t _itemsByRow;
 
 	float _innerHSpace;
 	float _innerVSpace;

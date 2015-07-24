@@ -22,9 +22,12 @@
  *  Portable executable parsing.
  */
 
+#include <cassert>
+#include <cstdio>
+
 #include "src/common/pe_exe.h"
 #include "src/common/encoding.h"
-#include "src/common/stream.h"
+#include "src/common/memreadstream.h"
 
 namespace Common {
 
@@ -90,7 +93,7 @@ UString PEResourceID::toString() const {
 		return _name;
 	else if (_idType == kIDTypeNumerical) {
 		static char name[9];
-		sprintf(name, "%08x", _id);
+		std::sprintf(name, "%08x", _id);
 		name[8] = 0;
 		return name;
 	}
@@ -98,12 +101,12 @@ UString PEResourceID::toString() const {
 	return "";
 }
 
-PEResources::PEResources(Common::SeekableReadStream *exe) : _exe(exe) {
+PEResources::PEResources(SeekableReadStream *exe) : _exe(exe) {
 	assert(_exe);
 
 	try {
 		if (!loadFromEXE(*_exe))
-			throw Common::Exception("Failed to parse exe");
+			throw Exception("Failed to parse exe");
 
 	} catch (...) {
 		delete _exe;
@@ -116,7 +119,7 @@ PEResources::~PEResources() {
 }
 
 bool PEResources::loadFromEXE(SeekableReadStream &exe) {
-	if (exe.readUint16BE() != 'MZ')
+	if (exe.readUint16BE() != MKTAG_16('M', 'Z'))
 		return false;
 
 	exe.skip(58);
@@ -163,7 +166,7 @@ bool PEResources::loadFromEXE(SeekableReadStream &exe) {
 	return true;
 }
 
-void PEResources::parseResourceLevel(Common::SeekableReadStream &exe,
+void PEResources::parseResourceLevel(SeekableReadStream &exe,
                                      Section &section, uint32 offset, int level) {
 	exe.seek(offset + 12);
 

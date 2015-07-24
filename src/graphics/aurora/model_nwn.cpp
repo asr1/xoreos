@@ -28,13 +28,15 @@
  * a mirror (<https://github.com/xoreos/xoreos-docs>).
  */
 
+#include <cassert>
+
 #include <boost/unordered_set.hpp>
 
 #include "src/common/system.h"
 #include "src/common/error.h"
 #include "src/common/maths.h"
 #include "src/common/debug.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/strutil.h"
 #include "src/common/encoding.h"
 #include "src/common/streamtokenizer.h"
@@ -180,8 +182,8 @@ Model_NWN::Model_NWN(const Common::UString &name, ModelType type,
 
 	if (_type == kModelTypeGUIFront) {
 		// NWN GUI objects use 0.01 units / pixel
-		_modelScale[0] = _modelScale[1] = 100.0;
-		_modelScale[2] = 1.0;
+		_scale[0] = _scale[1] = 100.0f;
+		_scale[2] = 1.0f;
 	}
 
 	_fileName = name;
@@ -288,10 +290,10 @@ void Model_NWN::loadASCII(ParserContext &ctx) {
 
 	newState(ctx);
 
-	while (!ctx.mdl->eos() && !ctx.mdl->err()) {
+	while (!ctx.mdl->eos()) {
 		std::vector<Common::UString> line;
 
-		int count = ctx.tokenize->getTokens(*ctx.mdl, line, 3);
+		size_t count = ctx.tokenize->getTokens(*ctx.mdl, line, 3);
 
 		ctx.tokenize->nextChunk(*ctx.mdl);
 
@@ -358,10 +360,10 @@ void Model_NWN::newState(ParserContext &ctx) {
 void Model_NWN::skipAnimASCII(ParserContext &ctx) {
 	bool end = false;
 
-	while (!ctx.mdl->eos() && !ctx.mdl->err()) {
+	while (!ctx.mdl->eos()) {
 		std::vector<Common::UString> line;
 
-		int count = ctx.tokenize->getTokens(*ctx.mdl, line, 1);
+		size_t count = ctx.tokenize->getTokens(*ctx.mdl, line, 1);
 
 		ctx.tokenize->nextChunk(*ctx.mdl);
 
@@ -419,7 +421,7 @@ void Model_NWN::addState(ParserContext &ctx) {
 }
 
 void Model_NWN::readAnimBinary(ParserContext &ctx, uint32 offset) {
-	ctx.mdl->seekTo(offset);
+	ctx.mdl->seek(offset);
 
 	ctx.mdl->skip(8); // Function pointers
 
@@ -444,7 +446,7 @@ void Model_NWN::readAnimBinary(ParserContext &ctx, uint32 offset) {
 
 	// Associated events
 	// TODO: Save in array, then pass to animation class
-	ctx.mdl->seekTo(ctx.offModelData + eventOffset);
+	ctx.mdl->seek(ctx.offModelData + eventOffset);
 	for (uint32 i = 0; i < eventCount; i++) {
 		float after = ctx.mdl->readIEEEFloatLE();
 
@@ -493,7 +495,7 @@ static const DefaultAnim kDefaultAnims[] = {
 };
 
 void Model_NWN::populateDefaultAnimations() {
-	for (int i = 0; i < ARRAYSIZE(kDefaultAnims); i++) {
+	for (size_t i = 0; i < ARRAYSIZE(kDefaultAnims); i++) {
 		Animation *anim = getAnimation(kDefaultAnims[i].name);
 		if (!anim)
 			continue;
@@ -589,7 +591,7 @@ void ModelNode_NWN_Binary::load(Model_NWN::ParserContext &ctx) {
 	}
 
 	// If the node has no own geometry, inherit the geometry from the root state
-	if (!(flags & kNodeFlagHasMesh)) {
+	if (!(flags & kNodeFlagHasMesh) || (_render && (_vertexBuffer.getCount() == 0))) {
 		ModelNode *node = _model->getNode(_name);
 		if (node && (node != this))
 			node->inheritGeometry(*this);
@@ -753,7 +755,7 @@ void ModelNode_NWN_Binary::readMesh(Model_NWN::ParserContext &ctx) {
 	textures.resize(textureCount);
 	loadTextures(textures);
 
-	uint32 endPos = ctx.mdl->pos();
+	size_t endPos = ctx.mdl->pos();
 
 
 	// Read faces
@@ -770,7 +772,7 @@ void ModelNode_NWN_Binary::readMesh(Model_NWN::ParserContext &ctx) {
 	Normal n;
 	uint16 vertexCountNew = vertexCount;
 	uint16 *f = (uint16 *) _indexBuffer.getData();
-	ctx.mdl->seekTo(ctx.offModelData + facesOffset);
+	ctx.mdl->seek(ctx.offModelData + facesOffset);
 	for (uint32 i = 0; i < facesCount; i++) {
 		// Face normal
 		n.xyz[0] = ctx.mdl->readIEEEFloatLE();
@@ -821,7 +823,7 @@ void ModelNode_NWN_Binary::readMesh(Model_NWN::ParserContext &ctx) {
 	vertexDecl.push_back(vp);
 
 	assert (vertexOffset != 0xFFFFFFFF);
-	ctx.mdl->seekTo(ctx.offRawData + vertexOffset);
+	ctx.mdl->seek(ctx.offRawData + vertexOffset);
 
 	float *v = (float *) vp.pointer;
 	for (uint32 i = 0; i < vertexCount; i++) {
@@ -831,7 +833,7 @@ void ModelNode_NWN_Binary::readMesh(Model_NWN::ParserContext &ctx) {
 	}
 
 	// duplicate positions for unique norms
-	for (uint32 i = 0; i < new_verts_norms.size(); i++) {
+	for (size_t i = 0; i < new_verts_norms.size(); i++) {
 		uint32 vi = new_verts_norms[i].vi;
 		float *v0 = (float *) vp.pointer + vi * vpsize;
 		*v++ = *v0++;
@@ -858,7 +860,7 @@ void ModelNode_NWN_Binary::readMesh(Model_NWN::ParserContext &ctx) {
 
 	// additional unique verts norms
 	v = (float *) vn.pointer + vnsize * vertexCount;
-	for (uint32 i = 0; i < new_verts_norms.size(); i++) {
+	for (size_t i = 0; i < new_verts_norms.size(); i++) {
 		*v++ = new_verts_norms[i].xyz[0];
 		*v++ = new_verts_norms[i].xyz[1];
 		*v++ = new_verts_norms[i].xyz[2];
@@ -877,16 +879,16 @@ void ModelNode_NWN_Binary::readMesh(Model_NWN::ParserContext &ctx) {
 
 		bool hasTexture = textureVertexOffset[t] != 0xFFFFFFFF;
 		if (hasTexture)
-			ctx.mdl->seekTo(ctx.offRawData + textureVertexOffset[t]);
+			ctx.mdl->seek(ctx.offRawData + textureVertexOffset[t]);
 
 		v = (float *) vt.pointer;
 		for (uint32 i = 0; i < vertexCount; i++) {
-			*v++ = hasTexture ? ctx.mdl->readIEEEFloatLE() : 0.0;
-			*v++ = hasTexture ? ctx.mdl->readIEEEFloatLE() : 0.0;
+			*v++ = hasTexture ? ctx.mdl->readIEEEFloatLE() : 0.0f;
+			*v++ = hasTexture ? ctx.mdl->readIEEEFloatLE() : 0.0f;
 		}
 
 		// duplicate tcoords for unique norms
-		for (uint32 i = 0; i < new_verts_norms.size(); i++) {
+		for (size_t i = 0; i < new_verts_norms.size(); i++) {
 			uint32 vi = new_verts_norms[i].vi;
 			float *v0 = (float *) vt.pointer + vi * vtsize;
 			*v++ = *v0++;
@@ -898,7 +900,7 @@ void ModelNode_NWN_Binary::readMesh(Model_NWN::ParserContext &ctx) {
 
 	createBound();
 
-	ctx.mdl->seekTo(endPos);
+	ctx.mdl->seek(endPos);
 }
 
 void ModelNode_NWN_Binary::readAnim(Model_NWN::ParserContext &ctx) {
@@ -923,7 +925,7 @@ void ModelNode_NWN_Binary::readAnim(Model_NWN::ParserContext &ctx) {
 void ModelNode_NWN_Binary::readNodeControllers(Model_NWN::ParserContext &ctx,
 		uint32 offset, uint32 count, std::vector<float> &data) {
 
-	uint32 pos = ctx.mdl->seekTo(offset);
+	uint32 pos = ctx.mdl->seek(offset);
 
 	// TODO: readNodeControllers: Implement this properly :P
 
@@ -951,7 +953,7 @@ void ModelNode_NWN_Binary::readNodeControllers(Model_NWN::ParserContext &ctx,
 				_positionFrames.push_back(p);
 
 				// Starting position
-				if (p.time == 0.0) {
+				if (p.time == 0.0f) {
 					_position[0] = p.x;
 					_position[1] = p.y;
 					_position[2] = p.z;
@@ -973,7 +975,7 @@ void ModelNode_NWN_Binary::readNodeControllers(Model_NWN::ParserContext &ctx,
 				_orientationFrames.push_back(q);
 				// Starting orientation
 				// TODO: Handle animation orientation correctly
-				if (data[timeIndex + 0] == 0.0) {
+				if (data[timeIndex + 0] == 0.0f) {
 					_orientation[0] = data[dataIndex + 0];
 					_orientation[1] = data[dataIndex + 1];
 					_orientation[2] = data[dataIndex + 2];
@@ -988,15 +990,15 @@ void ModelNode_NWN_Binary::readNodeControllers(Model_NWN::ParserContext &ctx,
 				throw Common::Exception("Alpha controller with %d values", columnCount);
 
 			// Starting alpha
-			if (data[timeIndex + 0] == 0.0)
-				if (data[dataIndex + 0] == 0.0)
+			if (data[timeIndex + 0] == 0.0f)
+				if (data[dataIndex + 0] == 0.0f)
 					// TODO: Just disabled rendering if alpha == 0.0 for now
 					_render = false;
 		}
 
 	}
 
-	ctx.mdl->seekTo(pos);
+	ctx.mdl->seek(pos);
 }
 
 
@@ -1038,10 +1040,10 @@ void ModelNode_NWN_ASCII::load(Model_NWN::ParserContext &ctx,
 
 	Mesh mesh;
 
-	while (!ctx.mdl->eos() && !ctx.mdl->err()) {
+	while (!ctx.mdl->eos()) {
 		std::vector<Common::UString> line;
 
-		int count = ctx.tokenize->getTokens(*ctx.mdl, line, 5);
+		size_t count = ctx.tokenize->getTokens(*ctx.mdl, line, 5);
 
 		ctx.tokenize->nextChunk(*ctx.mdl);
 
@@ -1122,7 +1124,7 @@ void ModelNode_NWN_ASCII::readConstraints(Model_NWN::ParserContext &ctx, uint32 
 	for (uint32 i = 0; i < n; ) {
 		std::vector<Common::UString> line;
 
-		int count = ctx.tokenize->getTokens(*ctx.mdl, line, 1);
+		size_t count = ctx.tokenize->getTokens(*ctx.mdl, line, 1);
 
 		ctx.tokenize->nextChunk(*ctx.mdl);
 
@@ -1138,7 +1140,7 @@ void ModelNode_NWN_ASCII::readWeights(Model_NWN::ParserContext &ctx, uint32 n) {
 	for (uint32 i = 0; i < n; ) {
 		std::vector<Common::UString> line;
 
-		int count = ctx.tokenize->getTokens(*ctx.mdl, line, 1);
+		size_t count = ctx.tokenize->getTokens(*ctx.mdl, line, 1);
 
 		ctx.tokenize->nextChunk(*ctx.mdl);
 
@@ -1168,7 +1170,7 @@ void ModelNode_NWN_ASCII::readVCoords(Model_NWN::ParserContext &ctx, Mesh &mesh)
 	for (uint32 i = 0; i < mesh.vCount; ) {
 		std::vector<Common::UString> line;
 
-		int count = ctx.tokenize->getTokens(*ctx.mdl, line, 3);
+		size_t count = ctx.tokenize->getTokens(*ctx.mdl, line, 3);
 
 		ctx.tokenize->nextChunk(*ctx.mdl);
 
@@ -1191,7 +1193,7 @@ void ModelNode_NWN_ASCII::readTCoords(Model_NWN::ParserContext &ctx, Mesh &mesh)
 	for (uint32 i = 0; i < mesh.tCount; ) {
 		std::vector<Common::UString> line;
 
-		int count = ctx.tokenize->getTokens(*ctx.mdl, line, 2);
+		size_t count = ctx.tokenize->getTokens(*ctx.mdl, line, 2);
 
 		ctx.tokenize->nextChunk(*ctx.mdl);
 
@@ -1221,7 +1223,7 @@ void ModelNode_NWN_ASCII::readFaces(Model_NWN::ParserContext &ctx, Mesh &mesh) {
 	for (uint32 i = 0; i < mesh.faceCount; ) {
 		std::vector<Common::UString> line;
 
-		int count = ctx.tokenize->getTokens(*ctx.mdl, line, 8);
+		size_t count = ctx.tokenize->getTokens(*ctx.mdl, line, 8);
 
 		ctx.tokenize->nextChunk(*ctx.mdl);
 
@@ -1273,9 +1275,9 @@ void ModelNode_NWN_ASCII::processMesh(Mesh &mesh) {
 
 	loadTextures(mesh.textures);
 
-	const uint32 textureCount = mesh.textures.size();
+	const size_t textureCount = mesh.textures.size();
 	if (textureCount > 1)
-		warning("ModelNode_NWN_ASCII::processMesh(): textureCount == %d", textureCount);
+		warning("ModelNode_NWN_ASCII::processMesh(): textureCount == %u", (uint)textureCount);
 
 
 	// Read faces
@@ -1371,12 +1373,12 @@ void ModelNode_NWN_ASCII::processMesh(Mesh &mesh) {
 			*v++ = mesh.tX[i->t];
 			*v++ = mesh.tY[i->t];
 		} else {
-			*v++ = 0.0;
-			*v++ = 0.0;
+			*v++ = 0.0f;
+			*v++ = 0.0f;
 		}
 		for (uint16 t = 1; t < textureCount; t++) {
-			*v++ = 0.0;
-			*v++ = 0.0;
+			*v++ = 0.0f;
+			*v++ = 0.0f;
 		}
 	}
 

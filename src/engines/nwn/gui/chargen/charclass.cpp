@@ -42,7 +42,7 @@ CharClass::CharClass(CharGenChoices &choices, ::Engines::Console *console) :
 	_choices = &choices;
 	load("cg_class");
 
-	getEditBox("HelpBox", true)->setText("fnt_galahad14", TalkMan.getString(484), 1.0);
+	getEditBox("HelpBox", true)->setText("fnt_galahad14", TalkMan.getString(484), 1.0f);
 	_classesListBox = getListBox("ClassListBox", true);
 
 	_firstPrestigeClass = 0;
@@ -59,7 +59,7 @@ void CharClass::fixWidgetType(const Common::UString &tag, WidgetType &type) {
 
 void CharClass::reset() {
 	getEditBox("HelpBox", true)->setTitle("fnt_galahad14", "");
-	getEditBox("HelpBox", true)->setText("fnt_galahad14", TalkMan.getString(484), 1.0);
+	getEditBox("HelpBox", true)->setText("fnt_galahad14", TalkMan.getString(484), 1.0f);
 
 	_classesListBox->select(0);
 }
@@ -71,8 +71,8 @@ void CharClass::hide() {
 	// Set previous choice if any.
 
 		// Get previous choice.
-		uint previousChoice = 0;
-		for (uint it = 0; it < _classesId.size(); ++it) {
+		size_t previousChoice = 0;
+		for (size_t it = 0; it < _classesId.size(); ++it) {
 			if (_classesId[it] == _choices->getClass()) {
 					previousChoice = it;
 					break;
@@ -96,7 +96,7 @@ void CharClass::createClassList() {
 	_helpTexts.clear();
 
 	const Aurora::TwoDAFile &twoda = TwoDAReg.get2DA("classes");
-	for (uint it = 0; it < twoda.getRowCount(); ++it) {
+	for (size_t it = 0; it < twoda.getRowCount(); ++it) {
 		const Aurora::TwoDARow &row = twoda.getRow(it);
 		if (row.getInt("PlayerClass") == 0)
 			continue;
@@ -110,7 +110,7 @@ void CharClass::createClassList() {
 
 		//TODO Implement a real check.
 		if (!row.empty("PreReqTable")) {
-			itemClass->setTextColor(0.5, 0.5, 0.5, 1.0);
+			itemClass->setTextColor(0.5f, 0.5f, 0.5f, 1.0f);
 		} else {
 			++_firstPrestigeClass;
 		}

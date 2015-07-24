@@ -27,12 +27,13 @@
 #ifndef COMMON_DEBUGMAN_H
 #define COMMON_DEBUGMAN_H
 
+#include <vector>
 #include <map>
 
 #include "src/common/types.h"
 #include "src/common/ustring.h"
 #include "src/common/singleton.h"
-#include "src/common/file.h"
+#include "src/common/writefile.h"
 
 namespace Common {
 
@@ -114,15 +115,15 @@ public:
 	void logString(const UString &str);
 
 	/** Write the whole command line to the current log file. */
-	void logCommandLine(int argc, char **argv);
+	void logCommandLine(const std::vector<Common::UString> &argv);
 
 	/** Return the OS-specific default path of the log file. */
 	static UString getDefaultLogFile();
 
 private:
-	static const uint kGlobalChannelCount = 15;
-	static const uint kEngineChannelCount = 15;
-	static const uint kChannelCount       = kGlobalChannelCount + kEngineChannelCount;
+	static const size_t kGlobalChannelCount = 15;
+	static const size_t kEngineChannelCount = 15;
+	static const size_t kChannelCount       = kGlobalChannelCount + kEngineChannelCount;
 
 	/** A debug channel. */
 	struct Channel {
@@ -139,7 +140,7 @@ private:
 
 	uint32 _debugLevel; ///< The current debug level.
 
-	DumpFile _logFile;
+	WriteFile _logFile;
 	bool _logFileStartLine;
 };
 

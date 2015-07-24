@@ -22,6 +22,8 @@
  *  NWN area.
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 #include "src/common/error.h"
 
@@ -77,7 +79,7 @@ Area::Area(Module &module, const Common::UString &resRef) : _module(&module), _l
 }
 
 Area::~Area() {
-	removeContainer();
+	_module->removeObject(*this);
 
 	hide();
 
@@ -88,8 +90,12 @@ Area::~Area() {
 
 void Area::clear() {
 	// Delete objects
-	for (ObjectList::iterator o = _objects.begin(); o != _objects.end(); ++o)
+	for (ObjectList::iterator o = _objects.begin(); o != _objects.end(); ++o) {
+		if (!(*o)->isStatic())
+			_module->removeObject(**o);
+
 		delete *o;
+	}
 
 	_objects.clear();
 
@@ -334,8 +340,8 @@ void Area::loadProperties(const Aurora::GFF3Struct &props) {
 	uint32 ambientDayVol   = CLIP<uint32>(props.getUint("AmbientSndDayVol"  , 127), 0, 127);
 	uint32 ambientNightVol = CLIP<uint32>(props.getUint("AmbientSndNightVol", 127), 0, 127);
 
-	_ambientDayVol   = 1.25 * (1.0 - (1.0 / powf(5.0, ambientDayVol   / 127.0)));
-	_ambientNightVol = 1.25 * (1.0 - (1.0 / powf(5.0, ambientNightVol / 127.0)));
+	_ambientDayVol   = 1.25f * (1.0f - (1.0f / powf(5.0f, ambientDayVol   / 127.0f)));
+	_ambientNightVol = 1.25f * (1.0f - (1.0f / powf(5.0f, ambientNightVol / 127.0f)));
 
 	// TODO: PresetInstance0 - PresetInstance7
 
@@ -351,7 +357,7 @@ void Area::loadProperties(const Aurora::GFF3Struct &props) {
 }
 
 void Area::loadTiles(const Aurora::GFF3List &tiles) {
-	uint32 n = 0;
+	size_t n = 0;
 	for (Aurora::GFF3List::const_iterator t = tiles.begin(); t != tiles.end(); ++t, ++n) {
 		assert(n < (_width * _height));
 
@@ -459,14 +465,14 @@ void Area::loadTiles() {
 
 			// A tile is 10 units wide and deep.
 			// There's extra special 5x5 tiles at the edges.
-			const float tileX = x * 10.0 + 5.0;
-			const float tileY = y * 10.0 + 5.0;
+			const float tileX = x * 10.0f + 5.0f;
+			const float tileY = y * 10.0f + 5.0f;
 
 			// The actual height of a tile is dictated by the tileset.
 			const float tileZ = t.height * _tileset->getTilesHeight();
 
 			t.model->setPosition(tileX, tileY, tileZ);
-			t.model->setRotation(0.0, 0.0, -(((int) t.orientation) * 90.0));
+			t.model->setOrientation(0.0f, 0.0f, 1.0f, ((int) t.orientation) * 90.0f);
 		}
 	}
 }

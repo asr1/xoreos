@@ -22,6 +22,8 @@
  *  A NWN gridbox widget.
  */
 
+#include <cassert>
+
 #include "src/common/util.h"
 
 #include "src/graphics/graphics.h"
@@ -59,11 +61,10 @@ void WidgetGridBox::subActive(Widget &widget) {
 		if (_items.size() - _visibleItems.size() == 0)
 			return;
 
-		uint maxIfFilled = _items.size() + _itemsByRow - _items.size() % _itemsByRow;
-		uint maxVisible  = floor(_contentHeight / _items.front()->getHeight()) * _itemsByRow;
+		size_t maxIfFilled = _items.size() + _itemsByRow - _items.size() % _itemsByRow;
+		size_t maxVisible  = floor(_contentHeight / _items.front()->getHeight()) * _itemsByRow;
 
-		uint startItem = floor(_scrollbar->getState() * (maxIfFilled - maxVisible)
-		                       / _itemsByRow) * _itemsByRow;
+		size_t startItem = floor(_scrollbar->getState() * (maxIfFilled - maxVisible) / _itemsByRow) * _itemsByRow;
 
 		if (startItem == _startItem)
 			return;
@@ -93,7 +94,7 @@ void WidgetGridBox::mouseDown(uint8 UNUSED(state), float x, float y) {
 	// Check if we clicked on the scrollbar area
 	if (_scrollbar) {
 		if (x > (wX + getWidth() - 20)) {
-			uint scroll = _visibleItems.size() / _itemsByRow;
+			size_t scroll = _visibleItems.size() / _itemsByRow;
 			if (y > _scrollbar->getBarPosition())
 				scrollUp(scroll);
 			else
@@ -113,10 +114,9 @@ void WidgetGridBox::unlock() {
 		return;
 	}
 
-	_itemsByRow = MIN<uint>(_contentWidth / _items.front()->getWidth(), _items.size());
+	_itemsByRow = MIN<size_t>(_contentWidth / _items.front()->getWidth(), _items.size());
 
-	uint vCount = MIN<uint>(_contentHeight / _items.front()->getHeight(), _items.size())
-	              * _itemsByRow;
+	size_t vCount = MIN<size_t>(_contentHeight / _items.front()->getHeight(), _items.size()) * _itemsByRow;
 
 	if ((vCount == 0) || (vCount == _visibleItems.size())) {
 		GfxMan.unlockFrame();
@@ -126,12 +126,12 @@ void WidgetGridBox::unlock() {
 	assert(_visibleItems.size() < vCount);
 	_visibleItems.reserve(vCount);
 
-	uint start = _startItem + _visibleItems.size();
+	size_t start = _startItem + _visibleItems.size();
 
-	float itemHeight = _items.front()->getHeight();
-	float itemWidth  = _items.front()->getWidth();
-	uint  row        = 0;
-	uint  column     = 0;
+	float  itemHeight = _items.front()->getHeight();
+	float  itemWidth  = _items.front()->getWidth();
+	size_t row        = 0;
+	size_t column     = 0;
 
 	// If we reach the last row, compute the items that remains.
 	if (_items.size() - _startItem <= _visibleItems.size())
@@ -143,8 +143,8 @@ void WidgetGridBox::unlock() {
 		// WORKAROUND: The x axis is shifted by 2 pixels in order to correctly render in
 		// the charportrait widget.
 		float itemY = _contentY - (row + 1) * (itemHeight + _innerVSpace) + _innerVSpace;
-		float itemX = _contentX + (column * (itemWidth + _innerHSpace)) - 2.0;
-		item->setPosition(itemX, itemY, _contentZ - 5.0);
+		float itemX = _contentX + (column * (itemWidth + _innerHSpace)) - 2.0f;
+		item->setPosition(itemX, itemY, _contentZ - 5.0f);
 		_visibleItems.push_back(item);
 
 		if (isVisible())
@@ -169,10 +169,9 @@ void WidgetGridBox::updateScrollbarLength() {
 		return;
 
 	if (_visibleItems.empty())
-		_scrollbar->setLength(1.0);
+		_scrollbar->setLength(1.0f);
 	else {
-		_scrollbar->setLength(((float) _visibleItems.size()) / (_items.size()
-		                                                        + (_items.size() % _itemsByRow)));
+		_scrollbar->setLength(((float) _visibleItems.size()) / (_items.size() + (_items.size() % _itemsByRow)));
 	}
 }
 
@@ -182,7 +181,7 @@ void WidgetGridBox::updateVisible() {
 
 	GfxMan.lockFrame();
 
-	for (uint i = 0; i < _visibleItems.size(); i++)
+	for (size_t i = 0; i < _visibleItems.size(); i++)
 		_visibleItems[i]->hide();
 
 	if (_visibleItems.size() > _items.size())
@@ -192,13 +191,13 @@ void WidgetGridBox::updateVisible() {
 	float itemWidth  = _items.front()->getWidth() + _innerHSpace;
 	float itemY      = _contentY - itemHeight + _innerVSpace;
 
-	uint column = 0;
-	int  count  = 0;
+	size_t column = 0;
+	size_t count  = 0;
 
 	if (_items.size() - _startItem <= _visibleItems.size())
 		count = _items.size() % _itemsByRow;
 
-	for (uint i = 0; i < (_visibleItems.size() - count); i++) {
+	for (size_t i = 0; i < (_visibleItems.size() - count); i++) {
 		WidgetListItem *item = _items[_startItem + i];
 
 		if (column == _itemsByRow) {
@@ -208,7 +207,7 @@ void WidgetGridBox::updateVisible() {
 
 		// WORKAROUND: The x axis is shifted by 2 pixels in order to correctly render in
 		// the charportrait widget.
-		item->setPosition(_contentX + column * itemWidth - 2.0, itemY, _contentZ - 5.0);
+		item->setPosition(_contentX + column * itemWidth - 2.0f, itemY, _contentZ - 5.0f);
 		_visibleItems[i] = item;
 
 		if (isVisible())
@@ -220,20 +219,20 @@ void WidgetGridBox::updateVisible() {
 	GfxMan.unlockFrame();
 }
 
-void WidgetGridBox::scrollUp(uint n) {
+void WidgetGridBox::scrollUp(size_t n) {
 	if (_visibleItems.empty())
 		return;
 
 	if (_startItem == 0)
 		return;
 
-	_startItem -= MIN<uint>(n * _itemsByRow, _startItem);
+	_startItem -= MIN<size_t>(n * _itemsByRow, _startItem);
 
 	updateVisible();
 	updateScrollbarPosition();
 }
 
-void WidgetGridBox::scrollDown(uint n) {
+void WidgetGridBox::scrollDown(size_t n) {
 	if (_visibleItems.empty())
 		return;
 
@@ -241,8 +240,8 @@ void WidgetGridBox::scrollDown(uint n) {
 		return;
 
 
-	_startItem += MIN<uint>(n * _itemsByRow, (_items.size() + _items.size() %
-	                                          _itemsByRow) - _visibleItems.size() - _startItem);
+	_startItem += MIN<size_t>(n * _itemsByRow, (_items.size() + _items.size() %
+	                                            _itemsByRow) - _visibleItems.size() - _startItem);
 
 	updateVisible();
 	updateScrollbarPosition();

@@ -425,13 +425,12 @@ void ScriptFunctions::getObjectByTag(Aurora::NWScript::FunctionContext &ctx) {
 
 	int nth = ctx.getParams()[1].getInt();
 
-	if (!module->findObjectInit(_objSearchContext, tag))
-		return;
-
+	Aurora::NWScript::ObjectSearch *search = module->findObjectsByTag(tag);
 	while (nth-- >= 0)
-		module->findNextObject(_objSearchContext);
+		search->next();
 
-	ctx.getReturn() = _objSearchContext.getObject();
+	ctx.getReturn() = search->get();
+	delete search;
 }
 
 void ScriptFunctions::adjustAlignment(Aurora::NWScript::FunctionContext &UNUSED(ctx)) {
@@ -634,17 +633,19 @@ void ScriptFunctions::getNearestObject(Aurora::NWScript::FunctionContext &ctx) {
 	ObjectType type = (ObjectType) ctx.getParams()[0].getInt();
 	int nth = ctx.getParams()[2].getInt() - 1;
 
-	if (!module->findObjectInit(_objSearchContext))
-		return;
+	Aurora::NWScript::ObjectSearch *search = module->findObjects();
+	Aurora::NWScript::Object       *object = 0;
 
 	std::list<Object *> objects;
-	while (module->findNextObject(_objSearchContext)) {
-		Object *object = convertObject(_objSearchContext.getObject());
+	while ((object = search->next())) {
+		Object *nwnObject = convertObject(object);
 
-		if (object && (object != target) && (object->getType() == type) &&
-		    (object->getArea() == target->getArea()))
-			objects.push_back(object);
+		if (nwnObject && (nwnObject != target) && (nwnObject->getType() == type) &&
+		    (nwnObject->getArea() == target->getArea()))
+			objects.push_back(nwnObject);
 	}
+
+	delete search;
 
 	objects.sort(ObjectDistanceSort(*target));
 
@@ -678,16 +679,18 @@ void ScriptFunctions::getNearestObjectByTag(Aurora::NWScript::FunctionContext &c
 
 	int nth = ctx.getParams()[2].getInt() - 1;
 
-	if (!module->findObjectInit(_objSearchContext, tag))
-		return;
+	Aurora::NWScript::ObjectSearch *search = module->findObjectsByTag(tag);
+	Aurora::NWScript::Object       *object = 0;
 
 	std::list<Object *> objects;
-	while (module->findNextObject(_objSearchContext)) {
-		Object *object = convertObject(_objSearchContext.getObject());
+	while ((object = search->next())) {
+		Object *nwnObject = convertObject(object);
 
-		if (object && (object != target) && (object->getArea() == target->getArea()))
-			objects.push_back(object);
+		if (nwnObject && (nwnObject != target) && (nwnObject->getArea() == target->getArea()))
+			objects.push_back(nwnObject);
 	}
+
+	delete search;
 
 	objects.sort(ObjectDistanceSort(*target));
 
@@ -709,14 +712,14 @@ void ScriptFunctions::floatToInt(Aurora::NWScript::FunctionContext &ctx) {
 
 void ScriptFunctions::stringToInt(Aurora::NWScript::FunctionContext &ctx) {
 	int i;
-	sscanf(ctx.getParams()[0].getString().c_str(), "%d", &i);
+	std::sscanf(ctx.getParams()[0].getString().c_str(), "%d", &i);
 
 	ctx.getReturn() = (int32) i;
 }
 
 void ScriptFunctions::stringToFloat(Aurora::NWScript::FunctionContext &ctx) {
 	float f;
-	sscanf(ctx.getParams()[0].getString().c_str(), "%f", &f);
+	std::sscanf(ctx.getParams()[0].getString().c_str(), "%f", &f);
 
 	ctx.getReturn() = f;
 }
@@ -958,7 +961,7 @@ void ScriptFunctions::effectSlow(Aurora::NWScript::FunctionContext &UNUSED(ctx))
 }
 
 void ScriptFunctions::objectToString(Aurora::NWScript::FunctionContext &ctx) {
-	ctx.getReturn() = Common::UString::sprintf("%p", (void *) ctx.getParams()[0].getObject());
+	ctx.getReturn() = Common::UString::format("%p", (void *) ctx.getParams()[0].getObject());
 }
 
 void ScriptFunctions::effectImmunity(Aurora::NWScript::FunctionContext &UNUSED(ctx)) {
@@ -1009,7 +1012,7 @@ void ScriptFunctions::setCustomToken(Aurora::NWScript::FunctionContext &ctx) {
 	int32 tokenNumber = ctx.getParams()[0].getInt();
 	const Common::UString &tokenValue = ctx.getParams()[1].getString();
 
-	const Common::UString tokenName = Common::UString::sprintf("<CUSTOM%d>", tokenNumber);
+	const Common::UString tokenName = Common::UString::format("<CUSTOM%d>", tokenNumber);
 
 	TokenMan.set(tokenName, tokenValue);
 }

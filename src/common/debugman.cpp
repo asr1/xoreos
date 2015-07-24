@@ -63,7 +63,7 @@ bool DebugManager::addDebugChannel(uint32 channel, const UString &name,
 		return false;
 
 	int index = intLog2(channel);
-	if ((index < 0) || ((uint)index >= kChannelCount))
+	if ((index < 0) || ((size_t)index >= kChannelCount))
 		return false;
 
 	if (!_channels[index].name.empty())
@@ -146,7 +146,7 @@ bool DebugManager::isEnabled(uint32 level, uint32 channel) const {
 		return false;
 
 	int index = intLog2(channel);
-	if ((index < 0) || ((uint)index >= kChannelCount))
+	if ((index < 0) || ((size_t)index >= kChannelCount))
 		return false;
 
 	return _channels[index].enabled;
@@ -167,7 +167,12 @@ bool DebugManager::openLogFile(const UString &file) {
 
 	// Create the directories in the path, if necessary
 	UString path = FilePath::canonicalize(file);
-	FilePath::createDirectories(FilePath::getDirectory(path));
+
+	try {
+		FilePath::createDirectories(FilePath::getDirectory(path));
+	} catch (...) {
+		return false;
+	}
 
 	if (!_logFile.open(path))
 		return false;
@@ -192,7 +197,7 @@ void DebugManager::logString(const UString &str) {
 
 		try {
 			ptime t(second_clock::universal_time());
-			tstamp = UString::sprintf("[%04d-%02d-%02dT%02d:%02d:%02d] ",
+			tstamp = UString::format("[%04d-%02d-%02dT%02d:%02d:%02d] ",
 				(int) t.date().year(), (int) t.date().month(), (int) t.date().day(),
 				(int) t.time_of_day().hours(), (int) t.time_of_day().minutes(),
 				(int) t.time_of_day().seconds());
@@ -217,11 +222,11 @@ void DebugManager::logString(const UString &str) {
 		_logFile.flush();
 }
 
-void DebugManager::logCommandLine(int argc, char **argv) {
+void DebugManager::logCommandLine(const std::vector<Common::UString> &argv) {
 	logString("Full command line:");
-	for (int i = 0; i < argc; i++) {
+	for (std::vector<Common::UString>::const_iterator arg = argv.begin(); arg != argv.end(); ++arg) {
 		logString(" ");
-		logString(argv[i]);
+		logString(*arg);
 	}
 	logString("\n");
 }

@@ -19,7 +19,7 @@
  */
 
 /** @file
- *  Dragon Age 2 (debug) console.
+ *  Dragon Age II (debug) console.
  */
 
 #ifndef ENGINES_DRAGONAGE2_CONSOLE_H
@@ -38,9 +38,20 @@ public:
 	Console(DragonAge2Engine &engine);
 	~Console();
 
-
 private:
 	DragonAge2Engine *_engine;
+
+
+	// Updating the caches
+	void updateCaches();
+	void updateAreas();
+	void updateCampaigns();
+
+	void cmdListAreas    (const CommandLine &cl);
+	void cmdLoadArea     (const CommandLine &cl);
+	void cmdListCampaigns(const CommandLine &cl);
+	void cmdLoadCampaign (const CommandLine &cl);
+
 };
 
 } // End of namespace DragonAge2

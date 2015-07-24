@@ -31,12 +31,15 @@
  * (<http://romxhack.esforos.com/fuentes-nftr-de-nds-t67>).
  */
 
+#include <cassert>
+#include <cstring>
+
 #include "src/common/util.h"
 #include "src/common/maths.h"
 #include "src/common/ustring.h"
 #include "src/common/strutil.h"
 #include "src/common/error.h"
-#include "src/common/stream.h"
+#include "src/common/readstream.h"
 #include "src/common/encoding.h"
 
 #include "src/aurora/resman.h"
@@ -119,7 +122,7 @@ void NFTRFont::load(Common::SeekableSubReadStreamEndian &nftr) {
 
 	// Try to find the width of an m. Alternatively, take half of a line's height.
 	std::map<uint32, Char>::const_iterator m = _chars.find('m');
-	_missingWidth = (m != _chars.end()) ? m->second.width : MAX<float>(2.0, _height / 2);
+	_missingWidth = (m != _chars.end()) ? m->second.width : MAX<float>(2.0f, _height / 2);
 }
 
 void NFTRFont::readHeader(Common::SeekableSubReadStreamEndian &nftr, Header &header) {
@@ -137,8 +140,8 @@ void NFTRFont::readHeader(Common::SeekableSubReadStreamEndian &nftr, Header &hea
 		throw Common::Exception("Unsupported version %u.%u", versionMajor, versionMinor);
 
 	const uint32 fileSize = nftr.readUint32();
-	if (fileSize > (uint32)nftr.size())
-		throw Common::Exception("Size too large (%u > %u)", fileSize, nftr.size());
+	if (fileSize > nftr.size())
+		throw Common::Exception("Size too large (%u > %u)", fileSize, (uint)nftr.size());
 
 	nftr.skip(2); // Header size
 
@@ -211,7 +214,7 @@ void NFTRFont::readGlyphs(Common::SeekableSubReadStreamEndian &nftr, Header &hea
 	const uint32 count = (sectionSize - 16) / size;
 	glyphs.resize(count);
 
-	uint32 offset = nftr.pos();
+	size_t offset = nftr.pos();
 	for (uint32 i = 0; i < count; i++, offset += size) {
 		glyphs[i].data = new Common::SeekableSubReadStream(&nftr, offset, offset + size);
 
@@ -284,7 +287,7 @@ void NFTRFont::readCharMaps(Common::SeekableSubReadStreamEndian &nftr, Header &h
 	 */
 
 	uint32 nextOffset = header.offsetCMAP;
-	while ((nextOffset != 0) && (nextOffset < (uint32)nftr.size())) {
+	while ((nextOffset != 0) && (nextOffset < nftr.size())) {
 		nftr.seek(nextOffset);
 
 		const uint32 tag = nftr.readUint32();
@@ -369,16 +372,16 @@ float NFTRFont::getHeight() const {
 void NFTRFont::drawMissing() const {
 	TextureMan.set();
 
-	const float width = _missingWidth - 1.0;
+	const float width = _missingWidth - 1.0f;
 
 	glBegin(GL_QUADS);
-		glVertex2f(0.0  ,     0.0);
-		glVertex2f(width,     0.0);
+		glVertex2f(0.0f ,    0.0f);
+		glVertex2f(width,    0.0f);
 		glVertex2f(width, _height);
-		glVertex2f(0.0  , _height);
+		glVertex2f(0.0f , _height);
 	glEnd();
 
-	glTranslatef(width + 1.0, 0.0, 0.0);
+	glTranslatef(width + 1.0f, 0.0f, 0.0f);
 }
 
 void NFTRFont::draw(uint32 c) const {
@@ -397,7 +400,7 @@ void NFTRFont::draw(uint32 c) const {
 	}
 	glEnd();
 
-	glTranslatef(cC->second.width, 0.0, 0.0);
+	glTranslatef(cC->second.width, 0.0f, 0.0f);
 }
 
 void NFTRFont::drawGlyphs(const std::vector<Glyph> &glyphs) {
@@ -418,7 +421,7 @@ void NFTRFont::drawGlyphs(const std::vector<Glyph> &glyphs) {
 
 	const uint32 textureLength = NEXTPOWER2((uint32) ceil(sqrt(pixels)));
 	if (textureLength > 2048)
-		throw Common::Exception("Too many glyphs (%u @ %ux%u)", glyphs.size(), width, height);
+		throw Common::Exception("Too many glyphs (%u @ %ux%u)", (uint)glyphs.size(), width, height);
 
 	assert(((textureLength / width) * (textureLength / height)) >= glyphs.size());
 
@@ -436,10 +439,10 @@ void NFTRFont::drawGlyphs(const std::vector<Glyph> &glyphs) {
 
 		ch.width = g->advance;
 
-		ch.vX[0] = 0.00;  ch.vY[0] = 0.00;
-		ch.vX[1] = width; ch.vY[1] = 0.00;
+		ch.vX[0] = 0.00f; ch.vY[0] = 0.00f;
+		ch.vX[1] = width; ch.vY[1] = 0.00f;
 		ch.vX[2] = width; ch.vY[2] = height;
-		ch.vX[3] = 0.00;  ch.vY[3] = height;
+		ch.vX[3] = 0.00f; ch.vY[3] = height;
 
 		const float tX = (float) x      / (float) textureLength;
 		const float tY = (float) y      / (float) textureLength;

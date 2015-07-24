@@ -22,20 +22,6 @@
  *  Utility class for manipulating file paths.
  */
 
-// Necessary to query for APPDATA and USERPROFILE on Windows
-#if defined(WIN32)
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
-#endif
-
-// Necessary to search the passwd file
-#if defined(UNIX)
-	#include <pwd.h>
-	#include <unistd.h>
-#endif
-
-#include <cstdlib>
-
 #include <list>
 
 #include <boost/algorithm/string.hpp>
@@ -44,7 +30,9 @@
 
 #include "src/common/filepath.h"
 #include "src/common/util.h"
+#include "src/common/error.h"
 #include "src/common/encoding.h"
+#include "src/common/platform.h"
 
 // boost-filesystem stuff
 using boost::filesystem::path;
@@ -69,10 +57,10 @@ bool FilePath::isDirectory(const UString &p) {
 	return (exists(p.c_str()) && is_directory(p.c_str()));
 }
 
-uint32 FilePath::getFileSize(const UString &p) {
+size_t FilePath::getFileSize(const UString &p) {
 	uintmax_t size = file_size(p.c_str());
 
-	if (size == ((uintmax_t) -1))
+	if ((size == ((uintmax_t) -1)) || (size > 0x7FFFFFFF))
 		return kFileInvalid;
 
 	return size;
@@ -277,8 +265,22 @@ static UString findSubDirectory_internal(const UString &directory, const UString
 		bool caseInsensitive) {
 
 	try {
-		path dirPath(directory.c_str());
-		path subDirPath(subDirectory.c_str());
+		// Special case: . is the same, current directory
+		if (subDirectory == ".")
+			return directory;
+
+		const path dirPath(directory.c_str());
+
+		// Special case: .. is the parent directory
+		if (subDirectory == "..") {
+			path parent = dirPath.parent_path();
+			if (parent == dirPath)
+				return "";
+
+			return parent.generic_string();
+		}
+
+		const path subDirPath(subDirectory.c_str());
 
 		// Iterator over the directory's contents
 		directory_iterator itEnd;
@@ -326,7 +328,11 @@ UString FilePath::findSubDirectory(const UString &directory, const UString &subD
 }
 
 bool FilePath::createDirectories(const UString &path) {
-	return create_directories(path.c_str());
+	try {
+		return create_directories(path.c_str());
+	} catch (std::exception &se) {
+		throw Exception(se);
+	}
 }
 
 UString FilePath::escapeStringLiteral(const UString &str) {
@@ -336,182 +342,16 @@ UString FilePath::escapeStringLiteral(const UString &str) {
 	return boost::regex_replace(std::string(str.c_str()), esc, rep, boost::match_default | boost::format_sed);
 }
 
-#if defined(WIN32)
-/** Map the Windows version mess to one simple integer,
- *  which is hopefully enough for what we care about...
- */
-static inline uint32 getWindowsVersion() {
-	OSVERSIONINFO win32OsVersion;
-	ZeroMemory(&win32OsVersion, sizeof(OSVERSIONINFO));
-	win32OsVersion.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	if (!GetVersionEx(&win32OsVersion))
-		return 0;
-
-	if (win32OsVersion.dwPlatformId == VER_PLATFORM_WIN32s) {
-		// Windows 3.1
-		return 1;
-	} else if (win32OsVersion.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) {
-		// Windows 95 and 98
-		return (win32OsVersion.dwMinorVersion == 0) ? 2 : 3;
-	} else if (win32OsVersion.dwPlatformId == VER_PLATFORM_WIN32_NT) {
-		// Windows NT
-		if (win32OsVersion.dwMajorVersion < 5)
-			return 4;
-
-		// Windows 2000, XP, ...
-		return win32OsVersion.dwMajorVersion;
-	} else
-		// Unknown
-		return 0;
-}
-
-static inline UString getWindowsVariable(const wchar_t *variable) {
-	DWORD length = GetEnvironmentVariableW(variable, 0, 0);
-	if (!length)
-		return "";
-
-	uint32 size = length * sizeof(wchar_t);
-	byte  *data = new byte[size];
-
-	DWORD newLength = GetEnvironmentVariableW(variable, (wchar_t *) data, length);
-	if (!newLength || (newLength > length)) {
-		delete[] data;
-		return "";
-	}
-
-	UString value = readString(data, size, kEncodingUTF16LE);
-	delete[] data;
-
-	return value;
-}
-#endif // WIN32
-
 UString FilePath::getHomeDirectory() {
-	UString directory;
-
-#if defined(WIN32)
-	// Windows: $USERPROFILE
-
-	directory = getWindowsVariable(L"USERPROFILE");
-
-#elif defined(UNIX)
-	// Default Unixoid: $HOME. As a fallback, search the passwd file
-
-	const char *pathStr = getenv("HOME");
-	if (!pathStr) {
-		struct passwd *pwd = getpwuid(getuid());
-		if (pwd)
-			pathStr = pwd->pw_dir;
-	}
-
-	if (pathStr)
-		directory = pathStr;
-
-#endif
-
-	return directory;
+	return Platform::getHomeDirectory();
 }
 
 UString FilePath::getConfigDirectory() {
-	UString directory;
-
-#if defined(WIN32)
-	// Windows: $APPDATA/xoreos/ or $USERPROFILE/Application Data/xoreos/ or ./
-
-	uint32 windowsVersion = getWindowsVersion();
-	if (windowsVersion == 0)
-		// If we can't determine the version, just try everything...
-		windowsVersion = 5;
-
-	// Try the Application Data directory
-	if (windowsVersion >= 5) {
-		directory = getWindowsVariable(L"APPDATA");
-		if (!directory.empty())
-			directory += "\\xoreos";
-	}
-
-	// Try the User Profile directory and create our own Application Data directory
-	if ((windowsVersion >= 4) && directory.empty()) {
-		directory = getWindowsVariable(L"USERPROFILE");
-		if (!directory.empty())
-			directory += "\\Application Data\\xoreos";
-	}
-
-	// If all else fails (or the Windows version is too low), use the current directory
-	if (directory.empty())
-		directory = ".";
-
-#elif defined(MACOSX)
-	// Mac OS X: ~/Library/Preferences/xoreos/
-
-	directory = getHomeDirectory();
-	if (!directory.empty())
-		directory += "/Library/Preferences/xoreos";
-
-	if (directory.empty())
-		directory = ".";
-
-#elif defined(UNIX)
-	// Default Unixoid: $XDG_CONFIG_HOME/xoreos/ or ~/.config/xoreos/
-
-	const char *pathStr = getenv("XDG_CONFIG_HOME");
-	if (pathStr) {
-		directory = UString(pathStr) + "/xoreos";
-	} else {
-		directory = getHomeDirectory();
-		if (!directory.empty())
-			directory += "/.config/xoreos";
-	}
-
-	if (directory.empty())
-		directory = ".";
-
-#else
-	// Fallback: Current directory
-
-	directory = ".";
-#endif
-
-	return canonicalize(directory);
+	return Platform::getConfigDirectory();
 }
 
 UString FilePath::getUserDataDirectory() {
-	UString directory;
-
-#if defined(WIN32)
-	// Windows: Same as getConfigDirectory()
-	directory = getConfigDirectory();
-#elif defined(MACOSX)
-	// Mac OS X: ~/Library/Application\ Support/xoreos/
-
-	directory = getHomeDirectory();
-	if (!directory.empty())
-		directory += "/Library/Application Support/xoreos";
-
-	if (directory.empty())
-		directory = ".";
-
-#elif defined(UNIX)
-	// Default Unixoid: $XDG_DATA_HOME/xoreos/ or ~/.local/share/xoreos/
-
-	const char *pathStr = getenv("XDG_DATA_HOME");
-	if (pathStr) {
-		directory = UString(pathStr) + "/xoreos";
-	} else {
-		directory = getHomeDirectory();
-		if (!directory.empty())
-			directory += "/.local/share/xoreos";
-	}
-
-	if (directory.empty())
-		directory = ".";
-
-#else
-	// Fallback: Same as getConfigDirectory()
-	directory = getConfigDirectory();
-#endif
-
-	return canonicalize(directory);
+	return Platform::getUserDataDirectory();
 }
 
 UString FilePath::getUserDataFile(UString file) {

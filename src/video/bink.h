@@ -66,7 +66,7 @@ private:
 		kSourceBlockTypes    = 0, ///< 8x8 block types.
 		kSourceSubBlockTypes    , ///< 16x16 block types (a subset of 8x8 block types).
 		kSourceColors           , ///< Pixel values used for different block types.
-		kSourcePattern          , ///< 8-bit values for 2-colour pattern fill.
+		kSourcePattern          , ///< 8-bit values for 2-color pattern fill.
 		kSourceXOff             , ///< X components of motion value.
 		kSourceYOff             , ///< Y components of motion value.
 		kSourceIntraDC          , ///< DC values for intrablocks with DCT.
@@ -81,13 +81,13 @@ private:
 		kBlockSkip    = 0,  ///< Skipped block.
 		kBlockScaled     ,  ///< Block has size 16x16.
 		kBlockMotion     ,  ///< Block is copied from previous frame with some offset.
-		kBlockRun        ,  ///< Block is composed from runs of colours with custom scan order.
+		kBlockRun        ,  ///< Block is composed from runs of colors with custom scan order.
 		kBlockResidue    ,  ///< Motion block with some difference added.
 		kBlockIntra      ,  ///< Intra DCT block.
-		kBlockFill       ,  ///< Block is filled with single colour.
+		kBlockFill       ,  ///< Block is filled with single color.
 		kBlockInter      ,  ///< Motion block with DCT applied to the difference.
-		kBlockPattern    ,  ///< Block is filled with two colours following custom pattern.
-		kBlockRaw        ,  ///< Uncoded 8x8 block.
+		kBlockPattern    ,  ///< Block is filled with two colors following custom pattern.
+		kBlockRaw           ///< Uncoded 8x8 block.
 	};
 
 	/** Data structure for decoding and tranlating Huffman'd data. */
@@ -207,7 +207,6 @@ private:
 	bool _disableAudio; ///< Should the sound be disabled?
 
 	uint32 _curFrame; ///< Current Frame.
-	uint32 _audioFrame;
 
 	uint32 _startTime;     ///< Timestamp of when the video was started.
 	uint32 _lastFrameTime; ///< Timestamp of when the last frame was decoded.
