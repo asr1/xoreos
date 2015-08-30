@@ -281,7 +281,7 @@ UString::iterator UString::findLast(uint32 c) const {
 UString::iterator UString::findSubString(const UString &find){
 	UString::iterator it = this->begin();
 	UString::iterator itTemp = this->begin();
-	while (std::distance(it,this->end()) >= find.size() && this->substr(it, itTemp) != find){
+	while (std::distance(it,this->end()) >= (int)find.size() && this->substr(it, itTemp) != find){
 		it++;
 		itTemp = it;
 		std::advance(itTemp,find.size());
