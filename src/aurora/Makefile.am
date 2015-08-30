@@ -43,6 +43,7 @@ noinst_HEADERS = \
                  nitrofile.h \
                  nsbtxfile.h \
                  cdpth.h \
+                 XMLFix.h \
                  $(EMPTY)
 
 libaurora_la_SOURCES = \
@@ -79,6 +80,7 @@ libaurora_la_SOURCES = \
                        nitrofile.cpp \
                        nsbtxfile.cpp \
                        cdpth.cpp \
+                       XMLFix.cpp \
                        $(EMPTY)
 
 libaurora_la_LIBADD = \

@@ -1,0 +1,1247 @@
+src/xoreos.cpp:31:#include "src/common/ustring.h"
+Binary file src/cline.o matches
+Binary file src/video/fader.o matches
+Binary file src/video/xmv.o matches
+Binary file src/video/quicktime.o matches
+src/video/.deps/quicktime.Plo:35: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/video/.deps/quicktime.Plo:482:../../src/common/ustring.h:
+src/video/.deps/decoder.Plo:35: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/video/.deps/decoder.Plo:402:../../src/common/ustring.h:
+src/video/.deps/actimagine.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/video/.deps/actimagine.Plo:376:../../src/common/ustring.h:
+src/video/.deps/bink.Plo:60: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/video/.deps/bink.Plo:550:../../src/common/ustring.h:
+src/video/.deps/xmv.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/video/.deps/xmv.Plo:479:../../src/common/ustring.h:
+src/video/.deps/fader.Plo:112: ../../src/graphics/images/txi.h ../../src/common/ustring.h \
+src/video/.deps/fader.Plo:688:../../src/common/ustring.h:
+Binary file src/video/aurora/videoplayer.o matches
+src/video/aurora/.deps/videoplayer.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/video/aurora/.deps/videoplayer.Plo:488:../../../src/common/ustring.h:
+Binary file src/video/aurora/.libs/libaurora.a matches
+src/video/aurora/videoplayer.cpp:27:#include "src/common/ustring.h"
+Binary file src/video/actimagine.o matches
+Binary file src/video/.libs/libvideo.a matches
+Binary file src/video/decoder.o matches
+src/video/codecs/.deps/h263.Plo:70: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/video/codecs/.deps/h263.Plo:482:../../../src/common/ustring.h:
+src/video/codecs/.deps/xmvwmv2.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/video/codecs/.deps/xmvwmv2.Plo:450:../../../src/common/ustring.h:
+Binary file src/video/codecs/.libs/libcodecs.a matches
+Binary file src/video/codecs/h263.o matches
+Binary file src/video/codecs/xmvwmv2.o matches
+Binary file src/video/bink.o matches
+src/engines/enginemanager.h:28:#include "src/common/ustring.h"
+Binary file src/engines/enginemanager.o matches
+src/engines/nwn/nwn.h:30:#include "src/common/ustring.h"
+src/engines/nwn/creature.h:29:#include "src/common/ustring.h"
+src/engines/nwn/module.h:31:#include "src/common/ustring.h"
+Binary file src/engines/nwn/area.o matches
+Binary file src/engines/nwn/situated.o matches
+src/engines/nwn/tileset.h:31:#include "src/common/ustring.h"
+src/engines/nwn/gui/legal.cpp:26:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/gui.o matches
+Binary file src/engines/nwn/gui/options/soundadv.o matches
+Binary file src/engines/nwn/gui/options/videoadv.o matches
+src/engines/nwn/gui/options/.deps/feedback.Plo:63: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/options/.deps/feedback.Plo:555:../../../src/common/ustring.h:
+src/engines/nwn/gui/options/.deps/gorepass.Plo:114: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/options/.deps/gorepass.Plo:687:../../../src/common/ustring.h:
+src/engines/nwn/gui/options/.deps/sound.Plo:52: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/options/.deps/sound.Plo:529:../../../src/common/ustring.h:
+src/engines/nwn/gui/options/.deps/game.Plo:63: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/options/.deps/game.Plo:557:../../../src/common/ustring.h:
+src/engines/nwn/gui/options/.deps/soundadv.Plo:114: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/options/.deps/soundadv.Plo:687:../../../src/common/ustring.h:
+src/engines/nwn/gui/options/.deps/controls.Plo:114: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/options/.deps/controls.Plo:687:../../../src/common/ustring.h:
+src/engines/nwn/gui/options/.deps/video.Plo:63: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/options/.deps/video.Plo:569:../../../src/common/ustring.h:
+src/engines/nwn/gui/options/.deps/resolution.Plo:52: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/options/.deps/resolution.Plo:535:../../../src/common/ustring.h:
+src/engines/nwn/gui/options/.deps/videoadv.Plo:65: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/options/.deps/videoadv.Plo:576:../../../src/common/ustring.h:
+Binary file src/engines/nwn/gui/options/game.o matches
+Binary file src/engines/nwn/gui/options/controls.o matches
+Binary file src/engines/nwn/gui/options/video.o matches
+Binary file src/engines/nwn/gui/options/sound.o matches
+Binary file src/engines/nwn/gui/options/gorepass.o matches
+Binary file src/engines/nwn/gui/options/feedback.o matches
+Binary file src/engines/nwn/gui/options/resolution.o matches
+Binary file src/engines/nwn/gui/ingame/quickbar.o matches
+Binary file src/engines/nwn/gui/ingame/main.o matches
+Binary file src/engines/nwn/gui/ingame/dialog.o matches
+Binary file src/engines/nwn/gui/ingame/quickchat.o matches
+src/engines/nwn/gui/ingame/.deps/partyleader.Plo:63: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/ingame/.deps/partyleader.Plo:584:../../../src/common/ustring.h:
+src/engines/nwn/gui/ingame/.deps/quickchat.Plo:53: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/ingame/.deps/quickchat.Plo:553:../../../src/common/ustring.h:
+src/engines/nwn/gui/ingame/.deps/quickbar.Plo:35: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/ingame/.deps/quickbar.Plo:503:../../../src/common/ustring.h:
+src/engines/nwn/gui/ingame/.deps/dialog.Plo:63: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/ingame/.deps/dialog.Plo:588:../../../src/common/ustring.h:
+src/engines/nwn/gui/ingame/.deps/main.Plo:52: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/ingame/.deps/main.Plo:532:../../../src/common/ustring.h:
+src/engines/nwn/gui/ingame/.deps/compass.Plo:208: ../../../src/common/vector3.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/ingame/.deps/compass.Plo:932:../../../src/common/ustring.h:
+src/engines/nwn/gui/ingame/.deps/ingame.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/ingame/.deps/ingame.Plo:498:../../../src/common/ustring.h:
+src/engines/nwn/gui/ingame/.deps/charinfo.Plo:118: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/ingame/.deps/charinfo.Plo:699:../../../src/common/ustring.h:
+Binary file src/engines/nwn/gui/ingame/charinfo.o matches
+src/engines/nwn/gui/ingame/partyleader.h:28:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/ingame/partyleader.o matches
+Binary file src/engines/nwn/gui/ingame/compass.o matches
+Binary file src/engines/nwn/gui/ingame/ingame.o matches
+src/engines/nwn/gui/.deps/gui.Plo:52: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/.deps/gui.Plo:540:../../../src/common/ustring.h:
+src/engines/nwn/gui/.deps/legal.Plo:40: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/.deps/legal.Plo:515:../../../src/common/ustring.h:
+Binary file src/engines/nwn/gui/main/newcamp.o matches
+Binary file src/engines/nwn/gui/main/main.o matches
+Binary file src/engines/nwn/gui/main/chartype.o matches
+Binary file src/engines/nwn/gui/main/new.o matches
+Binary file src/engines/nwn/gui/main/newxp2.o matches
+src/engines/nwn/gui/main/.deps/moviescamp.Plo:52: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/main/.deps/moviescamp.Plo:519:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/options.Plo:117: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/main/.deps/options.Plo:702:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/newxp1.Plo:52: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/main/.deps/newxp1.Plo:534:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/newgamefog.Plo:75: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/main/.deps/newgamefog.Plo:611:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/charpremade.Plo:67: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/main/.deps/charpremade.Plo:621:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/new.Plo:52: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/main/.deps/new.Plo:533:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/chartype.Plo:119: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/main/.deps/chartype.Plo:710:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/newcamp.Plo:52: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/main/.deps/newcamp.Plo:525:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/main.Plo:52: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/main/.deps/main.Plo:542:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/newxp2.Plo:52: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/main/.deps/newxp2.Plo:534:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/moviesbase.Plo:3: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/main/.deps/moviesbase.Plo:398:../../../src/common/ustring.h:
+src/engines/nwn/gui/main/.deps/newmodule.Plo:63: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/main/.deps/newmodule.Plo:592:../../../src/common/ustring.h:
+Binary file src/engines/nwn/gui/main/charpremade.o matches
+Binary file src/engines/nwn/gui/main/moviesbase.o matches
+Binary file src/engines/nwn/gui/main/options.o matches
+Binary file src/engines/nwn/gui/main/newmodule.o matches
+src/engines/nwn/gui/main/newmodule.h:28:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/main/moviescamp.o matches
+Binary file src/engines/nwn/gui/main/newgamefog.o matches
+Binary file src/engines/nwn/gui/main/newxp1.o matches
+Binary file src/engines/nwn/gui/legal.o matches
+src/engines/nwn/gui/dialogs/.deps/okcancel.Plo:34: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/dialogs/.deps/okcancel.Plo:479:../../../src/common/ustring.h:
+src/engines/nwn/gui/dialogs/.deps/yesnocancel.Plo:34: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/dialogs/.deps/yesnocancel.Plo:479:../../../src/common/ustring.h:
+src/engines/nwn/gui/dialogs/yesnocancel.h:28:#include "src/common/ustring.h"
+src/engines/nwn/gui/dialogs/okcancel.h:28:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/dialogs/yesnocancel.o matches
+Binary file src/engines/nwn/gui/dialogs/okcancel.o matches
+Binary file src/engines/nwn/gui/widgets/close.o matches
+src/engines/nwn/gui/widgets/listbox.cpp:29:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/widgets/tooltip.o matches
+Binary file src/engines/nwn/gui/widgets/textwidget.o matches
+Binary file src/engines/nwn/gui/widgets/listitembutton.o matches
+src/engines/nwn/gui/widgets/slider.cpp:28:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/widgets/portrait.o matches
+Binary file src/engines/nwn/gui/widgets/slider.o matches
+src/engines/nwn/gui/widgets/button.h:28:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/widgets/editbox.o matches
+src/engines/nwn/gui/widgets/portrait.cpp:29:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/widgets/modelwidget.o matches
+Binary file src/engines/nwn/gui/widgets/label.o matches
+src/engines/nwn/gui/widgets/.deps/slider.Plo:39: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/widgets/.deps/slider.Plo:417:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/textwidget.Plo:2: /usr/include/stdc-predef.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/textwidget.Plo:307:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/modelwidget.Plo:35: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/modelwidget.Plo:403:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/button.Plo:41: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/button.Plo:420:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/panel.Plo:114: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/widgets/.deps/panel.Plo:586:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/listbox.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/listbox.Plo:483:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/editbox.Plo:40: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/editbox.Plo:423:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/checkbox.Plo:3: ../../../config.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/checkbox.Plo:333:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/frame.Plo:114: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/widgets/.deps/frame.Plo:586:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/listitembutton.Plo:80: /usr/local/include/SDL2/SDL_mutex.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/listitembutton.Plo:534:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/label.Plo:114: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/widgets/.deps/label.Plo:586:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/tooltip.Plo:112: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/tooltip.Plo:714:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/buttonsgroup.Plo:118: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/widgets/.deps/buttonsgroup.Plo:602:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/gridbox.Plo:208: ../../../src/common/vector3.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/gridbox.Plo:831:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/close.Plo:3: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/widgets/.deps/close.Plo:329:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/scrollbar.Plo:210: ../../../src/common/vector3.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/scrollbar.Plo:835:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/portrait.Plo:41: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/widgets/.deps/portrait.Plo:421:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/nwnwidget.Plo:93: /usr/include/boost/bind/placeholders.hpp ../../../src/common/ustring.h \
+src/engines/nwn/gui/widgets/.deps/nwnwidget.Plo:630:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/.deps/quadwidget.Plo:39: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/widgets/.deps/quadwidget.Plo:395:../../../src/common/ustring.h:
+src/engines/nwn/gui/widgets/quadwidget.cpp:26:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/widgets/listbox.o matches
+src/engines/nwn/gui/widgets/nwnwidget.cpp:27:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/widgets/frame.o matches
+Binary file src/engines/nwn/gui/widgets/checkbox.o matches
+Binary file src/engines/nwn/gui/widgets/buttonsgroup.o matches
+src/engines/nwn/gui/widgets/close.cpp:26:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/widgets/gridbox.o matches
+Binary file src/engines/nwn/gui/widgets/panel.o matches
+src/engines/nwn/gui/widgets/textwidget.cpp:25:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/widgets/scrollbar.o matches
+Binary file src/engines/nwn/gui/widgets/quadwidget.o matches
+src/engines/nwn/gui/widgets/modelwidget.cpp:26:#include "src/common/ustring.h"
+src/engines/nwn/gui/widgets/tooltip.h:28:#include "src/common/ustring.h"
+src/engines/nwn/gui/widgets/checkbox.cpp:26:#include "src/common/ustring.h"
+Binary file src/engines/nwn/gui/widgets/button.o matches
+Binary file src/engines/nwn/gui/widgets/nwnwidget.o matches
+Binary file src/engines/nwn/gui/chargen/charrace.o matches
+Binary file src/engines/nwn/gui/chargen/charclass.o matches
+src/engines/nwn/gui/chargen/.deps/charattributes.Plo:52: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/chargen/.deps/charattributes.Plo:538:../../../src/common/ustring.h:
+src/engines/nwn/gui/chargen/.deps/charsex.Plo:52: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/chargen/.deps/charsex.Plo:537:../../../src/common/ustring.h:
+src/engines/nwn/gui/chargen/.deps/chargen.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/chargen/.deps/chargen.Plo:529:../../../src/common/ustring.h:
+src/engines/nwn/gui/chargen/.deps/charrace.Plo:52: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/chargen/.deps/charrace.Plo:536:../../../src/common/ustring.h:
+src/engines/nwn/gui/chargen/.deps/charportrait.Plo:33: /usr/include/c++/4.8/bits/range_access.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/chargen/.deps/charportrait.Plo:493:../../../src/common/ustring.h:
+src/engines/nwn/gui/chargen/.deps/chargenbase.Plo:33: /usr/include/c++/4.8/bits/range_access.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/chargen/.deps/chargenbase.Plo:478:../../../src/common/ustring.h:
+src/engines/nwn/gui/chargen/.deps/charpackage.Plo:33: /usr/include/c++/4.8/bits/range_access.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/chargen/.deps/charpackage.Plo:480:../../../src/common/ustring.h:
+src/engines/nwn/gui/chargen/.deps/charclass.Plo:52: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/chargen/.deps/charclass.Plo:530:../../../src/common/ustring.h:
+src/engines/nwn/gui/chargen/.deps/chargenchoices.Plo:61: /usr/include/c++/4.8/bits/range_access.h ../../../src/common/ustring.h \
+src/engines/nwn/gui/chargen/.deps/chargenchoices.Plo:528:../../../src/common/ustring.h:
+src/engines/nwn/gui/chargen/.deps/charalignment.Plo:52: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/gui/chargen/.deps/charalignment.Plo:530:../../../src/common/ustring.h:
+Binary file src/engines/nwn/gui/chargen/chargen.o matches
+Binary file src/engines/nwn/gui/chargen/charsex.o matches
+Binary file src/engines/nwn/gui/chargen/charpackage.o matches
+Binary file src/engines/nwn/gui/chargen/charattributes.o matches
+Binary file src/engines/nwn/gui/chargen/charalignment.o matches
+Binary file src/engines/nwn/gui/chargen/chargenchoices.o matches
+Binary file src/engines/nwn/gui/chargen/chargenbase.o matches
+Binary file src/engines/nwn/gui/chargen/charportrait.o matches
+Binary file src/engines/nwn/console.o matches
+src/engines/nwn/area.h:33:#include "src/common/ustring.h"
+Binary file src/engines/nwn/nwn.o matches
+Binary file src/engines/nwn/module.o matches
+src/engines/nwn/.deps/tileset.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/tileset.Plo:475:../../../src/common/ustring.h:
+src/engines/nwn/.deps/nwn.Plo:70: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn/.deps/nwn.Plo:613:../../../src/common/ustring.h:
+src/engines/nwn/.deps/situated.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/situated.Plo:486:../../../src/common/ustring.h:
+src/engines/nwn/.deps/modelloader.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/modelloader.Plo:405:../../../src/common/ustring.h:
+src/engines/nwn/.deps/console.Plo:92: /usr/include/boost/bind/placeholders.hpp ../../../src/common/ustring.h \
+src/engines/nwn/.deps/console.Plo:651:../../../src/common/ustring.h:
+src/engines/nwn/.deps/placeable.Plo:67: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/placeable.Plo:585:../../../src/common/ustring.h:
+src/engines/nwn/.deps/object.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/object.Plo:510:../../../src/common/ustring.h:
+src/engines/nwn/.deps/version.Plo:53: /usr/include/c++/4.8/bits/memoryfwd.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/version.Plo:392:../../../src/common/ustring.h:
+src/engines/nwn/.deps/item.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/item.Plo:486:../../../src/common/ustring.h:
+src/engines/nwn/.deps/area.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/area.Plo:580:../../../src/common/ustring.h:
+src/engines/nwn/.deps/creature.Plo:74: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/creature.Plo:628:../../../src/common/ustring.h:
+src/engines/nwn/.deps/module.Plo:64: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/module.Plo:601:../../../src/common/ustring.h:
+src/engines/nwn/.deps/door.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/door.Plo:576:../../../src/common/ustring.h:
+src/engines/nwn/.deps/waypoint.Plo:63: /usr/include/c++/4.8/bits/range_access.h ../../../src/common/ustring.h \
+src/engines/nwn/.deps/waypoint.Plo:493:../../../src/common/ustring.h:
+Binary file src/engines/nwn/door.o matches
+Binary file src/engines/nwn/waypoint.o matches
+Binary file src/engines/nwn/version.o matches
+src/engines/nwn/waypoint.h:29:#include "src/common/ustring.h"
+src/engines/nwn/version.cpp:27:#include "src/common/ustring.h"
+Binary file src/engines/nwn/.libs/libnwn.a matches
+src/engines/nwn/console.h:32:#include "src/common/ustring.h"
+Binary file src/engines/nwn/modelloader.o matches
+Binary file src/engines/nwn/placeable.o matches
+Binary file src/engines/nwn/item.o matches
+Binary file src/engines/nwn/tileset.o matches
+Binary file src/engines/nwn/creature.o matches
+src/engines/nwn/console.cpp:27:#include "src/common/ustring.h"
+src/engines/nwn/object.h:31:#include "src/common/ustring.h"
+Binary file src/engines/nwn/object.o matches
+Binary file src/engines/nwn/script/functions_800.o matches
+Binary file src/engines/nwn/script/functions_200.o matches
+Binary file src/engines/nwn/script/functions_600.o matches
+Binary file src/engines/nwn/script/functions_500.o matches
+Binary file src/engines/nwn/script/functions_400.o matches
+src/engines/nwn/script/.deps/functions.Plo:311: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/functions.Plo:1150:../../../src/common/ustring.h:
+src/engines/nwn/script/.deps/functions_000.Plo:111: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/functions_000.Plo:702:../../../src/common/ustring.h:
+src/engines/nwn/script/.deps/functions_100.Plo:111: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/functions_100.Plo:696:../../../src/common/ustring.h:
+src/engines/nwn/script/.deps/functions_500.Plo:762: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/functions_500.Plo:2562:../../../src/common/ustring.h:
+src/engines/nwn/script/.deps/container.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/container.Plo:486:../../../src/common/ustring.h:
+src/engines/nwn/script/.deps/functions_300.Plo:111: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/functions_300.Plo:674:../../../src/common/ustring.h:
+src/engines/nwn/script/.deps/functions_200.Plo:117: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/functions_200.Plo:719:../../../src/common/ustring.h:
+src/engines/nwn/script/.deps/functions_600.Plo:111: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/functions_600.Plo:677:../../../src/common/ustring.h:
+src/engines/nwn/script/.deps/functions_800.Plo:111: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/functions_800.Plo:639:../../../src/common/ustring.h:
+src/engines/nwn/script/.deps/functions_700.Plo:111: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/functions_700.Plo:696:../../../src/common/ustring.h:
+src/engines/nwn/script/.deps/functions_400.Plo:111: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn/script/.deps/functions_400.Plo:697:../../../src/common/ustring.h:
+Binary file src/engines/nwn/script/functions.o matches
+Binary file src/engines/nwn/script/functions_000.o matches
+Binary file src/engines/nwn/script/functions_100.o matches
+Binary file src/engines/nwn/script/functions_700.o matches
+Binary file src/engines/nwn/script/container.o matches
+src/engines/nwn/script/container.h:29:#include "src/common/ustring.h"
+Binary file src/engines/nwn/script/functions_300.o matches
+src/engines/.deps/engine.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/engines/.deps/engine.Plo:554:../../src/common/ustring.h:
+src/engines/.deps/gamethread.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/engines/.deps/gamethread.Plo:556:../../src/common/ustring.h:
+src/engines/.deps/enginemanager.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/engines/.deps/enginemanager.Plo:580:../../src/common/ustring.h:
+Binary file src/engines/aurora/widget.o matches
+src/engines/aurora/util.h:28:#include "src/common/ustring.h"
+Binary file src/engines/aurora/language.o matches
+Binary file src/engines/aurora/gui.o matches
+src/engines/aurora/gui.h:31:#include "src/common/ustring.h"
+Binary file src/engines/aurora/console.o matches
+src/engines/aurora/model.cpp:30:#include "src/common/ustring.h"
+src/engines/aurora/.deps/tokenman.Plo:33: /usr/include/c++/4.8/bits/range_access.h ../../src/common/ustring.h \
+src/engines/aurora/.deps/tokenman.Plo:325:../../src/common/ustring.h:
+src/engines/aurora/.deps/model.Plo:2: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/aurora/.deps/model.Plo:295:../../src/common/ustring.h:
+src/engines/aurora/.deps/loadprogress.Plo:115: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/engines/aurora/.deps/loadprogress.Plo:725:../../src/common/ustring.h:
+src/engines/aurora/.deps/camera.Plo:78: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/engines/aurora/.deps/camera.Plo:570:../../src/common/ustring.h:
+src/engines/aurora/.deps/modelloader.Plo:40: /usr/include/c++/4.8/bits/stl_multimap.h ../../src/common/ustring.h \
+src/engines/aurora/.deps/modelloader.Plo:411:../../src/common/ustring.h:
+src/engines/aurora/.deps/console.Plo:117: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/aurora/.deps/console.Plo:732:../../src/common/ustring.h:
+src/engines/aurora/.deps/resources.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/engines/aurora/.deps/resources.Plo:457:../../src/common/ustring.h:
+src/engines/aurora/.deps/widget.Plo:48: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/aurora/.deps/widget.Plo:485:../../src/common/ustring.h:
+src/engines/aurora/.deps/util.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/engines/aurora/.deps/util.Plo:483:../../src/common/ustring.h:
+src/engines/aurora/.deps/gui.Plo:35: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/engines/aurora/.deps/gui.Plo:495:../../src/common/ustring.h:
+src/engines/aurora/.deps/language.Plo:52: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/aurora/.deps/language.Plo:378:../../src/common/ustring.h:
+src/engines/aurora/tokenman.h:30:#include "src/common/ustring.h"
+src/engines/aurora/resources.cpp:26:#include "src/common/ustring.h"
+src/engines/aurora/loadprogress.h:28:#include "src/common/ustring.h"
+src/engines/aurora/console.h:32:#include "src/common/ustring.h"
+Binary file src/engines/aurora/modelloader.o matches
+Binary file src/engines/aurora/loadprogress.o matches
+src/engines/aurora/widget.h:31:#include "src/common/ustring.h"
+Binary file src/engines/aurora/tokenman.o matches
+Binary file src/engines/aurora/model.o matches
+Binary file src/engines/aurora/util.o matches
+Binary file src/engines/aurora/resources.o matches
+Binary file src/engines/kotor2/gui/main/main.o matches
+src/engines/kotor2/gui/main/.deps/main.Plo:113: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor2/gui/main/.deps/main.Plo:703:../../../src/common/ustring.h:
+Binary file src/engines/kotor2/console.o matches
+src/engines/kotor2/.deps/kotor2.Plo:58: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor2/.deps/kotor2.Plo:566:../../../src/common/ustring.h:
+src/engines/kotor2/.deps/modelloader.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor2/.deps/modelloader.Plo:405:../../../src/common/ustring.h:
+src/engines/kotor2/.deps/console.Plo:92: /usr/include/boost/bind/placeholders.hpp ../../../src/common/ustring.h \
+src/engines/kotor2/.deps/console.Plo:639:../../../src/common/ustring.h:
+Binary file src/engines/kotor2/kotor2.o matches
+Binary file src/engines/kotor2/.libs/libkotor2.a matches
+src/engines/kotor2/kotor2.h:28:#include "src/common/ustring.h"
+Binary file src/engines/kotor2/modelloader.o matches
+src/engines/kotor2/console.cpp:27:#include "src/common/ustring.h"
+src/engines/enginemanager.cpp:29:#include "src/common/ustring.h"
+Binary file src/engines/gamethread.o matches
+src/engines/dragonage2/creature.h:31:#include "src/common/ustring.h"
+Binary file src/engines/dragonage2/console.o matches
+src/engines/dragonage2/area.h:32:#include "src/common/ustring.h"
+src/engines/dragonage2/campaign.h:31:#include "src/common/ustring.h"
+src/engines/dragonage2/.deps/console.Plo:346: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/dragonage2/.deps/console.Plo:1229:../../../src/common/ustring.h:
+src/engines/dragonage2/.deps/dragonage2.Plo:58: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/dragonage2/.deps/dragonage2.Plo:556:../../../src/common/ustring.h:
+Binary file src/engines/dragonage2/.libs/libdragonage2.a matches
+Binary file src/engines/dragonage2/dragonage2.o matches
+src/engines/dragonage2/scriptobject.cpp:26:#include "src/common/ustring.h"
+src/engines/dragonage2/util.cpp:25:#include "src/common/ustring.h"
+src/engines/dragonage2/campaigns.h:30:#include "src/common/ustring.h"
+src/engines/dragonage2/object.h:31:#include "src/common/ustring.h"
+src/engines/dragonage2/dragonage2.h:30:#include "src/common/ustring.h"
+src/engines/dragonage2/room.h:30:#include "src/common/ustring.h"
+src/engines/dragonage2/placeable.h:28:#include "src/common/ustring.h"
+src/engines/witcher/module.h:28:#include "src/common/ustring.h"
+Binary file src/engines/witcher/area.o matches
+Binary file src/engines/witcher/situated.o matches
+Binary file src/engines/witcher/console.o matches
+src/engines/witcher/area.h:29:#include "src/common/ustring.h"
+src/engines/witcher/witcher.h:28:#include "src/common/ustring.h"
+Binary file src/engines/witcher/module.o matches
+src/engines/witcher/campaign.h:30:#include "src/common/ustring.h"
+Binary file src/engines/witcher/witcher.o matches
+src/engines/witcher/.deps/situated.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/witcher/.deps/situated.Plo:487:../../../src/common/ustring.h:
+src/engines/witcher/.deps/witcher.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/witcher/.deps/witcher.Plo:570:../../../src/common/ustring.h:
+src/engines/witcher/.deps/modelloader.Plo:35: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/witcher/.deps/modelloader.Plo:409:../../../src/common/ustring.h:
+src/engines/witcher/.deps/console.Plo:92: /usr/include/boost/bind/placeholders.hpp ../../../src/common/ustring.h \
+src/engines/witcher/.deps/console.Plo:647:../../../src/common/ustring.h:
+src/engines/witcher/.deps/placeable.Plo:67: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/witcher/.deps/placeable.Plo:562:../../../src/common/ustring.h:
+src/engines/witcher/.deps/object.Plo:83: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/witcher/.deps/object.Plo:569:../../../src/common/ustring.h:
+src/engines/witcher/.deps/area.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/witcher/.deps/area.Plo:582:../../../src/common/ustring.h:
+src/engines/witcher/.deps/module.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/witcher/.deps/module.Plo:563:../../../src/common/ustring.h:
+src/engines/witcher/.deps/door.Plo:66: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/witcher/.deps/door.Plo:584:../../../src/common/ustring.h:
+src/engines/witcher/.deps/waypoint.Plo:63: /usr/include/c++/4.8/bits/range_access.h ../../../src/common/ustring.h \
+src/engines/witcher/.deps/waypoint.Plo:493:../../../src/common/ustring.h:
+src/engines/witcher/.deps/campaign.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/witcher/.deps/campaign.Plo:558:../../../src/common/ustring.h:
+Binary file src/engines/witcher/door.o matches
+Binary file src/engines/witcher/waypoint.o matches
+src/engines/witcher/waypoint.h:29:#include "src/common/ustring.h"
+Binary file src/engines/witcher/.libs/libwitcher.a matches
+src/engines/witcher/console.h:31:#include "src/common/ustring.h"
+Binary file src/engines/witcher/modelloader.o matches
+Binary file src/engines/witcher/placeable.o matches
+Binary file src/engines/witcher/campaign.o matches
+src/engines/witcher/console.cpp:27:#include "src/common/ustring.h"
+src/engines/witcher/object.h:31:#include "src/common/ustring.h"
+Binary file src/engines/witcher/object.o matches
+src/engines/kotor/creature.h:29:#include "src/common/ustring.h"
+src/engines/kotor/module.h:28:#include "src/common/ustring.h"
+Binary file src/engines/kotor/area.o matches
+src/engines/kotor/kotor.h:28:#include "src/common/ustring.h"
+Binary file src/engines/kotor/situated.o matches
+Binary file src/engines/kotor/gui/gui.o matches
+Binary file src/engines/kotor/gui/options/soundadv.o matches
+Binary file src/engines/kotor/gui/options/graphics.o matches
+Binary file src/engines/kotor/gui/options/mousesettings.o matches
+src/engines/kotor/gui/options/.deps/keyboardconfig.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/options/.deps/keyboardconfig.Plo:504:../../../src/common/ustring.h:
+src/engines/kotor/gui/options/.deps/gameplay.Plo:63: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor/gui/options/.deps/gameplay.Plo:563:../../../src/common/ustring.h:
+src/engines/kotor/gui/options/.deps/feedback.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/options/.deps/feedback.Plo:504:../../../src/common/ustring.h:
+src/engines/kotor/gui/options/.deps/sound.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/options/.deps/sound.Plo:505:../../../src/common/ustring.h:
+src/engines/kotor/gui/options/.deps/graphics.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/options/.deps/graphics.Plo:515:../../../src/common/ustring.h:
+src/engines/kotor/gui/options/.deps/graphicsadv.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/options/.deps/graphicsadv.Plo:514:../../../src/common/ustring.h:
+src/engines/kotor/gui/options/.deps/soundadv.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/options/.deps/soundadv.Plo:514:../../../src/common/ustring.h:
+src/engines/kotor/gui/options/.deps/autopause.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/options/.deps/autopause.Plo:514:../../../src/common/ustring.h:
+src/engines/kotor/gui/options/.deps/mousesettings.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/options/.deps/mousesettings.Plo:504:../../../src/common/ustring.h:
+Binary file src/engines/kotor/gui/options/gameplay.o matches
+Binary file src/engines/kotor/gui/options/graphicsadv.o matches
+Binary file src/engines/kotor/gui/options/sound.o matches
+Binary file src/engines/kotor/gui/options/autopause.o matches
+Binary file src/engines/kotor/gui/options/feedback.o matches
+Binary file src/engines/kotor/gui/options/keyboardconfig.o matches
+src/engines/kotor/gui/.deps/gui.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor/gui/.deps/gui.Plo:494:../../../src/common/ustring.h:
+Binary file src/engines/kotor/gui/main/main.o matches
+Binary file src/engines/kotor/gui/main/movies.o matches
+src/engines/kotor/gui/main/.deps/options.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/main/.deps/options.Plo:519:../../../src/common/ustring.h:
+src/engines/kotor/gui/main/.deps/main.Plo:113: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor/gui/main/.deps/main.Plo:706:../../../src/common/ustring.h:
+src/engines/kotor/gui/main/.deps/movies.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/main/.deps/movies.Plo:504:../../../src/common/ustring.h:
+Binary file src/engines/kotor/gui/main/options.o matches
+Binary file src/engines/kotor/gui/widgets/kotorwidget.o matches
+Binary file src/engines/kotor/gui/widgets/slider.o matches
+Binary file src/engines/kotor/gui/widgets/label.o matches
+src/engines/kotor/gui/widgets/.deps/slider.Plo:5: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/widgets/.deps/slider.Plo:313:../../../src/common/ustring.h:
+src/engines/kotor/gui/widgets/.deps/progressbar.Plo:5: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/widgets/.deps/progressbar.Plo:313:../../../src/common/ustring.h:
+src/engines/kotor/gui/widgets/.deps/protoitem.Plo:5: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/widgets/.deps/protoitem.Plo:313:../../../src/common/ustring.h:
+src/engines/kotor/gui/widgets/.deps/button.Plo:57: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/widgets/.deps/button.Plo:446:../../../src/common/ustring.h:
+src/engines/kotor/gui/widgets/.deps/panel.Plo:56: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/widgets/.deps/panel.Plo:437:../../../src/common/ustring.h:
+src/engines/kotor/gui/widgets/.deps/listbox.Plo:5: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/widgets/.deps/listbox.Plo:313:../../../src/common/ustring.h:
+src/engines/kotor/gui/widgets/.deps/checkbox.Plo:57: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/widgets/.deps/checkbox.Plo:448:../../../src/common/ustring.h:
+src/engines/kotor/gui/widgets/.deps/label.Plo:56: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/widgets/.deps/label.Plo:437:../../../src/common/ustring.h:
+src/engines/kotor/gui/widgets/.deps/kotorwidget.Plo:67: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/kotor/gui/widgets/.deps/kotorwidget.Plo:472:../../../src/common/ustring.h:
+src/engines/kotor/gui/widgets/.deps/scrollbar.Plo:5: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/gui/widgets/.deps/scrollbar.Plo:313:../../../src/common/ustring.h:
+Binary file src/engines/kotor/gui/widgets/listbox.o matches
+Binary file src/engines/kotor/gui/widgets/checkbox.o matches
+Binary file src/engines/kotor/gui/widgets/panel.o matches
+Binary file src/engines/kotor/gui/widgets/protoitem.o matches
+Binary file src/engines/kotor/gui/widgets/scrollbar.o matches
+src/engines/kotor/gui/widgets/kotorwidget.h:28:#include "src/common/ustring.h"
+Binary file src/engines/kotor/gui/widgets/button.o matches
+Binary file src/engines/kotor/gui/widgets/progressbar.o matches
+Binary file src/engines/kotor/console.o matches
+src/engines/kotor/area.h:32:#include "src/common/ustring.h"
+src/engines/kotor/module.cpp:27:#include "src/common/ustring.h"
+Binary file src/engines/kotor/module.o matches
+src/engines/kotor/.deps/situated.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor/.deps/situated.Plo:406:../../../src/common/ustring.h:
+src/engines/kotor/.deps/modelloader.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor/.deps/modelloader.Plo:405:../../../src/common/ustring.h:
+src/engines/kotor/.deps/console.Plo:92: /usr/include/boost/bind/placeholders.hpp ../../../src/common/ustring.h \
+src/engines/kotor/.deps/console.Plo:638:../../../src/common/ustring.h:
+src/engines/kotor/.deps/placeable.Plo:67: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/kotor/.deps/placeable.Plo:483:../../../src/common/ustring.h:
+src/engines/kotor/.deps/object.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/.deps/object.Plo:361:../../../src/common/ustring.h:
+src/engines/kotor/.deps/area.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor/.deps/area.Plo:569:../../../src/common/ustring.h:
+src/engines/kotor/.deps/creature.Plo:24: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/.deps/creature.Plo:387:../../../src/common/ustring.h:
+src/engines/kotor/.deps/module.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor/.deps/module.Plo:559:../../../src/common/ustring.h:
+src/engines/kotor/.deps/door.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor/.deps/door.Plo:472:../../../src/common/ustring.h:
+src/engines/kotor/.deps/kotor.Plo:57: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/kotor/.deps/kotor.Plo:563:../../../src/common/ustring.h:
+src/engines/kotor/.deps/room.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/kotor/.deps/room.Plo:397:../../../src/common/ustring.h:
+Binary file src/engines/kotor/door.o matches
+Binary file src/engines/kotor/room.o matches
+src/engines/kotor/room.cpp:26:#include "src/common/ustring.h"
+Binary file src/engines/kotor/.libs/libkotor.a matches
+src/engines/kotor/creature.cpp:30:#include "src/common/ustring.h"
+Binary file src/engines/kotor/modelloader.o matches
+Binary file src/engines/kotor/placeable.o matches
+Binary file src/engines/kotor/creature.o matches
+src/engines/kotor/console.cpp:27:#include "src/common/ustring.h"
+src/engines/kotor/object.h:31:#include "src/common/ustring.h"
+Binary file src/engines/kotor/object.o matches
+Binary file src/engines/kotor/kotor.o matches
+Binary file src/engines/.libs/libengines.a matches
+src/engines/gamethread.cpp:30:#include "src/common/ustring.h"
+src/engines/jade/module.h:28:#include "src/common/ustring.h"
+Binary file src/engines/jade/area.o matches
+Binary file src/engines/jade/gui/main/main.o matches
+src/engines/jade/gui/main/.deps/main.Plo:122: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/jade/gui/main/.deps/main.Plo:711:../../../src/common/ustring.h:
+Binary file src/engines/jade/console.o matches
+src/engines/jade/area.h:31:#include "src/common/ustring.h"
+src/engines/jade/module.cpp:27:#include "src/common/ustring.h"
+Binary file src/engines/jade/module.o matches
+src/engines/jade/.deps/jade.Plo:57: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/jade/.deps/jade.Plo:579:../../../src/common/ustring.h:
+src/engines/jade/.deps/artplaceable.Plo:68: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/jade/.deps/artplaceable.Plo:485:../../../src/common/ustring.h:
+src/engines/jade/.deps/modelloader.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/jade/.deps/modelloader.Plo:405:../../../src/common/ustring.h:
+src/engines/jade/.deps/console.Plo:92: /usr/include/boost/bind/placeholders.hpp ../../../src/common/ustring.h \
+src/engines/jade/.deps/console.Plo:639:../../../src/common/ustring.h:
+src/engines/jade/.deps/object.Plo:47: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/jade/.deps/object.Plo:361:../../../src/common/ustring.h:
+src/engines/jade/.deps/area.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/jade/.deps/area.Plo:563:../../../src/common/ustring.h:
+src/engines/jade/.deps/module.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/jade/.deps/module.Plo:554:../../../src/common/ustring.h:
+src/engines/jade/.deps/room.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/jade/.deps/room.Plo:399:../../../src/common/ustring.h:
+src/engines/jade/jade.h:28:#include "src/common/ustring.h"
+Binary file src/engines/jade/room.o matches
+Binary file src/engines/jade/.libs/libjade.a matches
+Binary file src/engines/jade/modelloader.o matches
+Binary file src/engines/jade/artplaceable.o matches
+src/engines/jade/console.cpp:27:#include "src/common/ustring.h"
+src/engines/jade/object.h:31:#include "src/common/ustring.h"
+Binary file src/engines/jade/object.o matches
+Binary file src/engines/jade/jade.o matches
+Binary file src/engines/sonic/console.o matches
+src/engines/sonic/area.h:32:#include "src/common/ustring.h"
+src/engines/sonic/module.cpp:26:#include "src/common/ustring.h"
+src/engines/sonic/areabackground.cpp:26:#include "src/common/ustring.h"
+src/engines/sonic/.deps/sonic.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/sonic/.deps/sonic.Plo:579:../../../src/common/ustring.h:
+src/engines/sonic/.deps/console.Plo:346: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/sonic/.deps/console.Plo:1228:../../../src/common/ustring.h:
+Binary file src/engines/sonic/sonic.o matches
+Binary file src/engines/sonic/.libs/libsonic.a matches
+src/engines/sonic/areaminimap.cpp:25:#include "src/common/ustring.h"
+src/engines/sonic/util.cpp:30:#include "src/common/ustring.h"
+src/engines/sonic/console.cpp:27:#include "src/common/ustring.h"
+src/engines/sonic/object.h:29:#include "src/common/ustring.h"
+src/engines/sonic/sonic.h:28:#include "src/common/ustring.h"
+Binary file src/engines/engine.o matches
+src/engines/engine.h:30:#include "src/common/ustring.h"
+src/engines/nwn2/creature.h:29:#include "src/common/ustring.h"
+src/engines/nwn2/module.h:30:#include "src/common/ustring.h"
+Binary file src/engines/nwn2/area.o matches
+Binary file src/engines/nwn2/situated.o matches
+Binary file src/engines/nwn2/console.o matches
+Binary file src/engines/nwn2/nwn2.o matches
+src/engines/nwn2/area.h:31:#include "src/common/ustring.h"
+Binary file src/engines/nwn2/module.o matches
+src/engines/nwn2/campaign.h:30:#include "src/common/ustring.h"
+src/engines/nwn2/.deps/situated.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/situated.Plo:489:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/trxfile.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/trxfile.Plo:399:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/modelloader.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/modelloader.Plo:405:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/console.Plo:92: /usr/include/boost/bind/placeholders.hpp ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/console.Plo:645:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/placeable.Plo:67: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/placeable.Plo:562:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/nwn2.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/nwn2.Plo:570:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/object.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/object.Plo:509:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/area.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/area.Plo:584:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/creature.Plo:69: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/creature.Plo:572:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/util.Plo:2: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/nwn2/.deps/util.Plo:254:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/module.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/module.Plo:562:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/door.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/door.Plo:572:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/waypoint.Plo:63: /usr/include/c++/4.8/bits/range_access.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/waypoint.Plo:492:../../../src/common/ustring.h:
+src/engines/nwn2/.deps/campaign.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/nwn2/.deps/campaign.Plo:559:../../../src/common/ustring.h:
+Binary file src/engines/nwn2/door.o matches
+Binary file src/engines/nwn2/waypoint.o matches
+src/engines/nwn2/waypoint.h:29:#include "src/common/ustring.h"
+Binary file src/engines/nwn2/.libs/libnwn2.a matches
+Binary file src/engines/nwn2/trxfile.o matches
+Binary file src/engines/nwn2/modelloader.o matches
+Binary file src/engines/nwn2/placeable.o matches
+src/engines/nwn2/trxfile.cpp:28:#include "src/common/ustring.h"
+src/engines/nwn2/util.cpp:25:#include "src/common/ustring.h"
+Binary file src/engines/nwn2/campaign.o matches
+Binary file src/engines/nwn2/creature.o matches
+src/engines/nwn2/console.cpp:27:#include "src/common/ustring.h"
+src/engines/nwn2/object.h:31:#include "src/common/ustring.h"
+Binary file src/engines/nwn2/object.o matches
+src/engines/nwn2/nwn2.h:28:#include "src/common/ustring.h"
+Binary file src/engines/nwn2/util.o matches
+src/engines/dragonage/creature.h:31:#include "src/common/ustring.h"
+Binary file src/engines/dragonage/console.o matches
+src/engines/dragonage/area.h:32:#include "src/common/ustring.h"
+src/engines/dragonage/campaign.h:31:#include "src/common/ustring.h"
+src/engines/dragonage/.deps/dragonage.Plo:58: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/engines/dragonage/.deps/dragonage.Plo:556:../../../src/common/ustring.h:
+src/engines/dragonage/.deps/console.Plo:346: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/engines/dragonage/.deps/console.Plo:1229:../../../src/common/ustring.h:
+src/engines/dragonage/dragonage.h:30:#include "src/common/ustring.h"
+Binary file src/engines/dragonage/.libs/libdragonage.a matches
+src/engines/dragonage/scriptobject.cpp:26:#include "src/common/ustring.h"
+src/engines/dragonage/util.cpp:25:#include "src/common/ustring.h"
+src/engines/dragonage/campaigns.h:30:#include "src/common/ustring.h"
+Binary file src/engines/dragonage/dragonage.o matches
+src/engines/dragonage/object.h:31:#include "src/common/ustring.h"
+src/engines/dragonage/room.h:30:#include "src/common/ustring.h"
+src/engines/dragonage/placeable.h:28:#include "src/common/ustring.h"
+src/test.cpp~:5:#include "src/common/ustring.h"
+src/sound/.deps/sound.Plo:92: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/sound/.deps/sound.Plo:632:../../src/common/ustring.h:
+src/sound/.deps/audiostream.Plo:42: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/sound/.deps/audiostream.Plo:364:../../src/common/ustring.h:
+src/sound/.deps/interleaver.Plo:41: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/sound/.deps/interleaver.Plo:355:../../src/common/ustring.h:
+Binary file src/sound/.libs/libsound.a matches
+Binary file src/sound/sound.o matches
+Binary file src/sound/decoders/wave.o matches
+Binary file src/sound/decoders/adpcm.o matches
+src/sound/decoders/.deps/mp3.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/sound/decoders/.deps/mp3.Plo:443:../../../src/common/ustring.h:
+src/sound/decoders/.deps/vorbis.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/sound/decoders/.deps/vorbis.Plo:445:../../../src/common/ustring.h:
+src/sound/decoders/.deps/adpcm.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/sound/decoders/.deps/adpcm.Plo:442:../../../src/common/ustring.h:
+src/sound/decoders/.deps/aac.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/sound/decoders/.deps/aac.Plo:339:../../../src/common/ustring.h:
+src/sound/decoders/.deps/wave.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/sound/decoders/.deps/wave.Plo:340:../../../src/common/ustring.h:
+src/sound/decoders/.deps/pcm.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/sound/decoders/.deps/pcm.Plo:440:../../../src/common/ustring.h:
+src/sound/decoders/.deps/wma.Plo:67: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/sound/decoders/.deps/wma.Plo:430:../../../src/common/ustring.h:
+src/sound/decoders/.deps/asf.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/sound/decoders/.deps/asf.Plo:340:../../../src/common/ustring.h:
+Binary file src/sound/decoders/asf.o matches
+Binary file src/sound/decoders/wma.o matches
+Binary file src/sound/decoders/mp3.o matches
+Binary file src/sound/decoders/.libs/libdecoders.a matches
+Binary file src/sound/decoders/pcm.o matches
+Binary file src/sound/decoders/aac.o matches
+Binary file src/sound/decoders/vorbis.o matches
+Binary file src/sound/interleaver.o matches
+Binary file src/sound/audiostream.o matches
+src/cline.h:27:#include "src/common/ustring.h"
+Binary file src/xoreos matches
+src/.deps/cline.Po:20: ../src/common/ustring.h /usr/include/c++/4.8/string \
+src/.deps/cline.Po:311:../src/common/ustring.h:
+src/.deps/xoreos.Po:19: ../src/common/ustring.h /usr/include/c++/4.8/string \
+src/.deps/xoreos.Po:471:../src/common/ustring.h:
+src/aurora/util.h:32:#include "src/common/ustring.h"
+Binary file src/aurora/erffile.o matches
+Binary file src/aurora/language.o matches
+src/aurora/visfile.h:32:#include "src/common/ustring.h"
+Binary file src/aurora/talktable_tlk.o matches
+Binary file src/aurora/gdafile.o matches
+src/aurora/talktable_gff.h:31:#include "src/common/ustring.h"
+src/aurora/archive.h:31:#include "src/common/ustring.h"
+src/aurora/2dafile.h:32:#include "src/common/ustring.h"
+src/aurora/ndsrom.h:31:#include "src/common/ustring.h"
+src/aurora/language.cpp:27:#include "src/common/ustring.h"
+src/aurora/ndsrom.cpp:30:#include "src/common/ustring.h"
+src/aurora/nwscript/functionman.h:30:#include "src/common/ustring.h"
+src/aurora/nwscript/variable.cpp:26:#include "src/common/ustring.h"
+Binary file src/aurora/nwscript/ncsfile.o matches
+Binary file src/aurora/nwscript/variable.o matches
+src/aurora/nwscript/.deps/variable.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/aurora/nwscript/.deps/variable.Plo:410:../../../src/common/ustring.h:
+src/aurora/nwscript/.deps/objectcontainer.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/aurora/nwscript/.deps/objectcontainer.Plo:425:../../../src/common/ustring.h:
+src/aurora/nwscript/.deps/object.Plo:56: /usr/include/c++/4.8/bits/stl_multimap.h ../../../src/common/ustring.h \
+src/aurora/nwscript/.deps/object.Plo:477:../../../src/common/ustring.h:
+src/aurora/nwscript/.deps/variablecontainer.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/aurora/nwscript/.deps/variablecontainer.Plo:410:../../../src/common/ustring.h:
+src/aurora/nwscript/.deps/functioncontext.Plo:3: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/aurora/nwscript/.deps/functioncontext.Plo:338:../../../src/common/ustring.h:
+src/aurora/nwscript/.deps/ncsfile.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/aurora/nwscript/.deps/ncsfile.Plo:500:../../../src/common/ustring.h:
+src/aurora/nwscript/.deps/functionman.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/aurora/nwscript/.deps/functionman.Plo:485:../../../src/common/ustring.h:
+Binary file src/aurora/nwscript/objectcontainer.o matches
+src/aurora/nwscript/variablecontainer.h:30:#include "src/common/ustring.h"
+Binary file src/aurora/nwscript/functionman.o matches
+src/aurora/nwscript/functioncontext.h:28:#include "src/common/ustring.h"
+Binary file src/aurora/nwscript/functioncontext.o matches
+Binary file src/aurora/nwscript/.libs/libnwscript.a matches
+src/aurora/nwscript/ncsfile.cpp:34:#include "src/common/ustring.h"
+src/aurora/nwscript/object.h:29:#include "src/common/ustring.h"
+Binary file src/aurora/nwscript/object.o matches
+Binary file src/aurora/nwscript/variablecontainer.o matches
+Binary file src/aurora/archive.o matches
+src/aurora/.deps/keyfile.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/keyfile.Plo:412:../../src/common/ustring.h:
+src/aurora/.deps/visfile.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/visfile.Plo:442:../../src/common/ustring.h:
+src/aurora/.deps/ssffile.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/ssffile.Plo:446:../../src/common/ustring.h:
+src/aurora/.deps/biffile.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/biffile.Plo:412:../../src/common/ustring.h:
+src/aurora/.deps/ndsrom.Plo:38: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/aurora/.deps/ndsrom.Plo:354:../../src/common/ustring.h:
+src/aurora/.deps/aurorafile.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/aurorafile.Plo:441:../../src/common/ustring.h:
+src/aurora/.deps/talktable_gff.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/talktable_gff.Plo:410:../../src/common/ustring.h:
+src/aurora/.deps/archive.Plo:47: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/aurora/.deps/archive.Plo:373:../../src/common/ustring.h:
+src/aurora/.deps/bzffile.Plo:69: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/bzffile.Plo:450:../../src/common/ustring.h:
+src/aurora/.deps/nitrofile.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/nitrofile.Plo:440:../../src/common/ustring.h:
+src/aurora/.deps/herffile.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/herffile.Plo:410:../../src/common/ustring.h:
+src/aurora/.deps/gff4file.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/gff4file.Plo:343:../../src/common/ustring.h:
+src/aurora/.deps/zipfile.Plo:23: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/aurora/.deps/zipfile.Plo:321:../../src/common/ustring.h:
+src/aurora/.deps/talktable.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/talktable.Plo:442:../../src/common/ustring.h:
+src/aurora/.deps/rimfile.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/rimfile.Plo:445:../../src/common/ustring.h:
+src/aurora/.deps/locstring.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/locstring.Plo:444:../../src/common/ustring.h:
+src/aurora/.deps/erffile.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/erffile.Plo:447:../../src/common/ustring.h:
+src/aurora/.deps/talkman.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/talkman.Plo:343:../../src/common/ustring.h:
+src/aurora/.deps/smallfile.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/smallfile.Plo:441:../../src/common/ustring.h:
+src/aurora/.deps/util.Plo:38: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/aurora/.deps/util.Plo:354:../../src/common/ustring.h:
+src/aurora/.deps/pefile.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/pefile.Plo:340:../../src/common/ustring.h:
+src/aurora/.deps/gdafile.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/gdafile.Plo:340:../../src/common/ustring.h:
+src/aurora/.deps/nsbtxfile.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/nsbtxfile.Plo:412:../../src/common/ustring.h:
+src/aurora/.deps/2dafile.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/2dafile.Plo:410:../../src/common/ustring.h:
+src/aurora/.deps/lytfile.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/lytfile.Plo:442:../../src/common/ustring.h:
+src/aurora/.deps/ifofile.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/ifofile.Plo:339:../../src/common/ustring.h:
+src/aurora/.deps/language.Plo:2: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/aurora/.deps/language.Plo:263:../../src/common/ustring.h:
+src/aurora/.deps/resman.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/resman.Plo:418:../../src/common/ustring.h:
+src/aurora/.deps/dlgfile.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/dlgfile.Plo:418:../../src/common/ustring.h:
+src/aurora/.deps/gff3file.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/gff3file.Plo:343:../../src/common/ustring.h:
+src/aurora/.deps/talktable_tlk.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/talktable_tlk.Plo:446:../../src/common/ustring.h:
+src/aurora/.deps/2dareg.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/aurora/.deps/2dareg.Plo:343:../../src/common/ustring.h:
+Binary file src/aurora/zipfile.o matches
+Binary file src/aurora/2dareg.o matches
+Binary file src/aurora/aurorafile.o matches
+Binary file src/aurora/gff4file.o matches
+Binary file src/aurora/ndsrom.o matches
+src/aurora/gff4file.h:32:#include "src/common/ustring.h"
+Binary file src/aurora/talkman.o matches
+Binary file src/aurora/dlgfile.o matches
+src/aurora/talkman.h:31:#include "src/common/ustring.h"
+Binary file src/aurora/gff3file.o matches
+Binary file src/aurora/nitrofile.o matches
+Binary file src/aurora/talktable.o matches
+src/aurora/gff3file.h:32:#include "src/common/ustring.h"
+src/aurora/nsbtxfile.h:30:#include "src/common/ustring.h"
+src/aurora/ssffile.h:31:#include "src/common/ustring.h"
+src/aurora/talktable_tlk.h:31:#include "src/common/ustring.h"
+src/aurora/lytfile.h:31:#include "src/common/ustring.h"
+Binary file src/aurora/visfile.o matches
+src/aurora/aurorafile.cpp:26:#include "src/common/ustring.h"
+Binary file src/aurora/.libs/libaurora.a matches
+src/aurora/keyfile.h:31:#include "src/common/ustring.h"
+src/aurora/gff3file.cpp:34:#include "src/common/ustring.h"
+Binary file src/aurora/pefile.o matches
+Binary file src/aurora/bzffile.o matches
+Binary file src/aurora/lytfile.o matches
+src/aurora/util.cpp:26:#include "src/common/ustring.h"
+Binary file src/aurora/2dafile.o matches
+Binary file src/aurora/rimfile.o matches
+src/aurora/2dareg.h:30:#include "src/common/ustring.h"
+Binary file src/aurora/herffile.o matches
+Binary file src/aurora/resman.o matches
+Binary file src/aurora/smallfile.o matches
+src/aurora/resman.h:34:#include "src/common/ustring.h"
+src/aurora/gdafile.h:31:#include "src/common/ustring.h"
+Binary file src/aurora/nsbtxfile.o matches
+Binary file src/aurora/ssffile.o matches
+src/aurora/erffile.h:31:#include "src/common/ustring.h"
+src/aurora/pefile.h:31:#include "src/common/ustring.h"
+src/aurora/ifofile.h:29:#include "src/common/ustring.h"
+Binary file src/aurora/ifofile.o matches
+src/aurora/locstring.h:31:#include "src/common/ustring.h"
+src/aurora/herffile.h:31:#include "src/common/ustring.h"
+Binary file src/aurora/talktable_gff.o matches
+Binary file src/aurora/keyfile.o matches
+Binary file src/aurora/biffile.o matches
+Binary file src/aurora/util.o matches
+src/aurora/dlgfile.h:31:#include "src/common/ustring.h"
+Binary file src/aurora/locstring.o matches
+src/aurora/talkman.cpp:26:#include "src/common/ustring.h"
+src/common/Makefile.am:40:                 ustring.h \
+src/common/Makefile.am:93:                       ustring.cpp \
+src/common/stringmap.h:32:#include "src/common/ustring.h"
+Binary file src/common/debugman.o matches
+src/common/UstringTest.cpp:5:#include "ustring.h"
+src/common/Makefile:121:	threads.lo thread.lo mutex.lo ustring.lo md5.lo blowfish.lo \
+src/common/Makefile:445:                 ustring.h \
+src/common/Makefile:498:                       ustring.cpp \
+src/common/Makefile:628:include ./$(DEPDIR)/ustring.Plo
+Binary file src/common/foxpro.o matches
+Binary file src/common/threads.o matches
+Binary file src/common/stream.o matches
+Binary file src/common/configman.o matches
+src/common/writestream.cpp:32:#include "src/common/ustring.h"
+Binary file src/common/debug.o matches
+Binary file src/common/stringmap.o matches
+Binary file src/common/filepath.o matches
+Binary file src/common/streamtokenizer.o matches
+src/common/ustring.cpp~:30:#include "src/common/ustring.h"
+src/common/writefile.cpp:27:#include "src/common/ustring.h"
+src/common/.deps/systemfonts.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/systemfonts.Plo:440:../../src/common/ustring.h:
+src/common/.deps/debugman.Plo:751: /usr/include/c++/4.8/bits/list.tcc ../../src/common/ustring.h \
+src/common/.deps/debugman.Plo:2441:../../src/common/ustring.h:
+src/common/.deps/filelist.Plo:465: ../../src/common/ustring.h ../../src/common/types.h ../../config.h \
+src/common/.deps/filelist.Plo:1548:../../src/common/ustring.h:
+src/common/.deps/encoding.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/encoding.Plo:421:../../src/common/ustring.h:
+src/common/.deps/threads.Plo:80: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/threads.Plo:463:../../src/common/ustring.h:
+src/common/.deps/huffman.Plo:66: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/huffman.Plo:426:../../src/common/ustring.h:
+src/common/.deps/strutil.Plo:85: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/strutil.Plo:484:../../src/common/ustring.h:
+src/common/.deps/configman.Plo:51: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/configman.Plo:518:../../src/common/ustring.h:
+src/common/.deps/file.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/file.Plo:442:../../src/common/ustring.h:
+src/common/.deps/zipfile.Plo:23: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/common/.deps/zipfile.Plo:318:../../src/common/ustring.h:
+src/common/.deps/filepath.Plo:603: ../../src/common/ustring.h ../../utf8cpp/utf8.h \
+src/common/.deps/filepath.Plo:1969:../../src/common/ustring.h:
+src/common/.deps/configfile.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/configfile.Plo:471:../../src/common/ustring.h:
+src/common/.deps/debug.Plo:63: /usr/include/c++/4.8/bits/range_access.h ../../src/common/ustring.h \
+src/common/.deps/debug.Plo:420:../../src/common/ustring.h:
+src/common/.deps/stream.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/stream.Plo:440:../../src/common/ustring.h:
+src/common/.deps/util.Plo:60: /usr/include/c++/4.8/bits/range_access.h ../../src/common/ustring.h \
+src/common/.deps/util.Plo:404:../../src/common/ustring.h:
+src/common/.deps/matrix.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/matrix.Plo:330:../../src/common/ustring.h:
+src/common/.deps/ustring.Plo:1:ustring.lo: ustring.cpp /usr/include/stdc-predef.h \
+src/common/.deps/ustring.Plo:24: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/common/.deps/ustring.Plo:318:../../src/common/ustring.h:
+src/common/.deps/stringmap.Plo:377: /usr/include/c++/4.8/bits/sstream.tcc ../../src/common/ustring.h \
+src/common/.deps/stringmap.Plo:1252:../../src/common/ustring.h:
+src/common/.deps/streamtokenizer.Plo:52: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/common/.deps/streamtokenizer.Plo:383:../../src/common/ustring.h:
+src/common/.deps/uuid.Plo:415: ../../src/common/uuid.h ../../src/common/ustring.h \
+src/common/.deps/uuid.Plo:1387:../../src/common/ustring.h:
+src/common/.deps/readline.Plo:63: /usr/include/c++/4.8/bits/stl_multimap.h ../../src/common/ustring.h \
+src/common/.deps/readline.Plo:531:../../src/common/ustring.h:
+src/common/.deps/foxpro.Plo:289: ../../config.h /usr/include/inttypes.h ../../src/common/ustring.h \
+src/common/.deps/foxpro.Plo:1010:../../src/common/ustring.h:
+src/common/.deps/error.Plo:45: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/common/.deps/error.Plo:364:../../src/common/ustring.h:
+src/common/.deps/pe_exe.Plo:56: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/common/.deps/pe_exe.Plo:390:../../src/common/ustring.h:
+src/common/readfile.cpp:27:#include "src/common/ustring.h"
+Binary file src/common/zipfile.o matches
+Binary file src/common/encoding.o matches
+src/common/pe_exe.h:31:#include "src/common/ustring.h"
+Binary file src/common/error.o matches
+Binary file src/common/systemfonts.o matches
+Binary file src/common/matrix.o matches
+src/common/md5.cpp:28:#include "src/common/ustring.h"
+src/common/filepath.h:31:#include "src/common/ustring.h"
+src/common/strutil.cpp:35:#include "src/common/ustring.h"
+src/common/Makefile.in:121:	threads.lo thread.lo mutex.lo ustring.lo md5.lo blowfish.lo \
+src/common/Makefile.in:445:                 ustring.h \
+src/common/Makefile.in:498:                       ustring.cpp \
+src/common/Makefile.in:628:@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ustring.Plo@am__quote@
+src/common/ustring.lo:1:# ustring.lo - a libtool object file
+src/common/ustring.lo:11:non_pic_object='ustring.o'
+Binary file src/common/.libs/libcommon.a matches
+src/common/foxpro.h:34:#include "src/common/ustring.h"
+src/common/zipfile.h:29:#include "src/common/ustring.h"
+Binary file src/common/pe_exe.o matches
+Binary file src/common/filelist.o matches
+src/common/readline.h:33:#include "src/common/ustring.h"
+Binary file src/common/readline.o matches
+src/common/xml.h:31:#include "src/common/ustring.h"
+src/common/configman.h:33:#include "src/common/ustring.h"
+src/common/encoding.cpp:35:#include "src/common/ustring.h"
+src/common/filelist.h:30:#include "src/common/ustring.h"
+src/common/UstringTest.cpp~:5:#include "src/common/ustring.h"
+src/common/error.h:31:#include "src/common/ustring.h"
+Binary file src/common/huffman.o matches
+src/common/uuid.h:28:#include "src/common/ustring.h"
+src/common/platform.h:32:#include "src/common/ustring.h"
+src/common/hash.h:29:#include "src/common/ustring.h"
+Binary file src/common/file.o matches
+Binary file src/common/strutil.o matches
+src/common/streamtokenizer.h:32:#include "src/common/ustring.h"
+Binary file src/common/uuid.o matches
+src/common/ustring.cpp:30:#include "src/common/ustring.h"
+src/common/configfile.h:32:#include "src/common/ustring.h"
+src/common/debugman.h:34:#include "src/common/ustring.h"
+Binary file src/common/util.o matches
+Binary file src/common/configfile.o matches
+Binary file src/common/ustring.o matches
+src/graphics/graphics.h:40:#include "src/common/ustring.h"
+Binary file src/graphics/graphics.o matches
+src/graphics/.deps/camera.Plo:210: ../../src/common/vector3.h ../../src/common/ustring.h \
+src/graphics/.deps/camera.Plo:923:../../src/common/ustring.h:
+src/graphics/.deps/texture.Plo:182: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/graphics/.deps/texture.Plo:894:../../src/common/ustring.h:
+src/graphics/.deps/guifrontelement.Plo:3: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/graphics/.deps/guifrontelement.Plo:316:../../src/common/ustring.h:
+src/graphics/.deps/renderable.Plo:35: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/graphics/.deps/renderable.Plo:394:../../src/common/ustring.h:
+src/graphics/.deps/object.Plo:3: ../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/graphics/.deps/object.Plo:316:../../src/common/ustring.h:
+src/graphics/.deps/graphics.Plo:112: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/graphics/.deps/graphics.Plo:715:../../src/common/ustring.h:
+src/graphics/.deps/fpscounter.Plo:113: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/graphics/.deps/fpscounter.Plo:671:../../src/common/ustring.h:
+src/graphics/.deps/glcontainer.Plo:182: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/graphics/.deps/glcontainer.Plo:894:../../src/common/ustring.h:
+src/graphics/.deps/font.Plo:113: ../../src/graphics/font.h ../../src/common/ustring.h \
+src/graphics/.deps/font.Plo:587:../../src/common/ustring.h:
+src/graphics/.deps/yuv_to_rgb.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/graphics/.deps/yuv_to_rgb.Plo:372:../../src/common/ustring.h:
+src/graphics/.deps/ttf.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/graphics/.deps/ttf.Plo:454:../../src/common/ustring.h:
+src/graphics/aurora/fps.cpp:26:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/textureman.o matches
+Binary file src/graphics/aurora/pltfile.o matches
+src/graphics/aurora/texture.h:28:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/animation.o matches
+Binary file src/graphics/aurora/cursorman.o matches
+src/graphics/aurora/animation.h:31:#include "src/common/ustring.h"
+src/graphics/aurora/texturehandle.h:31:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/ttffont.o matches
+Binary file src/graphics/aurora/abcfont.o matches
+src/graphics/aurora/cube.cpp:26:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/fontman.o matches
+src/graphics/aurora/ttffont.cpp:29:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/model_jade.o matches
+src/graphics/aurora/guiquad.cpp:26:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/cursor.o matches
+src/graphics/aurora/.deps/model_nwn2.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/model_nwn2.Plo:412:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/model.Plo:83: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/model.Plo:545:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/fontman.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/fontman.Plo:378:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/modelnode.Plo:64: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/modelnode.Plo:482:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/texturehandle.Plo:50: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/graphics/aurora/.deps/texturehandle.Plo:413:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/cursor.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/cursor.Plo:457:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/cube.Plo:38: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/graphics/aurora/.deps/cube.Plo:514:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/model_nwn.Plo:378: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/model_nwn.Plo:1338:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/model_kotor.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/model_kotor.Plo:407:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/texture.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/texture.Plo:572:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/ttffont.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/ttffont.Plo:467:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/geometryobject.Plo:40: ../../../src/graphics/renderable.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/geometryobject.Plo:395:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/fps.Plo:2: ../../../config.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/fps.Plo:416:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/cursorman.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/cursorman.Plo:463:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/animation.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/animation.Plo:509:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/text.Plo:182: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/text.Plo:885:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/guiquad.Plo:39: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/graphics/aurora/.deps/guiquad.Plo:396:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/model_jade.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/model_jade.Plo:407:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/abcfont.Plo:2: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/graphics/aurora/.deps/abcfont.Plo:307:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/nftrfont.Plo:41: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/graphics/aurora/.deps/nftrfont.Plo:410:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/texturefont.Plo:51: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/texturefont.Plo:422:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/fonthandle.Plo:34: /usr/include/c++/4.8/bits/vector.tcc ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/fonthandle.Plo:370:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/model_witcher.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/model_witcher.Plo:407:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/highlightabletext.Plo:3: ../../../src/graphics/aurora/text.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/highlightabletext.Plo:305:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/highlightableguiquad.Plo:44: ../../../src/graphics/renderable.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/highlightableguiquad.Plo:402:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/animnode.Plo:65: /usr/include/c++/4.8/bits/vector.tcc ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/animnode.Plo:481:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/pltfile.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/pltfile.Plo:380:../../../src/common/ustring.h:
+src/graphics/aurora/.deps/textureman.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/aurora/.deps/textureman.Plo:566:../../../src/common/ustring.h:
+src/graphics/aurora/texturefont.cpp:27:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/fonthandle.o matches
+src/graphics/aurora/animnode.h:30:#include "src/common/ustring.h"
+src/graphics/aurora/cursor.h:28:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/highlightabletext.o matches
+Binary file src/graphics/aurora/model_nwn.o matches
+Binary file src/graphics/aurora/texturehandle.o matches
+Binary file src/graphics/aurora/model_nwn2.o matches
+src/graphics/aurora/text.h:28:#include "src/common/ustring.h"
+src/graphics/aurora/fonthandle.h:31:#include "src/common/ustring.h"
+src/graphics/aurora/nftrfont.cpp:39:#include "src/common/ustring.h"
+src/graphics/aurora/model.h:32:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/nftrfont.o matches
+Binary file src/graphics/aurora/.libs/libaurora.a matches
+src/graphics/aurora/textureman.h:34:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/modelnode.o matches
+Binary file src/graphics/aurora/texturefont.o matches
+Binary file src/graphics/aurora/guiquad.o matches
+Binary file src/graphics/aurora/fps.o matches
+Binary file src/graphics/aurora/model_witcher.o matches
+src/graphics/aurora/abcfont.cpp:25:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/model.o matches
+Binary file src/graphics/aurora/geometryobject.o matches
+src/graphics/aurora/fontman.h:33:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/text.o matches
+Binary file src/graphics/aurora/texture.o matches
+src/graphics/aurora/modelnode.h:31:#include "src/common/ustring.h"
+Binary file src/graphics/aurora/model_kotor.o matches
+Binary file src/graphics/aurora/cube.o matches
+Binary file src/graphics/aurora/animnode.o matches
+Binary file src/graphics/aurora/highlightableguiquad.o matches
+src/graphics/aurora/cursorman.h:31:#include "src/common/ustring.h"
+src/graphics/font.h:30:#include "src/common/ustring.h"
+src/graphics/render/.deps/renderman.Plo:207: /usr/include/c++/4.8/cmath ../../../src/common/ustring.h \
+src/graphics/render/.deps/renderman.Plo:823:../../../src/common/ustring.h:
+src/graphics/render/.deps/renderqueue.Plo:206: /usr/include/c++/4.8/cmath ../../../src/common/ustring.h \
+src/graphics/render/.deps/renderqueue.Plo:824:../../../src/common/ustring.h:
+Binary file src/graphics/render/.libs/librender.a matches
+Binary file src/graphics/render/renderqueue.o matches
+Binary file src/graphics/render/renderman.o matches
+Binary file src/graphics/yuv_to_rgb.o matches
+Binary file src/graphics/ttf.o matches
+Binary file src/graphics/.libs/libgraphics.a matches
+Binary file src/graphics/font.o matches
+Binary file src/graphics/guifrontelement.o matches
+Binary file src/graphics/images/nclr.o matches
+Binary file src/graphics/images/dumptga.o matches
+Binary file src/graphics/images/txitypes.o matches
+Binary file src/graphics/images/winiconimage.o matches
+Binary file src/graphics/images/tga.o matches
+Binary file src/graphics/images/txb.o matches
+Binary file src/graphics/images/screenshot.o matches
+src/graphics/images/txitypes.cpp:26:#include "src/common/ustring.h"
+src/graphics/images/.deps/dumptga.Plo:46: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/dumptga.Plo:408:../../../src/common/ustring.h:
+src/graphics/images/.deps/tpc.Plo:63: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/tpc.Plo:453:../../../src/common/ustring.h:
+src/graphics/images/.deps/winiconimage.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/winiconimage.Plo:479:../../../src/common/ustring.h:
+src/graphics/images/.deps/decoder.Plo:62: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/decoder.Plo:464:../../../src/common/ustring.h:
+src/graphics/images/.deps/txb.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/txb.Plo:447:../../../src/common/ustring.h:
+src/graphics/images/.deps/surface.Plo:111: ../../../src/graphics/images/txi.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/surface.Plo:578:../../../src/common/ustring.h:
+src/graphics/images/.deps/xoreositex.Plo:73: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/xoreositex.Plo:482:../../../src/common/ustring.h:
+src/graphics/images/.deps/tga.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/tga.Plo:481:../../../src/common/ustring.h:
+src/graphics/images/.deps/screenshot.Plo:746: ../../../src/common/ustring.h /usr/include/boost/functional/hash.hpp \
+src/graphics/images/.deps/screenshot.Plo:2453:../../../src/common/ustring.h:
+src/graphics/images/.deps/txi.Plo:43: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/txi.Plo:363:../../../src/common/ustring.h:
+src/graphics/images/.deps/dds.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/dds.Plo:445:../../../src/common/ustring.h:
+src/graphics/images/.deps/nclr.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/nclr.Plo:442:../../../src/common/ustring.h:
+src/graphics/images/.deps/nbfs.Plo:61: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/nbfs.Plo:445:../../../src/common/ustring.h:
+src/graphics/images/.deps/txitypes.Plo:377: /usr/include/c++/4.8/bits/sstream.tcc ../../../src/common/ustring.h \
+src/graphics/images/.deps/txitypes.Plo:1252:../../../src/common/ustring.h:
+src/graphics/images/.deps/s3tc.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/s3tc.Plo:440:../../../src/common/ustring.h:
+src/graphics/images/.deps/ncgr.Plo:72: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/ncgr.Plo:482:../../../src/common/ustring.h:
+src/graphics/images/.deps/sbm.Plo:71: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/images/.deps/sbm.Plo:478:../../../src/common/ustring.h:
+src/graphics/images/txi.h:31:#include "src/common/ustring.h"
+Binary file src/graphics/images/dds.o matches
+Binary file src/graphics/images/txi.o matches
+Binary file src/graphics/images/tpc.o matches
+Binary file src/graphics/images/.libs/libimages.a matches
+Binary file src/graphics/images/decoder.o matches
+Binary file src/graphics/images/nbfs.o matches
+Binary file src/graphics/images/ncgr.o matches
+Binary file src/graphics/images/sbm.o matches
+src/graphics/images/screenshot.cpp:30:#include "src/common/ustring.h"
+Binary file src/graphics/images/surface.o matches
+Binary file src/graphics/images/xoreositex.o matches
+src/graphics/images/dumptga.cpp:29:#include "src/common/ustring.h"
+Binary file src/graphics/images/s3tc.o matches
+Binary file src/graphics/renderable.o matches
+Binary file src/graphics/mesh/meshman.o matches
+src/graphics/mesh/.deps/meshwirebox.Plo:206: /usr/include/c++/4.8/cmath ../../../src/common/ustring.h \
+src/graphics/mesh/.deps/meshwirebox.Plo:817:../../../src/common/ustring.h:
+src/graphics/mesh/.deps/meshman.Plo:212: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/graphics/mesh/.deps/meshman.Plo:834:../../../src/common/ustring.h:
+src/graphics/mesh/.deps/mesh.Plo:205: /usr/include/c++/4.8/cmath ../../../src/common/ustring.h \
+src/graphics/mesh/.deps/mesh.Plo:814:../../../src/common/ustring.h:
+Binary file src/graphics/mesh/.libs/libmesh.a matches
+src/graphics/mesh/mesh.h:38:#include "src/common/ustring.h"
+Binary file src/graphics/mesh/mesh.o matches
+src/graphics/mesh/meshman.h:36:#include "src/common/ustring.h"
+Binary file src/graphics/object.o matches
+src/graphics/shader/surfaceman.h:36:#include "src/common/ustring.h"
+src/graphics/shader/.deps/shadermaterial.Plo:121: ../../../src/common/matrix.h ../../../src/common/ustring.h \
+src/graphics/shader/.deps/shadermaterial.Plo:611:../../../src/common/ustring.h:
+src/graphics/shader/.deps/shadersurface.Plo:121: ../../../src/common/matrix.h ../../../src/common/ustring.h \
+src/graphics/shader/.deps/shadersurface.Plo:627:../../../src/common/ustring.h:
+src/graphics/shader/.deps/shaderrenderable.Plo:121: ../../../src/common/matrix.h ../../../src/common/ustring.h \
+src/graphics/shader/.deps/shaderrenderable.Plo:630:../../../src/common/ustring.h:
+src/graphics/shader/.deps/shader.Plo:121: /usr/include/c++/4.8/bits/stl_stack.h ../../../src/common/ustring.h \
+src/graphics/shader/.deps/shader.Plo:633:../../../src/common/ustring.h:
+src/graphics/shader/.deps/surfaceman.Plo:121: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/graphics/shader/.deps/surfaceman.Plo:616:../../../src/common/ustring.h:
+src/graphics/shader/.deps/shaderinstance.Plo:121: ../../../src/common/matrix.h ../../../src/common/ustring.h \
+src/graphics/shader/.deps/shaderinstance.Plo:611:../../../src/common/ustring.h:
+src/graphics/shader/.deps/materialman.Plo:121: ../../../src/common/ustring.h /usr/include/c++/4.8/string \
+src/graphics/shader/.deps/materialman.Plo:615:../../../src/common/ustring.h:
+src/graphics/shader/materialman.h:36:#include "src/common/ustring.h"
+Binary file src/graphics/shader/shadermaterial.o matches
+Binary file src/graphics/shader/shader.o matches
+Binary file src/graphics/shader/shadersurface.o matches
+Binary file src/graphics/shader/shaderrenderable.o matches
+Binary file src/graphics/shader/.libs/libshader.a matches
+Binary file src/graphics/shader/materialman.o matches
+src/graphics/shader/shader.h:75:#include "src/common/ustring.h"
+Binary file src/graphics/shader/surfaceman.o matches
+Binary file src/graphics/shader/shaderinstance.o matches
+src/graphics/renderable.h:28:#include "src/common/ustring.h"
+Binary file src/xoreos.o matches
+src/UstringTest.cpp~:5:#include "src/common/ustring.h"
+Binary file src/events/timerman.o matches
+src/events/.deps/notifications.Plo:107: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/events/.deps/notifications.Plo:649:../../src/common/ustring.h:
+src/events/.deps/requesttypes.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/events/.deps/requesttypes.Plo:473:../../src/common/ustring.h:
+src/events/.deps/requests.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/events/.deps/requests.Plo:480:../../src/common/ustring.h:
+src/events/.deps/joystick.Plo:50: /usr/local/include/SDL2/SDL_error.h ../../src/common/ustring.h \
+src/events/.deps/joystick.Plo:389:../../src/common/ustring.h:
+src/events/.deps/timerman.Plo:34: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/events/.deps/timerman.Plo:452:../../src/common/ustring.h:
+src/events/.deps/events.Plo:80: /usr/include/c++/4.8/bits/stl_stack.h ../../src/common/ustring.h \
+src/events/.deps/events.Plo:625:../../src/common/ustring.h:
+Binary file src/events/requests.o matches
+src/events/joystick.h:30:#include "src/common/ustring.h"
+Binary file src/events/events.o matches
+Binary file src/events/requesttypes.o matches
+Binary file src/events/.libs/libevents.a matches
+Binary file src/events/joystick.o matches
