@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <ctype.h>
+#include "../common/ustring.h"
 #include "XMLFix.h"
 
 using std::cout;
@@ -27,9 +28,9 @@ int main(int argc, char* argv[]){
 		return -1;
 	}	
 	//First get our file names	
-	std::string oldFileName = argv[1];
-	std::string newFileName = oldFileName;
-	std::string line; //Each line of XML we parse
+	Common::UString oldFileName = argv[1];
+	Common::UString newFileName = oldFileName;
+	Common::UString line; //Each line of XML we parse
 	size_t perLoc = oldFileName.find("."); //Location of period in the file name.
 	//There is a period	
 	if (perLoc != std::string::npos){//Add Fixed before the extension
@@ -77,7 +78,7 @@ int main(int argc, char* argv[]){
 /**Read and fix any line of XML that is passed in,
  * Returns that fixed line.
  */
-std::string parseLine(std::string line){
+Common::UString parseLine(Common::UString line){
 	line = fixUnclosedNodes(line);
 	line = escapeSpacedStrings(line, false);//Fix problematic strings (with spaces or special characters)
 	line = fixMismatchedParen(line);	
@@ -100,7 +101,7 @@ std::string parseLine(std::string line){
  * This probably doesn't need to run on every
  * Line.
  */
-std::string fixCopyright(std::string line){
+Common::UString fixCopyright(Common::UString line){
 	//If this is the copyright line, remove the unicode.
 	if (line.find("Copyright") != std::string::npos){
 		if (!comCount){
@@ -120,7 +121,7 @@ std::string fixCopyright(std::string line){
  * Returns the unmodified line with the
  * Proper opening XML tag.
  */
-std::string fixXMLTag(std::string line){
+Common::UString fixXMLTag(Common::UString line){
 	//Let's ensure we close this properly.
 	if (line.find("<?xml") != string::npos){
 		line = trim(line);
@@ -140,7 +141,7 @@ std::string fixXMLTag(std::string line){
  * If there is a closed UIButton without an open
  * UIButton.
  */
-std::string fixUnclosedNodes(std::string line){
+Common::UString fixUnclosedNodes(Common::UString line){
 	size_t pos = line.find("<UIButton");
 	//Open node	
 	if (pos != string::npos){
@@ -166,7 +167,7 @@ std::string fixUnclosedNodes(std::string line){
  * In the context open("FooBar"), so that's the only
  * Case we look for right now.
  */
-std::string escapeInnerQuotes(std::string line){
+Common::UString escapeInnerQuotes(Common::UString line){
 	if (countOccurances(line, '"') > 2){//We have more than 2 quotes in one line
 		size_t firstQuotPos =line.find("\""); //The first quotation mark
 		size_t lastQuotPos = line.find_last_of("\""); //The last quotation mark
@@ -202,7 +203,7 @@ std::string escapeInnerQuotes(std::string line){
  * Appears in a string, line, and returns that 
  * Number. //TODO: can we replace this with std::count?
  */
-int countOccurances(string line, char find){
+int countOccurances(Common::UString, char find){
 	int count = 0;
 	for (size_t i = 0; i < line.length(); i++){	
 		if (line[i] == find){
@@ -213,7 +214,7 @@ int countOccurances(string line, char find){
 }
 
 //Adds a closing paren if a line is missing such a thing.
-std::string fixMismatchedParen(std::string line){
+Common::UString fixMismatchedParen(Common::UString line){
 	bool inParen = false;
 	size_t end = line.length();
 	for (size_t i = 0; i < end; i++){
@@ -241,7 +242,7 @@ return line;
  * By a quotation mark. Insert that quotation mark,
  * and return the fixed line.
  */
-std::string fixOpenQuotes(std::string line){
+Common::UString fixOpenQuotes(Common::UString line){
 //We have an equal with no open quote
 	size_t end = line.length() -1;
 	for (size_t i = 0; i < end; i++){
@@ -300,7 +301,7 @@ std::string fixOpenQuotes(std::string line){
  * there isn't a close quote, AND we have an
  * odd number of quotes.
  */
-std::string fixUnevenQuotes(std::string line){
+Common::UString fixUnevenQuotes(Common::UString line){
 	size_t closeBrace = line.find("/>");
         //We don't have a close quote before our close brace
 	//Sometimes there is a space after a quote
